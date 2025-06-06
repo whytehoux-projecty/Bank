@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NovaBank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom scrollbar to match Zenith Bank theme */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #fdecea; /* Lighter shade of Zenith red for track */
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #a41e22; /* Zenith Bank primary red */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #8c1a1f; /* Darker Zenith red */
+      }
+      /* Ensure html and body take full height for sticky footer */
+      html,
+      body,
+      #root {
+        height: 100%;
+      }
+
+      /* Custom Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes scaleIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes gentleBounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-8px);
+        }
+        60% {
+          transform: translateY(-4px);
+        }
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -200px 0;
+        }
+        100% {
+          background-position: calc(200px + 100%) 0;
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+      @keyframes rotateIn {
+        from {
+          opacity: 0;
+          transform: rotate(-10deg) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: rotate(0deg) scale(1);
+        }
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      @keyframes glow {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(164, 30, 34, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(164, 30, 34, 0.6);
+        }
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes zoomIn {
+        from {
+          opacity: 0;
+          transform: scale(0.3);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      @keyframes typewriter {
+        from {
+          width: 0;
+        }
+        to {
+          width: 100%;
+        }
+      }
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+
+      /* Animation Utility Classes */
+      .anim-fadeInUp {
+        animation: fadeInUp 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      .anim-fadeIn {
+        animation: fadeIn 0.8s ease-out forwards;
+      }
+      .anim-scaleIn {
+        animation: scaleIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      .anim-slideInLeft {
+        animation: slideInLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards;
+      }
+      .anim-slideInRight {
+        animation: slideInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards;
+      }
+      .anim-gentleBounce {
+        animation: gentleBounce 2s infinite ease-in-out;
+      }
+      .anim-pulse {
+        animation: pulse 2s infinite;
+      }
+      .anim-rotateIn {
+        animation: rotateIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      .anim-float {
+        animation: float 3s ease-in-out infinite;
+      }
+      .anim-glow {
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+      .anim-slideDown {
+        animation: slideDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      .anim-zoomIn {
+        animation: zoomIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      .anim-bounce {
+        animation: bounce 1.4s infinite ease-in-out;
+      }
+
+      /* Shimmer effect for loading states */
+      .shimmer {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(164, 30, 34, 0.1),
+          transparent
+        );
+        background-size: 200px 100%;
+        animation: shimmer 1.5s infinite;
+      }
+
+      /* Professional hover effects */
+      .hover-lift {
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(164, 30, 34, 0.15);
+      }
+
+      /* Gradient text effect */
+      .gradient-text {
+        background: linear-gradient(135deg, #a41e22, #8c1a1f, #d2504b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Improve focus rings for accessibility and style - Zenith theme */
+      *:focus-visible {
+        outline: 2px solid #a41e22 !important; /* Zenith Red */
+        outline-offset: 2px !important;
+      }
+    </style>
+    <!-- Example of preloading a critical image -->
+    <!-- <link rel="preload" href="https://source.unsplash.com/random/1600x900?modern,office,finance,abstract" as="image"> -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@^19.1.0",
+          "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+          "react-router-dom": "https://esm.sh/react-router-dom@^7.6.2",
+          "react/": "https://esm.sh/react@^19.1.0/",
+          "@google/genai": "https://esm.sh/@google/genai@^1.3.0"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/index.css" />
+  </head>
+  <body class="bg-white">
+    {/* Changed from bg-gray-100 to bg-white */}
+    <div id="root" class="flex flex-col min-h-screen"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
