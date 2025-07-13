@@ -1,0 +1,207 @@
+<%- include('layout.ejs', { 
+  title: 'Account Management',
+  body: `
+    <div class="container-fluid">
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-credit-card"></i> Account Management</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+              <i class="bi bi-plus-circle"></i> Create Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body text-center">
+              <i class="bi bi-credit-card fs-1 mb-2"></i>
+              <h3 id="totalAccounts">0</h3>
+              <p class="mb-0">Total Accounts</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body text-center">
+              <i class="bi bi-check-circle fs-1 mb-2"></i>
+              <h3 id="activeAccounts">0</h3>
+              <p class="mb-0">Active Accounts</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body text-center">
+              <i class="bi bi-currency-dollar fs-1 mb-2"></i>
+              <h3 id="totalBalance">$0</h3>
+              <p class="mb-0">Total Balance</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card stats-card">
+            <div class="card-body text-center">
+              <i class="bi bi-graph-up fs-1 mb-2"></i>
+              <h3 id="avgBalance">$0</h3>
+              <p class="mb-0">Average Balance</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3">
+                  <input type="text" class="form-control" placeholder="Search accounts..." id="accountSearch">
+                </div>
+                <div class="col-md-2">
+                  <select class="form-select" id="typeFilter">
+                    <option value="">All Types</option>
+                    <option value="CHECKING">Checking</option>
+                    <option value="SAVINGS">Savings</option>
+                    <option value="BUSINESS">Business</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="FROZEN">Frozen</option>
+                    <option value="CLOSED">Closed</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <div class="input-group">
+                    <span class="input-group-text">Balance</span>
+                    <input type="number" class="form-control" placeholder="Min" id="minBalance">
+                    <input type="number" class="form-control" placeholder="Max" id="maxBalance">
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-outline-primary w-100" onclick="searchAccounts()">
+                    <i class="bi bi-search"></i> Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accounts Table -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Accounts List</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover" id="accountsTable">
+                  <thead>
+                    <tr>
+                      <th>Account Number</th>
+                      <th>Account Holder</th>
+                      <th>Type</th>
+                      <th>Balance</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Last Activity</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="8" class="text-center">
+                        <div class="spinner-border" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Load accounts on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadAccounts();
+      });
+
+      function loadAccounts() {
+        fetch('/api/accounts')
+          .then(response => response.json())
+          .then(data => {
+            const tbody = document.querySelector('#accountsTable tbody');
+            if (data.accounts && data.accounts.length > 0) {
+              tbody.innerHTML = data.accounts.map(account => \`
+                <tr>
+                  <td><code>\${account.accountNumber}</code></td>
+                  <td>\${account.user ? account.user.firstName + ' ' + account.user.lastName : 'N/A'}</td>
+                  <td><span class="badge bg-info">\${account.accountType}</span></td>
+                  <td class="text-end"><strong>$\${parseFloat(account.balance).toLocaleString()}</strong></td>
+                  <td><span class="badge bg-\${account.status === 'ACTIVE' ? 'success' : account.status === 'FROZEN' ? 'warning' : 'secondary'}">\${account.status}</span></td>
+                  <td>\${new Date(account.createdAt).toLocaleDateString()}</td>
+                  <td>\${account.lastTransactionAt ? new Date(account.lastTransactionAt).toLocaleDateString() : 'Never'}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-primary" onclick="viewAccount('\${account.id}')">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-outline-warning" onclick="editAccount('\${account.id}')">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-info" onclick="viewTransactions('\${account.id}')">
+                        <i class="bi bi-list-ul"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              \`).join('');
+            } else {
+              tbody.innerHTML = '<tr><td colspan="8" class="text-center">No accounts found</td></tr>';
+            }
+          })
+          .catch(error => {
+            console.error('Error loading accounts:', error);
+            document.querySelector('#accountsTable tbody').innerHTML = 
+              '<tr><td colspan="8" class="text-center text-danger">Error loading accounts</td></tr>';
+          });
+      }
+
+      function searchAccounts() {
+        // Implement search functionality
+        loadAccounts();
+      }
+
+      function viewAccount(accountId) {
+        // Implement view account functionality
+        alert('View account: ' + accountId);
+      }
+
+      function editAccount(accountId) {
+        // Implement edit account functionality
+        alert('Edit account: ' + accountId);
+      }
+
+      function viewTransactions(accountId) {
+        // Implement view transactions functionality
+        window.location.href = '/transactions?account=' + accountId;
+      }
+    </script>
+  `
+}) %>

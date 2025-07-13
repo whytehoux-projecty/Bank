@@ -1,0 +1,220 @@
+<%- include('layout', { body: `
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Users</div>
+                        <div class="h5 mb-0 font-weight-bold" id="totalUsers">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Accounts</div>
+                        <div class="h5 mb-0 font-weight-bold" id="totalAccounts">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-credit-card fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Transactions</div>
+                        <div class="h5 mb-0 font-weight-bold" id="totalTransactions">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-left-right fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Pending KYC</div>
+                        <div class="h5 mb-0 font-weight-bold" id="pendingKyc">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-file-earmark-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/users" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-person-plus"></i><br>
+                            <small>Add New User</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/accounts" class="btn btn-outline-success w-100">
+                            <i class="bi bi-credit-card-2-front"></i><br>
+                            <small>Create Account</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/transactions" class="btn btn-outline-info w-100">
+                            <i class="bi bi-search"></i><br>
+                            <small>Search Transactions</small>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/kyc" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-file-earmark-text"></i><br>
+                            <small>Review KYC</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history"></i> Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Action</th>
+                                <th>User</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><small class="text-muted">Just now</small></td>
+                                <td>User Registration</td>
+                                <td>john.doe@example.com</td>
+                                <td><span class="badge bg-success">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td><small class="text-muted">2 min ago</small></td>
+                                <td>Wire Transfer</td>
+                                <td>jane.smith@example.com</td>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                            </tr>
+                            <tr>
+                                <td><small class="text-muted">5 min ago</small></td>
+                                <td>KYC Document Upload</td>
+                                <td>mike.johnson@example.com</td>
+                                <td><span class="badge bg-info">Review</span></td>
+                            </tr>
+                            <tr>
+                                <td><small class="text-muted">10 min ago</small></td>
+                                <td>Account Creation</td>
+                                <td>sarah.wilson@example.com</td>
+                                <td><span class="badge bg-success">Completed</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Alerts
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <strong>High Volume:</strong> Unusual transaction volume detected in the last hour.
+                </div>
+                <div class="alert alert-info" role="alert">
+                    <strong>KYC Review:</strong> 5 documents pending review.
+                </div>
+                <div class="alert alert-success" role="alert">
+                    <strong>System Status:</strong> All services operational.
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i> System Health
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>API Response Time</span>
+                        <span class="text-success">125ms</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Database Performance</span>
+                        <span class="text-success">Good</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 92%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Cache Hit Rate</span>
+                        <span class="text-success">98%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 98%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+` }) %>
