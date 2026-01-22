@@ -104,7 +104,7 @@ export default function BeneficiariesPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Beneficiaries</h1>

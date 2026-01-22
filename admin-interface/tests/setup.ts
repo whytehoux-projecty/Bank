@@ -1,13 +1,20 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function cleanDatabase() {
-  // Disable foreign key checks temporarily
-  await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 0;`;
+  // Disable foreign key checks is not needed for Postgres if delete order is correct
+  // or we would use TRUNCATE CASCADE if needed.
+  // We will rely on correct delete order below.
 
   try {
     // Truncate all tables
+    await prisma.portalStatusAudit.deleteMany();
+    await prisma.portalStatus.deleteMany();
+    await prisma.paymentVerification.deleteMany();
+    await prisma.systemConfig.deleteMany();
     await prisma.auditLog.deleteMany();
     await prisma.adminSession.deleteMany();
     await prisma.adminUser.deleteMany();
@@ -15,13 +22,18 @@ export async function cleanDatabase() {
     await prisma.kycDocument.deleteMany();
     await prisma.wireTransfer.deleteMany();
     await prisma.transaction.deleteMany();
+    await prisma.card.deleteMany();
+    await prisma.statement.deleteMany();
+    await prisma.billPayee.deleteMany();
+    await prisma.beneficiary.deleteMany();
     await prisma.account.deleteMany();
     await prisma.address.deleteMany();
+    await prisma.contactSubmission.deleteMany();
+    await prisma.accountApplication.deleteMany();
     await prisma.user.deleteMany();
     await prisma.fxRate.deleteMany();
   } finally {
-    // Re-enable foreign key checks
-    await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 1;`;
+    // Re-enable not needed
   }
 }
 

@@ -10,7 +10,8 @@ import * as applicationRoutes from './account-applications';
 import * as beneficiaryRoutes from './beneficiaries';
 import statementRoutes from './statements';
 import * as cardRoutes from './cards';
-import * as billRoutes from './bills';
+import billRoutes from './bills';
+import loanRoutes from './loans';
 import systemRoutes from './system';
 import { authenticateToken, requireKYCVerified, requireActiveAccount } from '../middleware/auth';
 
@@ -88,9 +89,11 @@ export default async function routes(fastify: FastifyInstance) {
     fastify.put('/cards/:cardId/limits', cardRoutes.updateCardLimits);
 
     // Bill routes
-    fastify.get('/bills/payees', billRoutes.getPayees);
-    fastify.post('/bills/payees', billRoutes.addPayee);
-    fastify.post('/bills/pay', billRoutes.payBill);
+    // Bill routes
+    fastify.register(billRoutes, { prefix: '/bills' });
+
+    // Loan routes
+    fastify.register(loanRoutes, { prefix: '/loans' });
 
     // KYC routes
     fastify.get('/kyc/documents', kycRoutes.getKYCDocuments);

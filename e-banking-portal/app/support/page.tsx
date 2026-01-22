@@ -119,7 +119,7 @@ export default function SupportPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-4xl mx-auto">
             {/* Header */}
             <div className="text-center">
                 <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">How Can We Help?</h1>
@@ -221,8 +221,9 @@ export default function SupportPage() {
                         onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
                     />
                     <div>
-                        <label className="block text-sm font-semibold text-charcoal mb-2">Category</label>
+                        <label htmlFor="supportCategory" className="block text-sm font-semibold text-charcoal mb-2">Category</label>
                         <select
+                            id="supportCategory"
                             value={contactForm.category}
                             onChange={(e) => setContactForm({ ...contactForm, category: e.target.value })}
                             className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"

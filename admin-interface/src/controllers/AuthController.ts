@@ -52,9 +52,9 @@ export class AuthController {
           severity: "WARNING",
           category: "AUTHENTICATION",
         });
-        return reply.view("login.ejs", { 
+        return reply.view("login.ejs", {
           error: "Invalid credentials",
-          email: email 
+          email: email
         });
       }
 
@@ -70,17 +70,17 @@ export class AuthController {
           severity: "WARNING",
           category: "AUTHENTICATION",
         });
-        return reply.view("login.ejs", { 
+        return reply.view("login.ejs", {
           error: "Admin account is deactivated",
-          email: email 
+          email: email
         });
       }
 
       // Check if account is locked
       if (adminUser.lockedUntil && adminUser.lockedUntil > new Date()) {
-        return reply.view("login.ejs", { 
+        return reply.view("login.ejs", {
           error: "Account is temporarily locked due to multiple failed login attempts",
-          email: email 
+          email: email
         });
       }
 
@@ -114,9 +114,9 @@ export class AuthController {
           category: "AUTHENTICATION",
         });
 
-        return reply.view("login.ejs", { 
+        return reply.view("login.ejs", {
           error: "Invalid credentials",
-          email: email 
+          email: email
         });
       }
 
@@ -138,7 +138,7 @@ export class AuthController {
           email: adminUser.email,
           role: adminUser.role,
         },
-        process.env.JWT_SECRET!,
+        JWT_SECRET,
         { expiresIn: "24h" }
       ) as string;
 
@@ -185,9 +185,9 @@ export class AuthController {
       return reply.redirect("/dashboard");
     } catch (error) {
       request.log.error(error, "Form login error:");
-      return reply.view("login.ejs", { 
+      return reply.view("login.ejs", {
         error: "An error occurred during login. Please try again.",
-        email: "" 
+        email: ""
       });
     }
   }
@@ -242,163 +242,158 @@ export class AuthController {
    * Admin login
    */
   static async login(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const { email, password } = LoginSchema.parse(request.body);
+    const { email, password } = LoginSchema.parse(request.body);
 
-      // Find admin user
-      const adminUser = await prisma.adminUser.findUnique({
-        where: { email },
-      });
+    // Find admin user
+    const adminUser = await prisma.adminUser.findUnique({
+      where: { email },
+    });
 
-      if (!adminUser) {
-        await AuditService.log({
-          action: "LOGIN_FAILED",
-          entityType: "ADMIN_USER",
-          entityId: email,
-          details: `Failed login attempt for email: ${email}`,
-          ipAddress: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-          severity: "WARNING",
-          category: "AUTHENTICATION",
-        });
-        return reply.status(401).send({ error: "Invalid credentials" });
-      }
-
-      if (adminUser.status !== "ACTIVE") {
-        await AuditService.log({
-          adminUserId: adminUser.id,
-          action: "LOGIN_BLOCKED",
-          entityType: "ADMIN_USER",
-          entityId: adminUser.id,
-          details: `Login blocked for inactive admin: ${email}`,
-          ipAddress: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-          severity: "WARNING",
-          category: "AUTHENTICATION",
-        });
-        return reply
-          .status(401)
-          .send({ error: "Admin account is deactivated" });
-      }
-
-      // Check if account is locked
-      if (adminUser.lockedUntil && adminUser.lockedUntil > new Date()) {
-        return reply.status(423).send({
-          error:
-            "Account is temporarily locked due to multiple failed login attempts",
-          lockedUntil: adminUser.lockedUntil,
-        });
-      }
-
-      // Verify password
-      const isValidPassword = await bcrypt.compare(
-        password,
-        adminUser.password
-      );
-      if (!isValidPassword) {
-        // Increment login attempts
-        const updatedUser = await prisma.adminUser.update({
-          where: { id: adminUser.id },
-          data: {
-            loginAttempts: adminUser.loginAttempts + 1,
-            lockedUntil:
-              adminUser.loginAttempts >= 4
-                ? new Date(Date.now() + 30 * 60 * 1000) // Lock for 30 minutes after 5 attempts
-                : null,
-          },
-        });
-
-        await AuditService.log({
-          adminUserId: adminUser.id,
-          action: "LOGIN_FAILED",
-          entityType: "ADMIN_USER",
-          entityId: adminUser.id,
-          details: `Failed login attempt ${updatedUser.loginAttempts}/5`,
-          ipAddress: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-          severity: "WARNING",
-          category: "AUTHENTICATION",
-        });
-
-        return reply.status(401).send({ error: "Invalid credentials" });
-      }
-
-      // Reset login attempts on successful login
-      if (adminUser.loginAttempts > 0) {
-        await prisma.adminUser.update({
-          where: { id: adminUser.id },
-          data: {
-            loginAttempts: 0,
-            lockedUntil: null,
-          },
-        });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        {
-          id: adminUser.id,
-          email: adminUser.email,
-          role: adminUser.role,
-        },
-        process.env.JWT_SECRET!,
-        { expiresIn: "24h" }
-      ) as string;
-
-      // Create session
-      await prisma.adminSession.create({
-        data: {
-          adminUserId: adminUser.id,
-          sessionId: token,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-          ipAddress: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-        },
-      });
-
-      // Update last login
-      await prisma.adminUser.update({
-        where: { id: adminUser.id },
-        data: { lastLoginAt: new Date() },
-      });
-
-      // Log successful login
+    if (!adminUser) {
       await AuditService.log({
-        adminUserId: adminUser.id,
-        action: "LOGIN_SUCCESS",
+        action: "LOGIN_FAILED",
         entityType: "ADMIN_USER",
-        entityId: adminUser.id,
-        details: `Successful admin login`,
+        entityId: email,
+        details: `Failed login attempt for email: ${email}`,
         ipAddress: request.ip,
         userAgent: request.headers["user-agent"] || "",
-        severity: "INFO",
+        severity: "WARNING",
+        category: "AUTHENTICATION",
+      });
+      return reply.status(401).send({ error: "Invalid credentials" });
+    }
+
+    if (adminUser.status !== "ACTIVE") {
+      await AuditService.log({
+        adminUserId: adminUser.id,
+        action: "LOGIN_BLOCKED",
+        entityType: "ADMIN_USER",
+        entityId: adminUser.id,
+        details: `Login blocked for inactive admin: ${email}`,
+        ipAddress: request.ip,
+        userAgent: request.headers["user-agent"] || "",
+        severity: "WARNING",
+        category: "AUTHENTICATION",
+      });
+      return reply
+        .status(401)
+        .send({ error: "Admin account is deactivated" });
+    }
+
+    // Check if account is locked
+    if (adminUser.lockedUntil && adminUser.lockedUntil > new Date()) {
+      return reply.status(423).send({
+        error:
+          "Account is temporarily locked due to multiple failed login attempts",
+        lockedUntil: adminUser.lockedUntil,
+      });
+    }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(
+      password,
+      adminUser.password
+    );
+    if (!isValidPassword) {
+      // Increment login attempts
+      const updatedUser = await prisma.adminUser.update({
+        where: { id: adminUser.id },
+        data: {
+          loginAttempts: adminUser.loginAttempts + 1,
+          lockedUntil:
+            adminUser.loginAttempts >= 4
+              ? new Date(Date.now() + 30 * 60 * 1000) // Lock for 30 minutes after 5 attempts
+              : null,
+        },
+      });
+
+      await AuditService.log({
+        adminUserId: adminUser.id,
+        action: "LOGIN_FAILED",
+        entityType: "ADMIN_USER",
+        entityId: adminUser.id,
+        details: `Failed login attempt ${updatedUser.loginAttempts}/5`,
+        ipAddress: request.ip,
+        userAgent: request.headers["user-agent"] || "",
+        severity: "WARNING",
         category: "AUTHENTICATION",
       });
 
-      // Set HTTP-only cookie
-      reply.setCookie("admin_token", token, {
-        httpOnly: true,
-        secure: process.env["NODE_ENV"] === "production",
-        sameSite: "strict",
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        path: "/",
-      });
-
-      return reply.send({
-        user: {
-          id: adminUser.id,
-          email: adminUser.email,
-          firstName: adminUser.firstName,
-          lastName: adminUser.lastName,
-          role: adminUser.role,
-          permissions: adminUser.permissions,
-        },
-        token,
-      });
-    } catch (error) {
-      request.log.error(error, "Login error:");
-      return reply.status(500).send({ error: "Internal server error" });
+      return reply.status(401).send({ error: "Invalid credentials" });
     }
+
+    // Reset login attempts on successful login
+    if (adminUser.loginAttempts > 0) {
+      await prisma.adminUser.update({
+        where: { id: adminUser.id },
+        data: {
+          loginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: adminUser.id,
+        email: adminUser.email,
+        role: adminUser.role,
+      },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    ) as string;
+
+    // Create session
+    await prisma.adminSession.create({
+      data: {
+        adminUserId: adminUser.id,
+        sessionId: token,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        ipAddress: request.ip,
+        userAgent: request.headers["user-agent"] || "",
+      },
+    });
+
+    // Update last login
+    await prisma.adminUser.update({
+      where: { id: adminUser.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    // Log successful login
+    await AuditService.log({
+      adminUserId: adminUser.id,
+      action: "LOGIN_SUCCESS",
+      entityType: "ADMIN_USER",
+      entityId: adminUser.id,
+      details: `Successful admin login`,
+      ipAddress: request.ip,
+      userAgent: request.headers["user-agent"] || "",
+      severity: "INFO",
+      category: "AUTHENTICATION",
+    });
+
+    // Set HTTP-only cookie
+    reply.setCookie("admin_token", token, {
+      httpOnly: true,
+      secure: process.env["NODE_ENV"] === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: "/",
+    });
+
+    return reply.send({
+      user: {
+        id: adminUser.id,
+        email: adminUser.email,
+        firstName: adminUser.firstName,
+        lastName: adminUser.lastName,
+        role: adminUser.role,
+        permissions: adminUser.permissions,
+      },
+      token,
+    });
   }
 
   /**
@@ -483,136 +478,126 @@ export class AuthController {
    * Update admin profile
    */
   static async updateProfile(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const updates = UpdateProfileSchema.parse(request.body);
-      const adminUserId = (request as any).user.id;
+    const updates = UpdateProfileSchema.parse(request.body);
+    const adminUserId = (request as any).user.id;
 
-      // Filter out undefined values
-      const filteredUpdates: Record<string, string> = {};
-      if (updates.firstName !== undefined)
-        filteredUpdates["firstName"] = updates.firstName;
-      if (updates.lastName !== undefined)
-        filteredUpdates["lastName"] = updates.lastName;
+    // Filter out undefined values
+    const filteredUpdates: Record<string, string> = {};
+    if (updates.firstName !== undefined)
+      filteredUpdates["firstName"] = updates.firstName;
+    if (updates.lastName !== undefined)
+      filteredUpdates["lastName"] = updates.lastName;
 
-      const adminUser = await prisma.adminUser.update({
-        where: { id: adminUserId },
-        data: filteredUpdates,
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          permissions: true,
-        },
-      });
+    const adminUser = await prisma.adminUser.update({
+      where: { id: adminUserId },
+      data: filteredUpdates,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        permissions: true,
+      },
+    });
 
-      // Log profile update
-      await AuditService.log({
-        adminUserId,
-        action: "PROFILE_UPDATE",
-        entityType: "ADMIN_USER",
-        entityId: adminUserId,
-        details: `Profile updated: ${Object.keys(filteredUpdates).join(", ")}`,
-        ipAddress: request.ip,
-        userAgent: request.headers["user-agent"] || "",
-        severity: "INFO",
-        category: "ADMIN",
-      });
+    // Log profile update
+    await AuditService.log({
+      adminUserId,
+      action: "PROFILE_UPDATE",
+      entityType: "ADMIN_USER",
+      entityId: adminUserId,
+      details: `Profile updated: ${Object.keys(filteredUpdates).join(", ")}`,
+      ipAddress: request.ip,
+      userAgent: request.headers["user-agent"] || "",
+      severity: "INFO",
+      category: "ADMIN",
+    });
 
-      return reply.send({ user: adminUser });
-    } catch (error) {
-      request.log.error(error, "Error updating profile:");
-      return reply.status(500).send({ error: "Internal server error" });
-    }
+    return reply.send({ user: adminUser });
   }
 
   /**
    * Change password
    */
   static async changePassword(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const { currentPassword, newPassword } = ChangePasswordSchema.parse(
-        request.body
-      );
-      const adminUserId = (request as any).user.id;
+    const { currentPassword, newPassword } = ChangePasswordSchema.parse(
+      request.body
+    );
+    const adminUserId = (request as any).user.id;
 
-      // Get current admin user
-      const adminUser = await prisma.adminUser.findUnique({
-        where: { id: adminUserId },
-      });
+    // Get current admin user
+    const adminUser = await prisma.adminUser.findUnique({
+      where: { id: adminUserId },
+    });
 
-      if (!adminUser) {
-        return reply.status(404).send({ error: "User not found" });
-      }
+    if (!adminUser) {
+      return reply.status(404).send({ error: "User not found" });
+    }
 
-      // Verify current password
-      const isValidPassword = await bcrypt.compare(
-        currentPassword,
-        adminUser.password
-      );
-      if (!isValidPassword) {
-        await AuditService.log({
-          adminUserId,
-          action: "PASSWORD_CHANGE_FAILED",
-          entityType: "ADMIN_USER",
-          entityId: adminUserId,
-          details: "Invalid current password provided",
-          ipAddress: request.ip,
-          userAgent: request.headers["user-agent"] || "",
-          severity: "WARNING",
-          category: "AUTHENTICATION",
-        });
-        return reply
-          .status(400)
-          .send({ error: "Current password is incorrect" });
-      }
-
-      // Hash new password
-      const newPasswordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-
-      // Update password
-      await prisma.adminUser.update({
-        where: { id: adminUserId },
-        data: { password: newPasswordHash },
-      });
-
-      // Invalidate all sessions except current one
-      const currentToken =
-        request.cookies["admin_token"] ||
-        request.headers.authorization?.replace("Bearer ", "");
-
-      if (currentToken) {
-        await prisma.adminSession.updateMany({
-          where: {
-            adminUserId,
-            isActive: true,
-            sessionId: { not: currentToken },
-          },
-          data: {
-            isActive: false,
-          },
-        });
-      }
-
-      // Log password change
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(
+      currentPassword,
+      adminUser.password
+    );
+    if (!isValidPassword) {
       await AuditService.log({
         adminUserId,
-        action: "PASSWORD_CHANGED",
+        action: "PASSWORD_CHANGE_FAILED",
         entityType: "ADMIN_USER",
         entityId: adminUserId,
-        details: "Password successfully changed",
+        details: "Invalid current password provided",
         ipAddress: request.ip,
         userAgent: request.headers["user-agent"] || "",
-        severity: "INFO",
+        severity: "WARNING",
         category: "AUTHENTICATION",
       });
-
-      return reply.send({ message: "Password changed successfully" });
-    } catch (error) {
-      request.log.error(error, "Error changing password:");
-      return reply.status(500).send({ error: "Internal server error" });
+      return reply
+        .status(400)
+        .send({ error: "Current password is incorrect" });
     }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+    // Update password
+    await prisma.adminUser.update({
+      where: { id: adminUserId },
+      data: { password: newPasswordHash },
+    });
+
+    // Invalidate all sessions except current one
+    const currentToken =
+      request.cookies["admin_token"] ||
+      request.headers.authorization?.replace("Bearer ", "");
+
+    if (currentToken) {
+      await prisma.adminSession.updateMany({
+        where: {
+          adminUserId,
+          isActive: true,
+          sessionId: { not: currentToken },
+        },
+        data: {
+          isActive: false,
+        },
+      });
+    }
+
+    // Log password change
+    await AuditService.log({
+      adminUserId,
+      action: "PASSWORD_CHANGED",
+      entityType: "ADMIN_USER",
+      entityId: adminUserId,
+      details: "Password successfully changed",
+      ipAddress: request.ip,
+      userAgent: request.headers["user-agent"] || "",
+      severity: "INFO",
+      category: "AUTHENTICATION",
+    });
+
+    return reply.send({ message: "Password changed successfully" });
   }
 
   /**

@@ -7,6 +7,7 @@ import view from "@fastify/view";
 import formbody from "@fastify/formbody";
 import path from "path";
 import ejs from "ejs";
+import { ZodError } from "zod";
 import rateLimit from "@fastify/rate-limit";
 import {
   PORT,
@@ -43,7 +44,7 @@ export async function build() {
       };
     }
   } else if (process.env["NODE_ENV"] === "test") {
-    loggerConfig = false;
+    loggerConfig = { level: "error" };
   } else {
     loggerConfig = {
       level: process.env["LOG_LEVEL"] || "info",
@@ -121,15 +122,17 @@ export async function build() {
   // Authentication decorator
   fastify.decorate("authenticate", authenticateToken);
 
-  // Register web routes (for HTML pages)
-  await fastify.register(webRoutes);
-
-  // Register API routes
-  await fastify.register(routes, { prefix: "/api" });
-
   // Global error handler
   fastify.setErrorHandler((error, _request, reply) => {
     fastify.log.error(error);
+
+    if (error instanceof ZodError || error.name === 'ZodError') {
+      return reply.status(400).send({
+        error: "Validation Error",
+        message: "Invalid input data",
+        details: (error as any).errors || (error as any).issues,
+      });
+    }
 
     if (error.validation) {
       return reply.status(400).send({
@@ -162,6 +165,13 @@ export async function build() {
       message: `Route ${request.method} ${request.url} not found`,
     });
   });
+
+  // Register web routes (for HTML pages)
+  await fastify.register(webRoutes);
+
+  // Register API routes
+  await fastify.register(routes, { prefix: "/api" });
+
 
   return fastify;
 }

@@ -85,7 +85,7 @@ export default function AccountsPage() {
     const totalBalance = accountsData.reduce((sum, acc) => sum + acc.balance, 0);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
             <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">My Accounts</h1>
@@ -93,8 +93,8 @@ export default function AccountsPage() {
             </div>
 
             {/* Total Balance Card */}
-            <Card className="bg-gradient-to-br from-vintage-green to-vintage-green-dark text-white shadow-vintage-xl">
-                <CardContent className="p-8">
+            <Card className="bg-gradient-to-br from-vintage-green to-vintage-green-dark text-white shadow-vintage-xl max-w-4xl mx-auto">
+                <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-warm-cream/80 mb-2">Total Balance Across All Accounts</p>
@@ -113,7 +113,7 @@ export default function AccountsPage() {
             </Card>
 
             {/* Accounts Grid */}
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {accountsData.map((account) => (
                     <Card
                         key={account.id}
@@ -124,12 +124,15 @@ export default function AccountsPage() {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-4">
                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${account.type === 'checking' ? 'bg-vintage-green/10 text-vintage-green' :
-                                        account.type === 'savings' ? 'bg-soft-gold/10 text-soft-gold-dark' :
-                                            'bg-charcoal/10 text-charcoal'
+                                    account.type === 'savings' ? 'bg-soft-gold/10 text-soft-gold-dark' :
+                                        'bg-charcoal/10 text-charcoal'
                                     }`}>
                                     {account.icon}
                                 </div>
-                                <button className="text-charcoal-light hover:text-charcoal transition-colors">
+                                <button
+                                    className="text-charcoal-light hover:text-charcoal transition-colors"
+                                    aria-label="Account options"
+                                >
                                     <MoreVertical className="w-5 h-5" />
                                 </button>
                             </div>

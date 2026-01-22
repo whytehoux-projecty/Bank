@@ -2,35 +2,23 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
+    Activity,
     CreditCard,
-    ArrowUpRight,
-    ArrowDownLeft,
-    TrendingUp,
-    Send,
-    QrCode,
-    Receipt,
+    DollarSign,
     Users,
+    Download
 } from 'lucide-react';
 
-interface Account {
-    id: string;
-    accountNumber: string;
-    accountType: string;
-    balance: number;
-    currency: string;
-}
-
-interface Transaction {
-    id: string;
-    type: 'credit' | 'debit';
-    description: string;
-    amount: number;
-    date: string;
-    category: string;
-}
+import { api, setAccessToken } from '@/lib/api-client';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Overview } from '@/components/dashboard/overview';
+import { RecentTransactions } from '@/components/dashboard/recent-sales';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface UserProfile {
     firstName: string;
@@ -38,212 +26,160 @@ interface UserProfile {
     email: string;
 }
 
-import { api, setAccessToken } from '@/lib/api-client';
-
-// ... (interfaces remain the same)
-
-import { Suspense } from 'react';
-
-// ... (keep usage of api and setAccessToken)
-
 function DashboardContent() {
-    // ... (existing logic: const searchParams = useSearchParams(); etc.)
     const searchParams = useSearchParams();
     const [user, setUser] = useState<UserProfile | null>(null);
-    const [accounts, setAccounts] = useState<Account[]>([]);
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [totalBalance, setTotalBalance] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Handle token from login redirect
         const token = searchParams.get('token');
         if (token) {
             setAccessToken(token);
-            // Clean URL
             window.history.replaceState({}, '', '/dashboard');
         }
-
-        // Load dashboard data
         loadDashboardData();
     }, [searchParams]);
 
     const loadDashboardData = async () => {
         try {
-            // Fetch user profile
             const profileData = await api.profile.get();
             setUser(profileData.user);
-
-            // Fetch accounts
-            try {
-                const accountsData = await api.accounts.getAll();
-                const accountsList = accountsData.data?.accounts || accountsData.accounts || [];
-                setAccounts(accountsList);
-
-                // Calculate total balance
-                const total = accountsList.reduce((sum: number, acc: Account) => sum + (acc.balance || 0), 0);
-                setTotalBalance(total);
-            } catch (e) {
-                console.log('Accounts not available yet');
-            }
-
-            // Fetch recent transactions
-            try {
-                const txData = await api.transactions.getAll({ limit: 5 });
-                setTransactions(txData.data?.transactions || txData.transactions || []);
-            } catch (e) {
-                console.log('Transactions not available yet');
-            }
-
         } catch (error) {
             console.error('Error loading dashboard:', error);
-            // If explicit unauthorized, redirect will happen via api-client interceptor
         } finally {
             setIsLoading(false);
         }
     };
 
-    const formatCurrency = (amount: number, currency = 'USD') => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency,
-        }).format(amount);
-    };
-
-    const quickActions = [
-        { icon: Send, label: 'Transfer', href: '/transfer', color: 'bg-blue-500' },
-        { icon: QrCode, label: 'Pay', href: '/bills', color: 'bg-green-500' },
-        { icon: Receipt, label: 'Statements', href: '/statements', color: 'bg-purple-500' },
-        { icon: Users, label: 'Beneficiaries', href: '/beneficiaries', color: 'bg-orange-500' },
-    ];
-
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+            <div className="flex-1 space-y-4 p-8 pt-6">
+                <div className="flex items-center justify-between space-y-2">
+                    <Skeleton className="h-8 w-[150px]" />
+                    <Skeleton className="h-8 w-[200px]" />
+                </div>
+                <div className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Skeleton className="h-[120px] rounded-xl" />
+                        <Skeleton className="h-[120px] rounded-xl" />
+                        <Skeleton className="h-[120px] rounded-xl" />
+                        <Skeleton className="h-[120px] rounded-xl" />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        <Skeleton className="col-span-4 h-[400px] rounded-xl" />
+                        <Skeleton className="col-span-3 h-[400px] rounded-xl" />
+                    </div>
+                </div>
             </div>
-        );
+        )
     }
 
     return (
-        <div className="p-6 space-y-6">
-            {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-green-700 to-green-800 rounded-2xl p-6 text-white">
-                <h1 className="text-2xl font-bold mb-2">
-                    Welcome back, {user?.firstName || 'User'}!
-                </h1>
-                <p className="text-green-100 text-sm">
-                    Here&apos;s an overview of your accounts and recent activity.
-                </p>
-            </div>
-
-            {/* Total Balance Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <p className="text-sm text-gray-500 mb-1">Total Balance</p>
-                        <h2 className="text-3xl font-bold text-gray-900">
-                            {formatCurrency(totalBalance)}
-                        </h2>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-sm">
-                        <TrendingUp className="w-4 h-4" />
-                        <span>+2.5%</span>
-                    </div>
+        <div className="flex-1 space-y-4 p-4 pt-0">
+            <div className="flex items-center justify-between space-y-2 pb-4">
+                <h2 className="text-3xl font-bold tracking-tight font-playfair">Dashboard</h2>
+                <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="small">
+                        Oct 20, 2025 - Nov 20, 2025
+                    </Button>
+                    <Button size="small">
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                    </Button>
                 </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-4 gap-4">
-                {quickActions.map((action) => (
-                    <a
-                        key={action.label}
-                        href={action.href}
-                        className="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-                    >
-                        <div className={`${action.color} p-3 rounded-xl text-white mb-2`}>
-                            <action.icon className="w-5 h-5" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">{action.label}</span>
-                    </a>
-                ))}
-            </div>
+            <Tabs defaultValue="overview" className="space-y-4">
+                <TabsList>
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="analytics" disabled>Analytics</TabsTrigger>
+                    <TabsTrigger value="reports" disabled>Reports</TabsTrigger>
+                    <TabsTrigger value="notifications" disabled>Notifications</TabsTrigger>
+                </TabsList>
 
-            {/* Accounts Overview */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">My Accounts</h3>
-                    <a href="/accounts" className="text-sm text-green-600 hover:underline">
-                        View All
-                    </a>
-                </div>
-                {accounts.length > 0 ? (
-                    <div className="space-y-3">
-                        {accounts.slice(0, 3).map((account) => (
-                            <div
-                                key={account.id}
-                                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-green-100 rounded-lg">
-                                        <CreditCard className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900">{account.accountType}</p>
-                                        <p className="text-sm text-gray-500">****{account.accountNumber.slice(-4)}</p>
-                                    </div>
-                                </div>
-                                <p className="font-semibold text-gray-900">
-                                    {formatCurrency(account.balance, account.currency)}
+                <TabsContent value="overview" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium font-sans">
+                                    Total Revenue
+                                </CardTitle>
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">$45,231.89</div>
+                                <p className="text-xs text-muted-foreground">
+                                    +20.1% from last month
                                 </p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-center text-gray-500 py-4">No accounts found</p>
-                )}
-            </div>
-
-            {/* Recent Transactions */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
-                    <a href="/transactions" className="text-sm text-green-600 hover:underline">
-                        View All
-                    </a>
-                </div>
-                {transactions.length > 0 ? (
-                    <div className="space-y-3">
-                        {transactions.map((tx) => (
-                            <div
-                                key={tx.id}
-                                className="flex items-center justify-between p-3"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${tx.type === 'credit' ? 'bg-green-100' : 'bg-red-100'}`}>
-                                        {tx.type === 'credit' ? (
-                                            <ArrowDownLeft className="w-4 h-4 text-green-600" />
-                                        ) : (
-                                            <ArrowUpRight className="w-4 h-4 text-red-600" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900">{tx.description}</p>
-                                        <p className="text-xs text-gray-500">
-                                            {new Date(tx.date).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className={`font-semibold ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                                    {tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium font-sans">
+                                    Subscriptions
+                                </CardTitle>
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">+2350</div>
+                                <p className="text-xs text-muted-foreground">
+                                    +180.1% from last month
                                 </p>
-                            </div>
-                        ))}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium font-sans">
+                                    Sales
+                                </CardTitle>
+                                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">+12,234</div>
+                                <p className="text-xs text-muted-foreground">
+                                    +19% from last month
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium font-sans">
+                                    Active Now
+                                </CardTitle>
+                                <Activity className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">+573</div>
+                                <p className="text-xs text-muted-foreground">
+                                    +201 since last hour
+                                </p>
+                            </CardContent>
+                        </Card>
                     </div>
-                ) : (
-                    <p className="text-center text-gray-500 py-4">No recent transactions</p>
-                )}
-            </div>
+
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        <Card className="col-span-4">
+                            <CardHeader>
+                                <CardTitle>Overview</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pl-2">
+                                <Overview />
+                            </CardContent>
+                        </Card>
+                        <Card className="col-span-3">
+                            <CardHeader>
+                                <CardTitle>Recent Sales</CardTitle>
+                                <CardDescription>
+                                    You made 265 sales this month.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <RecentTransactions />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
@@ -252,7 +188,7 @@ export default function DashboardPage() {
     return (
         <Suspense fallback={
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+                <Skeleton className="h-12 w-12 rounded-full" />
             </div>
         }>
             <DashboardContent />

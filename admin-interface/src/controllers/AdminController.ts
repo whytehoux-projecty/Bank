@@ -255,76 +255,66 @@ export class AdminController {
    * Update user status
    */
   static async updateUserStatus(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const { userId } = request.params as { userId: string };
-      const { status, reason } = UpdateUserStatusSchema.parse(request.body);
-      const adminUserId = (request as any).user.id;
+    const { userId } = request.params as { userId: string };
+    const { status, reason } = UpdateUserStatusSchema.parse(request.body);
+    const adminUserId = (request as any).user.id;
 
-      const user = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          status,
-          suspensionReason: status === 'SUSPENDED' ? (reason || null) : null,
-        },
-      });
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        status,
+        suspensionReason: status === 'SUSPENDED' ? (reason || null) : null,
+      },
+    });
 
-      // Log the status change
-      await AuditService.log({
-        adminUserId,
-        userId,
-        action: 'USER_STATUS_UPDATE',
-        entityType: 'USER',
-        entityId: userId,
-        details: `User status changed to ${status}${reason ? `. Reason: ${reason}` : ''}`,
-        ipAddress: request.ip,
-        userAgent: request.headers['user-agent'] || '',
-        severity: status === 'SUSPENDED' ? 'WARNING' : 'INFO',
-        category: 'ADMIN',
-      });
+    // Log the status change
+    await AuditService.log({
+      adminUserId,
+      userId,
+      action: 'USER_STATUS_UPDATE',
+      entityType: 'USER',
+      entityId: userId,
+      details: `User status changed to ${status}${reason ? `. Reason: ${reason}` : ''}`,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] || '',
+      severity: status === 'SUSPENDED' ? 'WARNING' : 'INFO',
+      category: 'ADMIN',
+    });
 
-      return reply.send({ user });
-    } catch (error) {
-      request.log.error(error, 'Error updating user status:');
-      return reply.status(500).send({ error: 'Internal server error' });
-    }
+    return reply.send({ user });
   }
 
   /**
    * Update KYC status
    */
   static async updateKYCStatus(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const { userId } = request.params as { userId: string };
-      const { kycStatus, reviewNotes } = UpdateKYCStatusSchema.parse(request.body);
-      const adminUserId = (request as any).user.id;
+    const { userId } = request.params as { userId: string };
+    const { kycStatus, reviewNotes } = UpdateKYCStatusSchema.parse(request.body);
+    const adminUserId = (request as any).user.id;
 
-      const user = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          kycStatus,
-          kycNotes: reviewNotes || null,
-        },
-      });
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        kycStatus,
+        kycNotes: reviewNotes || null,
+      },
+    });
 
-      // Log the KYC status change
-      await AuditService.log({
-        adminUserId,
-        userId,
-        action: 'KYC_STATUS_UPDATE',
-        entityType: 'USER',
-        entityId: userId,
-        details: `KYC status changed to ${kycStatus}${reviewNotes ? `. Notes: ${reviewNotes}` : ''}`,
-        ipAddress: request.ip,
-        userAgent: request.headers['user-agent'] || '',
-        severity: 'INFO',
-        category: 'KYC',
-      });
+    // Log the KYC status change
+    await AuditService.log({
+      adminUserId,
+      userId,
+      action: 'KYC_STATUS_UPDATE',
+      entityType: 'USER',
+      entityId: userId,
+      details: `KYC status changed to ${kycStatus}${reviewNotes ? `. Notes: ${reviewNotes}` : ''}`,
+      ipAddress: request.ip,
+      userAgent: request.headers['user-agent'] || '',
+      severity: 'INFO',
+      category: 'KYC',
+    });
 
-      return reply.send({ user });
-    } catch (error) {
-      request.log.error(error, 'Error updating KYC status:');
-      return reply.status(500).send({ error: 'Internal server error' });
-    }
+    return reply.send({ user });
   }
 
   /**

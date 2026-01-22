@@ -32,6 +32,7 @@ model AdminUser {
   sessions              AdminSession[]
   portalStatusChanges   PortalStatus[]
   portalStatusAuditLogs PortalStatusAudit[]
+  paymentVerifications  PaymentVerification[]
 
   @@map("admin_users")
 }
@@ -156,6 +157,7 @@ model Transaction {
   // Relations
   account         Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   wireTransfer    WireTransfer?
+  paymentVerification PaymentVerification?
 
   @@map("transactions")
 }
@@ -421,4 +423,33 @@ model BillPayee {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bill_payees")
+}
+
+// System Configuration
+model SystemConfig {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@map("system_config")
+}
+
+// Payment Verification
+model PaymentVerification {
+  id                 String      @id @default(cuid())
+  transactionId      String      @unique @map("transaction_id")
+  documentPath       String      @map("document_path")
+  documentType       String      @map("document_type") // PASSPORT, ID_CARD, etc
+  status             String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNotes         String?     @map("admin_notes")
+  reviewedBy         String?     @map("reviewed_by")
+  reviewedAt         DateTime?   @map("reviewed_at")
+  createdAt          DateTime    @default(now()) @map("created_at")
+
+  transaction        Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  adminUser          AdminUser?  @relation(fields: [reviewedBy], references: [id])
+
+  @@map("payment_verifications")
 }

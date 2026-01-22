@@ -31,6 +31,9 @@ import kycRoutes from './routes/kyc';
 import wireTransferRoutes from './routes/wire-transfers';
 import systemRoutes from './routes/system';
 import portalRoutes from './routes/portal';
+import billRoutes from './routes/bills';
+
+import verificationRoutes from './routes/admin/verifications';
 
 // Initialize Fastify
 const fastify = Fastify({
@@ -219,15 +222,17 @@ const start = async () => {
     await fastify.register(transactionRoutes, { prefix: '/api/transactions' });
     await fastify.register(kycRoutes, { prefix: '/api/kyc' });
     await fastify.register(wireTransferRoutes, { prefix: '/api/wire-transfers' });
+    await fastify.register(billRoutes, { prefix: '/api/bills' });
+    await fastify.register(verificationRoutes, { prefix: '/api/admin/verifications' });
 
     // Start server
     await fastify.listen({
       port: config.PORT,
-      host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
+      host: config.HOST,
     });
 
-    log.info(`🚀 Aurum Vault Core API server running on http://localhost:${config.PORT}`);
-    log.info(`📚 API documentation available at http://localhost:${config.PORT}/docs`);
+    log.info(`🚀 Aurum Vault Core API server running on http://${config.HOST}:${config.PORT}`);
+    log.info(`📚 API documentation available at http://${config.HOST}:${config.PORT}/docs`);
   } catch (error) {
     log.error('Failed to start server', error);
     process.exit(1);

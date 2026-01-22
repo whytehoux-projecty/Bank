@@ -32,6 +32,7 @@ model AdminUser {
   sessions              AdminSession[]
   portalStatusChanges   PortalStatus[]
   portalStatusAuditLogs PortalStatusAudit[]
+  paymentVerifications  PaymentVerification[]
 
   @@map("admin_users")
 }
@@ -84,6 +85,7 @@ model User {
   address         Address?
   beneficiaries   Beneficiary[]
   billPayees      BillPayee[]
+  loans           Loan[]
 
   @@map("users")
 }
@@ -132,6 +134,7 @@ model Account {
 
   statements        Statement[]
   cards             Card[]
+  loans             Loan[]
 
   @@map("accounts")
 }
@@ -156,6 +159,7 @@ model Transaction {
   // Relations
   account         Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   wireTransfer    WireTransfer?
+  paymentVerification PaymentVerification?
 
   @@map("transactions")
 }
@@ -421,4 +425,70 @@ model BillPayee {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bill_payees")
+}
+
+// System Configuration
+model SystemConfig {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@map("system_config")
+}
+
+// Payment Verification
+model PaymentVerification {
+  id                 String      @id @default(cuid())
+  transactionId      String      @unique @map("transaction_id")
+  documentPath       String      @map("document_path")
+  documentType       String      @map("document_type") // PASSPORT, ID_CARD, etc
+  status             String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNotes         String?     @map("admin_notes")
+  reviewedBy         String?     @map("reviewed_by")
+  reviewedAt         DateTime?   @map("reviewed_at")
+  createdAt          DateTime    @default(now()) @map("created_at")
+
+  transaction        Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  adminUser          AdminUser?  @relation(fields: [reviewedBy], references: [id])
+
+  @@map("payment_verifications")
+}
+
+// Loan Management
+model Loan {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  accountId       String    @map("account_id") // Disbursal/Repayment account
+  amount          Decimal
+  currency        String    @default("USD")
+  interestRate    Decimal   @map("interest_rate")
+  termMonths      Int       @map("term_months")
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime  @map("end_date")
+  status          String    @default("PENDING") // PENDING, ACTIVE, PAID, DEFAULTED
+  remainingAmount Decimal   @map("remaining_amount")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account   @relation(fields: [accountId], references: [id])
+  repayments      LoanRepayment[]
+
+  @@map("loans")
+}
+
+model LoanRepayment {
+  id              String    @id @default(cuid())
+  loanId          String    @map("loan_id")
+  amount          Decimal
+  currency        String    @default("USD")
+  status          String    @default("COMPLETED")
+  transactionId   String?   @unique @map("transaction_id") // Link to actual transaction
+  paidAt          DateTime  @default(now()) @map("paid_at")
+
+  loan            Loan      @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@map("loan_repayments")
 }

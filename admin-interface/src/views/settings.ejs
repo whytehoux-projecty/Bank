@@ -1,0 +1,386 @@
+<%- include('./layout', { title: 'System Settings' , user: user }) %>
+
+    <div class="container-fluid py-4">
+        <div class="row g-4">
+            <!-- Settings Form -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title mb-0"><i class="bi bi-sliders text-primary"></i> Verification
+                            Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm">
+                            <!-- Toggle -->
+                            <div
+                                class="mb-4 form-check form-switch p-3 bg-light rounded d-flex align-items-center justify-content-between">
+                                <label class="form-check-label fw-bold mb-0" for="verificationEnabled">
+                                    Enable Payment Verification
+                                    <div class="text-muted small fw-normal">Requires admin approval for high-value
+                                        transactions</div>
+                                </label>
+                                <input class="form-check-input ms-3" type="checkbox" id="verificationEnabled"
+                                    style="width: 3em; height: 1.5em;">
+                            </div>
+
+                            <!-- Global Threshold -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Global Threshold Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="globalThreshold" min="0"
+                                            step="100">
+                                    </div>
+                                    <div class="form-text">Transactions above this amount trigger verification.</div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Category Thresholds -->
+                            <h6 class="fw-bold mb-3">Category-Specific Thresholds</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Utilities</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control category-threshold"
+                                            data-category="UTILITIES">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Internet/TV</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control category-threshold"
+                                            data-category="INTERNET">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Insurance</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control category-threshold"
+                                            data-category="INSURANCE">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Other</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control category-threshold"
+                                            data-category="OTHER">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Document Types -->
+                            <h6 class="fw-bold mb-3">Accepted Document Types</h6>
+                            <div class="row g-2 mb-4">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input doc-type" type="checkbox" value="PASSPORT"
+                                            id="docType1">
+                                        <label class="form-check-label" for="docType1">National Passport</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input doc-type" type="checkbox" value="ID_CARD"
+                                            id="docType2">
+                                        <label class="form-check-label" for="docType2">National ID Card</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input doc-type" type="checkbox" value="DRIVERS_LICENSE"
+                                            id="docType3">
+                                        <label class="form-check-label" for="docType3">Driver's License</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input doc-type" type="checkbox" value="UTILITY_BILL"
+                                            id="docType4">
+                                        <label class="form-check-label" for="docType4">Utility Bill</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input doc-type" type="checkbox" value="BANK_STATEMENT"
+                                            id="docType5">
+                                        <label class="form-check-label" for="docType5">Bank Statement</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Notifications -->
+                            <h6 class="fw-bold mb-3">Admin Notifications</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Alert Email</label>
+                                    <input type="email" class="form-control" id="notificationEmail"
+                                        placeholder="admin@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Alert SMS</label>
+                                    <input type="tel" class="form-control" id="notificationSms"
+                                        placeholder="+1234567890">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">Discard
+                                    Changes</button>
+                                <button type="button" class="btn btn-primary px-4" onclick="saveSettings()">Save
+                                    Configuration</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit History -->
+            <div class="col-lg-4">
+                <!-- Test Configuration Panel -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title mb-0"><i class="bi bi-calculator text-success"></i> Policy Simulator</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Test how current (unsaved) settings affect transactions.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Transaction Amount</label>
+                            <input type="number" id="testAmount" class="form-control" placeholder="0.00">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select id="testCategory" class="form-select">
+                                <option value="UTILITIES">Utilities</option>
+                                <option value="INTERNET">Internet/TV</option>
+                                <option value="INSURANCE">Insurance</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <div class="d-grid mb-3">
+                            <button class="btn btn-outline-primary" onclick="runSimulation()">Run Simulation</button>
+                        </div>
+
+                        <div id="simResult" class="alert d-none"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title mb-0"><i class="bi bi-clock-history text-secondary"></i> Configuration
+                            History</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" id="auditList"
+                            style="max-height: 400px; overflow-y: auto;">
+                            <div class="text-center p-4 text-muted">Loading history...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="statusToast" class="toast align-items-center text-white bg-primary border-0" role="alert"
+            aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const saveBtn = document.querySelector('button[onclick="saveSettings()"]');
+        const toast = new bootstrap.Toast(document.getElementById('statusToast'));
+
+        // Test Simulation
+        function runSimulation() {
+            const amount = Number(document.getElementById('testAmount').value);
+            const category = document.getElementById('testCategory').value;
+            const resDiv = document.getElementById('simResult');
+
+            // Read form values
+            const enabled = document.getElementById('verificationEnabled').checked;
+            const globalThreshold = Number(document.getElementById('globalThreshold').value);
+
+            const catInput = document.querySelector(`.category-threshold[data-category="${category}"]`);
+            const catThreshold = catInput && catInput.value ? Number(catInput.value) : null;
+
+            // Logic
+            let required = false;
+            let reason = '';
+
+            if (!enabled) {
+                required = false;
+                reason = 'Verification is globally disabled.';
+            } else {
+                // Priority: Category > Global
+                const effectiveThreshold = catThreshold !== null ? catThreshold : globalThreshold;
+
+                if (amount > effectiveThreshold) {
+                    required = true;
+                    reason = `Amount ($${amount}) exceeds ${catThreshold !== null ? 'category' : 'global'} threshold ($${effectiveThreshold}).`;
+                } else {
+                    required = false;
+                    reason = `Amount ($${amount}) is within ${catThreshold !== null ? 'category' : 'global'} limit ($${effectiveThreshold}).`;
+                }
+            }
+
+            resDiv.className = `alert ${required ? 'alert-warning' : 'alert-success'}`;
+            resDiv.innerHTML = `
+            <strong>${required ? 'Verification Required' : 'Auto-Processed'}</strong><br>
+            <small>${reason}</small>
+        `;
+            resDiv.classList.remove('d-none');
+        }
+
+        // Load Settings
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/admin/settings');
+                const result = await res.json();
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('verificationEnabled').checked = data.verificationEnabled;
+                    document.getElementById('globalThreshold').value = data.globalThreshold;
+                    document.getElementById('notificationEmail').value = data.notificationEmail;
+                    document.getElementById('notificationSms').value = data.notificationSms;
+
+                    // Categories
+                    const catInputs = document.querySelectorAll('.category-threshold');
+                    catInputs.forEach(input => {
+                        const cat = input.dataset.category;
+                        if (data.categoryThresholds[cat]) {
+                            input.value = data.categoryThresholds[cat];
+                        }
+                    });
+
+                    // Docs
+                    const docInputs = document.querySelectorAll('.doc-type');
+                    docInputs.forEach(input => {
+                        input.checked = data.documentTypes.includes(input.value);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load settings', error);
+            }
+        }
+
+        // Load History
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/admin/settings/history');
+                const result = await res.json();
+                const list = document.getElementById('auditList');
+                list.innerHTML = '';
+
+                if (result.success && result.data.length > 0) {
+                    result.data.forEach(log => {
+                        const changes = JSON.parse(log.details || '{}');
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item';
+                        item.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between mb-1">
+                            <h6 class="mb-0 text-truncate" style="max-width: 150px;" title="${log.entityId}">${formatKey(log.entityId)}</h6>
+                            <small class="text-muted">${new Date(log.createdAt).toLocaleDateString()}</small>
+                        </div>
+                        <p class="mb-1 small text-muted">By ${log.adminUser.firstName} ${log.adminUser.lastName}</p>
+                        <div class="small">
+                            <span class="text-danger strikethrough">${changes.prev || 'none'}</span> 
+                            <i class="bi bi-arrow-right mx-1"></i> 
+                            <span class="text-success fw-bold">${changes.new}</span>
+                        </div>
+                    `;
+                        list.appendChild(item);
+                    });
+                } else {
+                    list.innerHTML = '<div class="text-center p-4 text-muted">No history found</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load history', error);
+            }
+        }
+
+        function formatKey(key) {
+            return key.replace('payment_verification_', '').replace('admin_', '').replace(/_/g, ' ');
+        }
+
+        // Save Settings
+        async function saveSettings() {
+            if (!confirm('Are you sure you want to apply these configuration changes?')) return;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+            try {
+                // Collect Data
+                const categoryThresholds = {};
+                document.querySelectorAll('.category-threshold').forEach(inp => {
+                    if (inp.value) categoryThresholds[inp.dataset.category] = Number(inp.value);
+                });
+
+                const documentTypes = [];
+                document.querySelectorAll('.doc-type:checked').forEach(inp => {
+                    documentTypes.push(inp.value);
+                });
+
+                const payload = {
+                    verificationEnabled: document.getElementById('verificationEnabled').checked,
+                    globalThreshold: Number(document.getElementById('globalThreshold').value),
+                    notificationEmail: document.getElementById('notificationEmail').value,
+                    notificationSms: document.getElementById('notificationSms').value,
+                    documentTypes,
+                    categoryThresholds
+                };
+
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    showToast('Settings saved successfully', 'bg-success');
+                    loadHistory(); // Refresh history
+                } else {
+                    showToast('Error: ' + result.message, 'bg-danger');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Failed to save settings', 'bg-danger');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Save Configuration';
+            }
+        }
+
+        function showToast(msg, bgClass) {
+            document.getElementById('toastMessage').textContent = msg;
+            const t = document.getElementById('statusToast');
+            t.className = `toast align-items-center text-white border-0 ${bgClass}`;
+            toast.show();
+        }
+
+        function resetForm() {
+            if (confirm('Discard unsaved changes?')) loadSettings();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            loadHistory();
+        });
+    </script>

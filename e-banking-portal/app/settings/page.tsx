@@ -85,7 +85,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-4xl mx-auto">
             {/* Header */}
             <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">Settings</h1>
@@ -99,8 +99,8 @@ export default function SettingsPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${activeTab === tab.id
-                                ? 'bg-vintage-green text-white shadow-vintage-md'
-                                : 'bg-white text-charcoal hover:bg-parchment border border-faded-gray-light'
+                            ? 'bg-vintage-green text-white shadow-vintage-md'
+                            : 'bg-white text-charcoal hover:bg-parchment border border-faded-gray-light'
                             }`}
                     >
                         {tab.icon}
@@ -249,6 +249,7 @@ export default function SettingsPage() {
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                         type="checkbox"
+                                        aria-label="Toggle two-factor authentication"
                                         checked={securityData.twoFactorEnabled}
                                         onChange={(e) => setSecurityData({ ...securityData, twoFactorEnabled: e.target.checked })}
                                         className="sr-only peer"
@@ -286,6 +287,7 @@ export default function SettingsPage() {
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
                                             type="checkbox"
+                                            aria-label={`Toggle ${setting.label}`}
                                             checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
                                             onChange={(e) => setNotificationSettings({
                                                 ...notificationSettings,
@@ -314,8 +316,9 @@ export default function SettingsPage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">Language</label>
+                            <label htmlFor="language" className="block text-sm font-semibold text-charcoal mb-2">Language</label>
                             <select
+                                id="language"
                                 value={preferences.language}
                                 onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
                                 className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
@@ -327,8 +330,9 @@ export default function SettingsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">Currency</label>
+                            <label htmlFor="currency" className="block text-sm font-semibold text-charcoal mb-2">Currency</label>
                             <select
+                                id="currency"
                                 value={preferences.currency}
                                 onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}
                                 className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
@@ -340,8 +344,9 @@ export default function SettingsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">Timezone</label>
+                            <label htmlFor="timezone" className="block text-sm font-semibold text-charcoal mb-2">Timezone</label>
                             <select
+                                id="timezone"
                                 value={preferences.timezone}
                                 onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}
                                 className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
@@ -353,8 +358,9 @@ export default function SettingsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-charcoal mb-2">Theme</label>
+                            <label htmlFor="theme" className="block text-sm font-semibold text-charcoal mb-2">Theme</label>
                             <select
+                                id="theme"
                                 value={preferences.theme}
                                 onChange={(e) => setPreferences({ ...preferences, theme: e.target.value })}
                                 className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"

@@ -277,7 +277,7 @@ export default function TransferPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-5xl mx-auto">
             <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">Transfer Money</h1>
                 <p className="text-lg text-charcoal-light">Send money between your accounts or to others</p>
@@ -300,8 +300,8 @@ export default function TransferPage() {
                                         type="button"
                                         onClick={() => setTransferType('own')}
                                         className={`p-4 rounded-lg border-2 transition-all ${transferType === 'own'
-                                                ? 'border-vintage-green bg-vintage-green/5'
-                                                : 'border-faded-gray-light hover:border-vintage-green/50'
+                                            ? 'border-vintage-green bg-vintage-green/5'
+                                            : 'border-faded-gray-light hover:border-vintage-green/50'
                                             }`}
                                     >
                                         <Wallet className={`w-6 h-6 mx-auto mb-2 ${transferType === 'own' ? 'text-vintage-green' : 'text-charcoal-light'}`} />
@@ -313,8 +313,8 @@ export default function TransferPage() {
                                         type="button"
                                         onClick={() => setTransferType('beneficiary')}
                                         className={`p-4 rounded-lg border-2 transition-all ${transferType === 'beneficiary'
-                                                ? 'border-vintage-green bg-vintage-green/5'
-                                                : 'border-faded-gray-light hover:border-vintage-green/50'
+                                            ? 'border-vintage-green bg-vintage-green/5'
+                                            : 'border-faded-gray-light hover:border-vintage-green/50'
                                             }`}
                                     >
                                         <CheckCircle className={`w-6 h-6 mx-auto mb-2 ${transferType === 'beneficiary' ? 'text-vintage-green' : 'text-charcoal-light'}`} />
@@ -326,8 +326,8 @@ export default function TransferPage() {
                                         type="button"
                                         onClick={() => setTransferType('new')}
                                         className={`p-4 rounded-lg border-2 transition-all ${transferType === 'new'
-                                                ? 'border-vintage-green bg-vintage-green/5'
-                                                : 'border-faded-gray-light hover:border-vintage-green/50'
+                                            ? 'border-vintage-green bg-vintage-green/5'
+                                            : 'border-faded-gray-light hover:border-vintage-green/50'
                                             }`}
                                     >
                                         <ArrowRightLeft className={`w-6 h-6 mx-auto mb-2 ${transferType === 'new' ? 'text-vintage-green' : 'text-charcoal-light'}`} />
@@ -340,8 +340,9 @@ export default function TransferPage() {
 
                             {/* From Account */}
                             <div>
-                                <label className="block text-sm font-semibold text-charcoal mb-2">From Account</label>
+                                <label htmlFor="fromAccount" className="block text-sm font-semibold text-charcoal mb-2">From Account</label>
                                 <select
+                                    id="fromAccount"
                                     value={formData.fromAccount}
                                     onChange={(e) => setFormData({ ...formData, fromAccount: e.target.value })}
                                     className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
@@ -359,8 +360,9 @@ export default function TransferPage() {
                             {/* To Account - Own Accounts */}
                             {transferType === 'own' && (
                                 <div>
-                                    <label className="block text-sm font-semibold text-charcoal mb-2">To Account</label>
+                                    <label htmlFor="toAccount" className="block text-sm font-semibold text-charcoal mb-2">To Account</label>
                                     <select
+                                        id="toAccount"
                                         value={formData.toAccount}
                                         onChange={(e) => setFormData({ ...formData, toAccount: e.target.value })}
                                         className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
@@ -381,8 +383,9 @@ export default function TransferPage() {
                             {/* To Account - Beneficiary */}
                             {transferType === 'beneficiary' && (
                                 <div>
-                                    <label className="block text-sm font-semibold text-charcoal mb-2">Select Beneficiary</label>
+                                    <label htmlFor="beneficiary" className="block text-sm font-semibold text-charcoal mb-2">Select Beneficiary</label>
                                     <select
+                                        id="beneficiary"
                                         value={formData.beneficiary}
                                         onChange={(e) => setFormData({ ...formData, beneficiary: e.target.value })}
                                         className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"

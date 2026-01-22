@@ -2,9 +2,8 @@ import {
   describe,
   it,
   expect,
-  beforeAll,
-  afterAll,
   beforeEach,
+  afterAll,
 } from "@jest/globals";
 import { FastifyInstance } from "fastify";
 import { build } from "../src/server";
@@ -13,24 +12,24 @@ import bcrypt from "bcrypt";
 
 describe("Admin Routes", () => {
   let app: FastifyInstance;
-  let adminUser: any;
   let authToken: string;
   let testUser: any;
 
-  beforeAll(async () => {
-    app = build({ logger: false });
+  beforeEach(async () => {
+    app = await build();
     await app.ready();
 
     // Create test admin user
     const passwordHash = await bcrypt.hash("TestPassword123!", 12);
-    adminUser = await prisma.adminUser.create({
+    await prisma.adminUser.create({
       data: {
         email: "admin@test.com",
         firstName: "Admin",
         lastName: "User",
-        passwordHash,
-        isActive: true,
-        roleId: "admin-role-id", // This would need to exist in your test setup
+        password: passwordHash,
+        // isActive: true, // Removed as it might not be in schema, use status instead
+        role: "ADMIN",
+        status: "ACTIVE",
       },
     });
 
@@ -42,7 +41,9 @@ describe("Admin Routes", () => {
         lastName: "User",
         status: "ACTIVE",
         kycStatus: "PENDING",
-        phoneNumber: "+1234567890",
+        phone: "+1234567890",
+        password: "UserPassword123!",
+        dateOfBirth: new Date("1990-01-01"), // Add dateOfBirth
       },
     });
 
@@ -61,19 +62,11 @@ describe("Admin Routes", () => {
   });
 
   afterAll(async () => {
-    // Clean up test data
-    await prisma.adminSession.deleteMany({
-      where: { adminUserId: adminUser.id },
-    });
-    await prisma.adminUser.delete({
-      where: { id: adminUser.id },
-    });
-    await prisma.user.delete({
-      where: { id: testUser.id },
-    });
     await app.close();
     await prisma.$disconnect();
   });
+
+
 
   describe("GET /api/admin/dashboard/stats", () => {
     it("should return dashboard statistics", async () => {

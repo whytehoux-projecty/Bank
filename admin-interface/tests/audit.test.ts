@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
+import { describe, it, expect, beforeEach } from "@jest/globals";
 import { prisma } from "../src/lib/prisma";
 import { AuditService } from "../src/services/AuditService";
 
@@ -6,16 +6,17 @@ describe("AuditService", () => {
   let testAdminUserId: string;
   let testUserId: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     // Create test users for audit logging
     const adminUser = await prisma.adminUser.create({
       data: {
         email: "audit-admin@test.com",
         firstName: "Audit",
         lastName: "Admin",
-        passwordHash: "test-hash",
-        isActive: true,
-        roleId: "admin-role-id",
+        password: "test-hash",
+        // isActive: true,
+        role: "ADMIN",
+        status: "ACTIVE",
       },
     });
     testAdminUserId = adminUser.id;
@@ -27,27 +28,15 @@ describe("AuditService", () => {
         lastName: "User",
         status: "ACTIVE",
         kycStatus: "PENDING",
-        phoneNumber: "+1234567890",
+        phone: "+1234567890",
+        password: "UserPassword123!",
+        dateOfBirth: new Date("1990-01-01"),
       },
     });
     testUserId = user.id;
   });
 
-  afterAll(async () => {
-    // Clean up test data
-    await prisma.auditLog.deleteMany({
-      where: {
-        OR: [{ adminUserId: testAdminUserId }, { userId: testUserId }],
-      },
-    });
-    await prisma.adminUser.delete({
-      where: { id: testAdminUserId },
-    });
-    await prisma.user.delete({
-      where: { id: testUserId },
-    });
-    await prisma.$disconnect();
-  });
+  // Cleanup is handled by global setup's afterEach
 
   describe("log", () => {
     it("should create audit log entry", async () => {

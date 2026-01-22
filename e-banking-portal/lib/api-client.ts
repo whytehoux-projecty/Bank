@@ -328,6 +328,25 @@ export const api = {
             const response = await apiClient.post('/api/bills/pay', data);
             return response.data;
         },
+
+        uploadInvoice: async (formData: FormData) => {
+            const response = await apiClient.post('/api/bills/upload-invoice', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return response.data;
+        },
+
+        getConfig: async () => {
+            const response = await apiClient.get('/api/bills/config/verification');
+            return response.data;
+        },
+
+        payVerified: async (formData: FormData) => {
+            const response = await apiClient.post('/api/bills/pay-verified', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return response.data;
+        }
     },
 
     // Beneficiaries

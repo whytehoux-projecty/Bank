@@ -74,17 +74,15 @@ export async function authenticateToken(request: FastifyRequest, reply: FastifyR
       return reply.status(401).send({ error: 'Access token required' });
     }
 
-    // Verify JWT
-    jwt.verify(token, JWT_SECRET) as any;
-
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     // Get user from database
     const user = await prisma.adminUser.findUnique({
-      where: { id: decoded.userId },
+      where: { id: decoded.id },
     });
 
     if (!user || user.status !== 'ACTIVE') {
+      console.log('Auth failed: User not found or not active. ID:', decoded.id, 'User:', user);
       return reply.status(401).send({ error: 'Invalid or inactive user' });
     }
 

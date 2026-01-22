@@ -1,0 +1,183 @@
+<%- include('./layout', { title: 'Payment Verifications' , user: user }) %>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title mb-0 flex align-items-center gap-2">
+                            <i class="bi bi-shield-lock text-warning"></i> Pending Verifications
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>User</th>
+                                        <th>Transaction Ref</th>
+                                        <th>Amount</th>
+                                        <th>Document</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="verificationsTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Review Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 border-end">
+                            <h6 class="text-muted mb-3">Transaction Details</h6>
+                            <div id="modalTxDetails"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Verification Document</h6>
+                            <div id="modalDocPreview" class="bg-light p-3 text-center rounded mb-3"
+                                style="min-height: 200px;">
+                                <!-- Viewer -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-4">
+                        <label class="form-label">Admin Notes</label>
+                        <textarea class="form-control" id="adminNotes" rows="2"
+                            placeholder="Optional notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="submitReview('REJECT')">Reject</button>
+                    <button type="button" class="btn btn-success" onclick="submitReview('APPROVE')">Approve
+                        Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentVerifications = [];
+        let selectedVerificationId = null;
+        const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+
+        async function loadVerifications() {
+            try {
+                const res = await fetch('/api/verifications');
+                const result = await res.json();
+                if (result.success) {
+                    currentVerifications = result.data;
+                    renderTable();
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('verificationsTableBody').innerHTML = '<tr><td colspan="6" class="text-danger text-center">Failed to load</td></tr>';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('verificationsTableBody');
+            tbody.innerHTML = '';
+            if (currentVerifications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No pending verifications</td></tr>';
+                return;
+            }
+
+            currentVerifications.forEach(v => {
+                const user = v.transaction.account.user;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${new Date(v.createdAt).toLocaleString()}</td>
+                <td>
+                    <div class="fw-bold">${user.firstName} ${user.lastName}</div>
+                    <div class="small text-muted">${user.email}</div>
+                </td>
+                <td><code>${v.transaction.reference}</code></td>
+                <td class="fw-bold text-danger">-${new Intl.NumberFormat('en-US', { style: 'currency', currency: v.transaction.currency }).format(Math.abs(v.transaction.amount))}</td>
+                <td><span class="badge bg-info text-dark">${v.documentType}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="openReview('${v.id}')">Review</button>
+                </td>
+            `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function openReview(id) {
+            selectedVerificationId = id;
+            const v = currentVerifications.find(x => x.id === id);
+            if (!v) return;
+
+            // Render Details
+            const user = v.transaction.account.user;
+            const html = `
+            <p><strong>Customer:</strong> ${user.firstName} ${user.lastName}</p>
+            <p><strong>Account:</strong> ${v.transaction.account.accountNumber}</p>
+            <p><strong>Amount:</strong> ${new Intl.NumberFormat('en-US', { style: 'currency', currency: v.transaction.currency }).format(Math.abs(v.transaction.amount))}</p>
+            <p><strong>Reference:</strong> ${v.transaction.reference}</p>
+            <p><strong>Description:</strong> ${v.transaction.description}</p>
+        `;
+            document.getElementById('modalTxDetails').innerHTML = html;
+
+            // Document Preview (Mock for now since file path is local/fake)
+            const docPath = v.documentPath;
+            // In real app, serve this via secure endpoint.
+            document.getElementById('modalDocPreview').innerHTML = `
+            <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                <i class="bi bi-file-earmark-pdf fs-1 text-danger"></i>
+                <div class="mt-2 text-break small">${docPath.split('/').pop()}</div>
+                <button class="btn btn-sm btn-outline-primary mt-3" disabled>Download Document (Demo)</button>
+            </div>
+        `;
+
+            document.getElementById('adminNotes').value = '';
+            modal.show();
+        }
+
+        async function submitReview(action) {
+            if (!selectedVerificationId) return;
+            const notes = document.getElementById('adminNotes').value;
+            const endpoint = action === 'APPROVE' ? 'approve' : 'reject';
+
+            if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
+
+            try {
+                const res = await fetch(`/api/verifications/${selectedVerificationId}/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes })
+                });
+
+                if (res.ok) {
+                    alert('Processed successfully');
+                    modal.hide();
+                    loadVerifications();
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + err.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Failed to process request');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadVerifications);
+    </script>

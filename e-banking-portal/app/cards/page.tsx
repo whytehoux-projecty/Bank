@@ -78,10 +78,10 @@ export default function CardsPage() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center animate-pulse text-vintage-gold">Loading cards...</div>;
+    if (loading) return <div className="p-8 text-center animate-pulse text-vintage-green">Loading cards...</div>;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-charcoal mb-2 font-heading">My Cards</h1>

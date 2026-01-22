@@ -132,11 +132,11 @@ export default function TransactionsPage() {
     };
 
     if (loading) {
-        return <div className="p-8 text-center text-vintage-gold animate-pulse">Loading transaction history...</div>;
+        return <div className="p-8 text-center text-vintage-green animate-pulse">Loading transaction history...</div>;
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -149,7 +149,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                 <Card>
                     <CardContent className="p-6">
                         <p className="text-sm text-charcoal-light mb-1">Total Transactions</p>
@@ -271,7 +271,7 @@ export default function TransactionsPage() {
                     ) : (
                         <div className="divide-y divide-faded-gray-light">
                             {filteredTransactions.map((transaction) => (
-                                <div key={transaction.id} className="p-4 hover:bg-parchment transition-colors dropdown-container">
+                                <div key={transaction.id} className="px-4 py-3 hover:bg-parchment transition-colors dropdown-container">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4 flex-1">
                                             <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${Number(transaction.amount) > 0 ? 'bg-vintage-green/10' : 'bg-red-50'

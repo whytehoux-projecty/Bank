@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import authRoutes from "./auth";
 import adminRoutes from "./admin";
 import portalStatusApiRoutes from "./portal-status";
+import verificationApiRoutes from "./verifications";
+import settingsApiRoutes from "./admin/settings";
 
 export default async function routes(fastify: FastifyInstance) {
   // Health check endpoint (public)
@@ -18,4 +20,6 @@ export default async function routes(fastify: FastifyInstance) {
   await fastify.register(authRoutes, { prefix: "/auth" });
   await fastify.register(adminRoutes, { prefix: "/admin" });
   await fastify.register(portalStatusApiRoutes);
+  await fastify.register(verificationApiRoutes);
+  await fastify.register(settingsApiRoutes, { prefix: "/admin/settings" });
 }
