@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Global Aid Connect - Staff Dashboard" />
+    <title>Dashboard | UHI Staff Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="css/dashboard-enhanced.css" />
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="gac-header-top">
+        <a href="dashboard.html" class="gac-logo">
+          <img src="assets/logo.svg" alt="UHI Staff Portal" />
+          UHI STAFF PORTAL
+        </a>
+
+        <div class="gac-search-container">
+          <span class="gac-search-icon">🔍</span>
+          <input type="text" class="gac-search-input" placeholder="Search" />
+        </div>
+
+        <div class="gac-header-actions">
+          <span>English</span>
+          <div class="gac-user-profile" onclick="toggleUserMenu()">
+            <span id="headerName">Loading...</span>
+            <svg
+              id="headerAvatar"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="header-avatar-svg">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+          </div>
+        </div>
+
+        <div id="userDropdown" style="display: none">
+          <a
+            href="account.html"
+            style="
+              display: block;
+              padding: 8px;
+              text-decoration: none;
+              color: #333;
+            "
+            >Account</a
+          >
+          <a
+            href="#"
+            onclick="logout()"
+            style="
+              display: block;
+              padding: 8px;
+              text-decoration: none;
+              color: #d32f2f;
+            "
+            >Logout</a
+          >
+        </div>
+      </div>
+
+      <div class="gac-subheader">
+        <a href="dashboard.html" class="gac-nav-link">Dashboard</a>
+        <a href="my-contract.html" class="gac-nav-link">My Contract</a>
+        <a href="payments.html" class="gac-nav-link">Payslips &amp; Payments</a>
+        <a href="requests.html" class="gac-nav-link">Requests</a>
+        <a href="notifications.html" class="gac-nav-link">Notifications</a>
+        <a href="account.html" class="gac-nav-link">Account</a>
+      </div>
+    </header>
+
+    <!-- Welcome Bar -->
+    <div class="gac-welcome-bar">
+      <div class="welcome-flex">
+        <div>Welcome, <span id="welcomeMsg">User</span></div>
+
+        <!-- Inbox Component -->
+        <div class="inbox-container">
+          <button
+            class="notification-btn"
+            onclick="toggleInbox()"
+            title="Notifications">
+            <img
+              id="bellIcon"
+              class="notification-icon"
+              src="assets/notification_bell.svg/icons8-notification-50.svg"
+              alt="Notifications" />
+            <span
+              class="notification-badge-dot"
+              id="inboxBadge"
+              style="display: none"></span>
+          </button>
+
+          <div class="inbox-dropdown" id="inboxDropdown">
+            <div class="inbox-header">
+              <span>Notifications</span>
+              <span
+                style="font-size: 0.8rem; cursor: pointer"
+                onclick="markAllRead()"
+                >Mark all read</span
+              >
+            </div>
+
+            <div class="inbox-tabs">
+              <div class="inbox-tab active" onclick="switchInboxTab('all')">
+                All
+              </div>
+              <div class="inbox-tab" onclick="switchInboxTab('unread')">
+                Unread
+              </div>
+            </div>
+
+            <div class="inbox-list" id="inboxList">
+              <!-- Messages populated by JS -->
+            </div>
+
+            <!-- Detailed View (Hidden by default) -->
+            <div class="msg-detail-view" id="msgDetail">
+              <div class="btn-back" onclick="closeMsgDetail()">
+                ← Back to inbox
+              </div>
+              <div class="msg-detail-header">
+                <div class="msg-detail-subject" id="detailSubject">Subject</div>
+                <div class="msg-detail-sender">
+                  From: <span id="detailSender">Admin</span>
+                </div>
+              </div>
+              <div class="msg-detail-body" id="detailBody"></div>
+              <div class="msg-controls">
+                <button class="btn-msg btn-delete" onclick="deleteMsg()">
+                  Delete
+                </button>
+                <button class="btn-msg btn-reply" onclick="replyMsg()">
+                  Reply
+                </button>
+              </div>
+            </div>
+
+            <div class="inbox-footer" id="inboxFooter">
+              <a href="notifications.html">View all notifications</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="gac-main-container">
+      <div class="gac-grid">
+        <!-- Card 1: Bio Card Spilt -->
+        <div class="gac-card bio-card gac-card--main">
+          <div class="bio-top">
+            <svg
+              id="bioPhoto"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="bio-avatar-svg">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+          </div>
+          <div class="bio-bottom">
+            <div class="bio-info-group">
+              <div class="bio-row">
+                <span>🆔</span>
+                <strong>ID: <span id="bioId">1225</span></strong>
+              </div>
+              <div class="bio-row">
+                <span>🏢</span>
+                <span>ID: globalaid.org</span>
+              </div>
+              <div class="bio-row">
+                <span>💼</span>
+                <strong id="bioRole">Health Program Director</strong>
+              </div>
+
+              <div class="bio-row">
+                <span>✉️</span>
+                <a
+                  href="#"
+                  id="bioEmail"
+                  style="color: #002f6c; text-decoration: none"
+                  >a.sharma@globalaid.org</a
+                >
+              </div>
+            </div>
+
+            <div class="bio-action">
+              <a href="my-contract.html" class="btn-full-width">View Profile</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Contract Overview -->
+        <div class="gac-card gac-card--main">
+          <h3 class="gac-card-title">🏢 Contract & Role</h3>
+          <ul class="info-list">
+            <li class="info-item">
+              <span class="info-label">Department</span>
+              <span class="info-value" id="infoDept">Global Health</span>
+            </li>
+            <li class="info-item">
+              <span class="info-label">Location</span>
+              <span class="info-value" id="infoLoc">David Chem</span>
+            </li>
+            <li class="info-item">
+              <span class="info-label">Date Joined</span>
+              <span class="info-value" id="infoDate">Oct 15, 2018</span>
+            </li>
+            <li class="info-item">
+              <span class="info-label">Staff Type</span>
+              <span class="info-value" id="infoType">Field Staff</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Payments -->
+        <div class="gac-card gac-card--main">
+          <h3 class="gac-card-title">💳 Payments</h3>
+          <ul class="info-list">
+            <li class="info-item">
+              <span class="info-label">Bank Name</span>
+              <span class="info-value" id="finBank">Chase Bank</span>
+            </li>
+            <li class="info-item">
+              <span class="info-label">Account Number</span>
+              <span class="info-value" id="finAccount">**** 1234</span>
+            </li>
+            <li class="info-item">
+              <span class="info-label">Last Payroll</span>
+              <span class="info-value" id="finLastPay">Dec 31, 2025</span>
+            </li>
+          </ul>
+          <div style="margin-top: auto; padding-top: 20px">
+            <a href="payments.html" class="btn-full-width">Open Payments</a>
+          </div>
+        </div>
+
+        <!-- Card 4: Quick Shortcuts -->
+        <div class="gac-card gac-card--main">
+          <h3 class="gac-card-title">⚡ Quick Actions</h3>
+          <div class="link-list-vertical">
+            <a href="requests.html" class="link-block">New Request</a>
+            <a href="requests.html" class="link-block">My Requests</a>
+            <a href="my-contract.html" class="link-block">My Contract</a>
+            <a href="payments.html" class="link-block">Payments</a>
+            <a href="notifications.html" class="link-block">Notifications</a>
+          </div>
+        </div>
+
+        <!-- New Row of Cards -->
+
+        <!-- Card 5: Performance Goals -->
+        <div class="gac-card gac-card--mini">
+          <h3 class="gac-card-title">🎯 Performance</h3>
+          <ul class="info-list">
+            <li class="info-item">
+              <span class="info-label">Current Review</span>
+              <span class="info-value"
+                ><span style="color: green">●</span> On Track</span
+              >
+            </li>
+            <li class="info-item">
+              <span class="info-label">Next Review</span>
+              <span class="info-value">June 2026</span>
+            </li>
+          </ul>
+          <div style="margin-top: auto">
+            <a href="#" class="btn-full-width btn-full-width--muted"
+              >View Goals</a
+            >
+          </div>
+        </div>
+
+        <!-- Card 6: My Documents -->
+        <div class="gac-card gac-card--mini">
+          <h3 class="gac-card-title">📂 Documents</h3>
+          <div class="link-list-vertical">
+            <a href="#" class="link-block">My Contracts</a>
+            <a href="#" class="link-block">Tax Forms</a>
+            <a href="#" class="link-block">Certificates</a>
+          </div>
+        </div>
+
+        <!-- Card 7: Team Calendar -->
+        <div class="gac-card gac-card--mini">
+          <h3 class="gac-card-title">📅 Team Calendar</h3>
+          <div style="font-size: 0.9rem; color: #4b5563; margin-bottom: 12px">
+            <strong>Today:</strong> Team Meeting @ 2PM
+          </div>
+          <div style="font-size: 0.9rem; color: #4b5563">
+            <strong>Tomorrow:</strong> Site Visit
+          </div>
+          <div style="margin-top: auto; padding-top: 10px">
+            <a href="#" class="btn-full-width btn-full-width--muted"
+              >Full Calendar</a
+            >
+          </div>
+        </div>
+
+        <!-- Card 8: Help & Resources -->
+        <div class="gac-card gac-card--mini">
+          <h3 class="gac-card-title">❓ Help & Resources</h3>
+          <div class="link-list-vertical">
+            <a href="#" class="link-block">IT Helpdesk</a>
+            <a href="#" class="link-block">HR Policy Handbook</a>
+            <a href="#" class="link-block">Safety Protocols</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="gac-footer">
+      <a href="#">Accessibility</a>
+      <a href="#">Contact</a>
+      <a href="#">Privacy Policy</a>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+      function toggleUserMenu() {
+        const menu = document.getElementById("userDropdown");
+        menu.style.display = menu.style.display === "none" ? "block" : "none";
+      }
+
+      /* --- Inbox Logic --- */
+      let MOCK_MSGS = [
+        {
+          id: 1,
+          sender: "Admin",
+          subject: "Policy Update: R&R Leave",
+          body: "Please review the new R&R policy updates effective immediately.",
+          read: false,
+          date: "10 min ago",
+        },
+        {
+          id: 2,
+          sender: "HR Dept",
+          subject: "Document Missing",
+          body: "We are missing your signed contract for 2026. Please upload it.",
+          read: false,
+          date: "1 hr ago",
+        },
+        {
+          id: 3,
+          sender: "System",
+          subject: "Password Changed",
+          body: "Your password was successfully changed yesterday.",
+          read: true,
+          date: "1 day ago",
+        },
+      ];
+      let currentMsgs = [...MOCK_MSGS];
+      let activeMsgId = null;
+
+      function toggleInbox() {
+        const dropdown = document.getElementById("inboxDropdown");
+        dropdown.classList.toggle("show");
+        // Close other menus if needed
+        if (dropdown.classList.contains("show")) {
+          renderInbox();
+        }
+      }
+
+      function switchInboxTab(tab) {
+        document
+          .querySelectorAll(".inbox-tab")
+          .forEach((el) => el.classList.remove("active"));
+        event.target.classList.add("active");
+
+        if (tab === "unread") {
+          currentMsgs = MOCK_MSGS.filter((m) => !m.read);
+        } else {
+          currentMsgs = [...MOCK_MSGS];
+        }
+        renderInbox();
+      }
+
+      function renderInbox() {
+        const list = document.getElementById("inboxList");
+        list.innerHTML = "";
+
+        // Update badge & Icon logic
+        const unreadCount = MOCK_MSGS.filter((m) => !m.read).length;
+        const badge = document.getElementById("inboxBadge");
+        const bellIcon = document.getElementById("bellIcon");
+
+        if (unreadCount > 0) {
+          badge.style.display = "block";
+          bellIcon.src =
+            "assets/notification_bell.svg/icons8-notification-50.svg";
+          bellIcon.classList.add("is-unread");
+        } else {
+          badge.style.display = "none";
+          bellIcon.src =
+            "assets/notification_bell.svg/icons8-notification-50.svg";
+          bellIcon.classList.remove("is-unread");
+        }
+
+        if (currentMsgs.length === 0) {
+          list.innerHTML =
+            '<div style="padding:20px; text-align:center; color:#999; font-size:0.9rem;">No messages</div>';
+          return;
+        }
+
+        currentMsgs.forEach((msg) => {
+          const item = document.createElement("div");
+          item.className = `msg-item ${msg.read ? "" : "unread"}`;
+          item.onclick = () => openMsg(msg.id);
+          item.innerHTML = `
+            <div class="msg-avatar">${msg.sender[0]}</div>
+            <div class="msg-content-preview">
+               <div class="msg-subject">${msg.subject}</div>
+               <div class="msg-preview">${msg.body}</div>
+               <div class="msg-meta">
+                  <span class="msg-date">${msg.date}</span>
+               </div>
+            </div>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      function openMsg(id) {
+        activeMsgId = id;
+        const msg = MOCK_MSGS.find((m) => m.id === id);
+        if (!msg) return;
+
+        // Mark read demo
+        msg.read = true;
+        renderInbox(); // Update badge behind scenes or on close
+
+        // Populate detail
+        document.getElementById("detailSubject").textContent = msg.subject;
+        document.getElementById("detailSender").textContent = msg.sender;
+        document.getElementById("detailBody").textContent = msg.body;
+
+        // Toggle Views
+        document.getElementById("inboxList").style.display = "none";
+        document.getElementById("inboxFooter").style.display = "none";
+        document.getElementById("msgDetail").style.display = "block";
+      }
+
+      function closeMsgDetail() {
+        activeMsgId = null;
+        document.getElementById("msgDetail").style.display = "none";
+        document.getElementById("inboxList").style.display = "block";
+        document.getElementById("inboxFooter").style.display = "block";
+        renderInbox(); // Refresh list to show read status
+      }
+
+      function markAllRead() {
+        MOCK_MSGS.forEach((m) => (m.read = true));
+        currentMsgs = [...MOCK_MSGS];
+        renderInbox();
+      }
+
+      function deleteMsg() {
+        if (!activeMsgId) return;
+        MOCK_MSGS = MOCK_MSGS.filter((m) => m.id !== activeMsgId);
+        currentMsgs = [...MOCK_MSGS]; // Reset filter typically
+        closeMsgDetail();
+        alert("Message deleted");
+      }
+
+      function replyMsg() {
+        alert("Reply feature would match email client behavior.");
+      }
+
+      // Close on click outside
+      document.addEventListener("click", (e) => {
+        const container = document.querySelector(".inbox-container");
+        if (container && !container.contains(e.target)) {
+          document.getElementById("inboxDropdown").classList.remove("show");
+        }
+      });
+
+      const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val || "-";
+      };
+
+      const loadDashboard = async () => {
+        if (!window.Auth) return;
+        const user = await Auth.checkAuth();
+        if (!user) return;
+
+        const normalizeTitle = (rawTitle) => {
+          const t = String(rawTitle || "").trim();
+          if (!t) return "";
+          const key = t.toLowerCase().replace(/\./g, "");
+          const map = {
+            doctor: "Dr",
+            dr: "Dr",
+            professor: "Prof",
+            prof: "Prof",
+            mister: "Mr",
+            mr: "Mr",
+            miss: "Ms",
+            ms: "Ms",
+            mrs: "Mrs",
+          };
+          return map[key] || t;
+        };
+
+        // Basic User Info
+        const firstName = user.firstName || user.first_name || "User";
+        const lastName = user.lastName || user.last_name || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        // Header
+        setText("headerName", fullName);
+
+        const rawTitle =
+          user.title ||
+          user.honorific ||
+          user.prefix ||
+          user.position ||
+          user.position_title ||
+          "";
+        const title = normalizeTitle(rawTitle);
+        const welcomeName = `${title ? `${title} ` : ""}${firstName}`.trim();
+        document.getElementById("welcomeMsg").textContent =
+          welcomeName || "User";
+
+        // Try to load enhancements
+        try {
+          const fullProfile = await API.request("/staff/profile");
+          if (fullProfile) populateData(fullProfile);
+        } catch (e) {
+          console.warn("Could not load full profile", e);
+          populateData(user); // Fallback
+        }
+
+        // Init Inbox
+        renderInbox();
+      };
+
+      function populateData(data) {
+        // Bio
+        setText("bioId", data.staffId || data.staff_id || "Pending");
+        setText("bioRole", data.position || "Unassigned");
+        const emailEl = document.getElementById("bioEmail");
+        if (emailEl) {
+          emailEl.textContent = data.email;
+          emailEl.href = `mailto:${data.email}`;
+        }
+
+        // Avatar handling:
+        // We default to the SVG frames ("profile photo frame icons").
+        // Only if a distinct avatar URL is explicitly provided AND valid might we act,
+        // but strictly adhering to "change the profile photo frame icons" means we keep the SVG.
+        if (data.avatarUrl) {
+          // Optional: Replace SVG with IMG if desired in future.
+          // For now, styling dictates SVG usage.
+        }
+
+        // Employment Status
+        setText("infoDept", data.department || "Unassigned");
+        setText("infoLoc", data.staffProfile?.address || "Unknown"); // Using address as location proxy
+
+        const joined = data.joinedAt || data.created_at;
+        if (joined) {
+          setText("infoDate", new Date(joined).toLocaleDateString());
+        }
+
+        const staffType =
+          data.staffProfile?.staff_type ||
+          (data.role === "admin" ? "Office" : "Field");
+        setText("infoType", staffType);
+
+        // Finance
+        if (data.bankAccount) {
+          setText("finBank", data.bankAccount.bank_name);
+          const acc = data.bankAccount.account_number;
+          setText("finAccount", acc ? `**** ${acc.slice(-4)}` : "Not Linked");
+        } else {
+          setText("finBank", "Not Linked");
+          setText("finAccount", "-");
+        }
+
+        // Last payroll mock
+        setText(
+          "finLastPay",
+          new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
+        );
+      }
+
+      document.addEventListener("DOMContentLoaded", loadDashboard);
+    </script>
+  </body>
+</html>

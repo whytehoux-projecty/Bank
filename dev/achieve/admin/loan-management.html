@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Admin Loan Management - Staff Portal" />
+    <title>Loan Management | Admin Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/dashboard.css" />
+    <style>
+        /* Admin Loan Management Styles */
+        :root {
+            --card-bg: #ffffff;
+            --card-border: rgba(0, 0, 0, 0.04);
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            position: fixed;
+            left: 0;
+            top: 64px;
+            bottom: 0;
+            width: 260px;
+            background-color: #fff;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .admin-main {
+            margin-left: 260px;
+        }
+
+        .sidebar-section {
+            padding: 0 16px;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin: 0 8px;
+        }
+
+        .sidebar-item:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(135deg, #1a365d, #2c5282);
+            color: #fff;
+        }
+
+        .sidebar-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Page Header */
+        .page-header-admin {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(26, 54, 93, 0.3);
+        }
+
+        .page-header-admin h1 {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .page-header-admin p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            margin: 4px 0 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card.primary::before {
+            background: #1a365d;
+        }
+
+        .stat-card.success::before {
+            background: #38a169;
+        }
+
+        .stat-card.warning::before {
+            background: #dd6b20;
+        }
+
+        .stat-card.danger::before {
+            background: #e53e3e;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .stat-card.primary .stat-icon {
+            background: #ebf4ff;
+        }
+
+        .stat-card.success .stat-icon {
+            background: #f0fff4;
+        }
+
+        .stat-card.warning .stat-icon {
+            background: #fffaf0;
+        }
+
+        .stat-card.danger .stat-icon {
+            background: #fff5f5;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* Widget Card */
+        .widget-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            background: linear-gradient(to right, #f8fafc, #fff);
+        }
+
+        .widget-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .widget-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .widget-body {
+            padding: 0;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 280px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .search-box svg {
+            color: #94a3b8;
+        }
+
+        .filter-select {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #64748b;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #f8fafc;
+        }
+
+        .data-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table td {
+            padding: 16px;
+            font-size: 0.875rem;
+            color: #1e293b;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-table .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+
+        .data-table input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Staff Info Cell */
+        .staff-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .staff-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1a365d, #2c5282);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .staff-details {
+            flex: 1;
+        }
+
+        .staff-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .staff-id {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        /* Amount Cell */
+        .amount-cell {
+            font-weight: 600;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .amount-cell.large {
+            color: #e53e3e;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background: #fffaf0;
+            color: #dd6b20;
+        }
+
+        .status-badge.approved {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .status-badge.active {
+            background: #ebf4ff;
+            color: #1a365d;
+        }
+
+        .status-badge.rejected {
+            background: #fff5f5;
+            color: #e53e3e;
+        }
+
+        .status-badge.completed {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .action-btn.approve {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .action-btn.approve:hover {
+            background: #38a169;
+            color: #fff;
+        }
+
+        .action-btn.reject {
+            background: #fff5f5;
+            color: #e53e3e;
+        }
+
+        .action-btn.reject:hover {
+            background: #e53e3e;
+            color: #fff;
+        }
+
+        .action-btn.edit {
+            background: #ebf4ff;
+            color: #1a365d;
+        }
+
+        .action-btn.edit:hover {
+            background: #1a365d;
+            color: #fff;
+        }
+
+        .action-btn.view {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .action-btn.view:hover {
+            background: #64748b;
+            color: #fff;
+        }
+
+        /* Bulk Actions Bar */
+        .bulk-actions {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #1a365d, #2c5282);
+            color: #fff;
+        }
+
+        .bulk-actions.show {
+            display: flex;
+        }
+
+        .bulk-actions .selected-count {
+            font-size: 0.875rem;
+        }
+
+        .bulk-actions .bulk-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .bulk-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .bulk-btn.approve-all {
+            background: #38a169;
+            color: #fff;
+        }
+
+        .bulk-btn.reject-all {
+            background: #e53e3e;
+            color: #fff;
+        }
+
+        .bulk-btn.export {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .page-btn.active {
+            background: #1a365d;
+            color: #fff;
+            border-color: #1a365d;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-container {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #f8fafc, #fff);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f8fafc;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1a365d;
+            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        /* Loan Detail Card */
+        .loan-detail-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .loan-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .loan-detail-header h4 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .loan-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .loan-detail-item {
+            background: #fff;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .loan-detail-label {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .loan-detail-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .loan-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="header-left">
+            <button class="icon-btn" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle sidebar">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+            <div class="org-logo-small">
+                <img src="../assets/logo.svg" alt="Staff Portal" />
+            </div>
+            <h1 class="portal-title">Admin Portal</h1>
+        </div>
+
+        <div class="header-right">
+            <button class="icon-btn" title="Notifications" aria-label="Notifications">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                </svg>
+                <span class="badge">3</span>
+            </button>
+
+            <div class="user-menu">
+                <button class="user-btn" onclick="toggleUserMenu()" aria-label="User menu">
+                    <div class="avatar">A</div>
+                    <span>Admin</span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 8L2 4h8L6 8z" />
+                    </svg>
+                </button>
+                <div class="dropdown-menu" id="userDropdown">
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Main</div>
+            <nav class="sidebar-menu">
+                <a href="admin_interface.html" class="sidebar-item">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="staff-management.html" class="sidebar-item">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                    Staff Management
+                </a>
+                <a href="loan-management.html" class="sidebar-item active">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                        <path fill-rule="evenodd"
+                            d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Loan Management
+                </a>
+            </nav>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Settings</div>
+            <nav class="sidebar-menu">
+                <a href="cms-settings.html" class="sidebar-item">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
+                    </svg>
+                    CMS Settings
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content admin-main">
+        <!-- Page Header -->
+        <section class="page-header-admin">
+            <div>
+                <h1>💳 Loan Management</h1>
+                <p>Manage staff loans, approvals, and payment tracking</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportLoans()">
+                    📊 Export Report
+                </button>
+                <button class="btn btn-accent" onclick="sendReminders()">
+                    📧 Send Reminders
+                </button>
+            </div>
+        </section>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card warning">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value" id="pendingLoans">0</div>
+                <div class="stat-label">Pending Approval</div>
+            </div>
+            <div class="stat-card primary">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="activeLoans">0</div>
+                <div class="stat-label">Active Loans</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalOutstanding">$0</div>
+                <div class="stat-label">Total Outstanding</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="totalCollected">$0</div>
+                <div class="stat-label">Total Collected</div>
+            </div>
+        </div>
+
+        <!-- Pending Approvals -->
+        <div class="widget-card">
+            <div class="widget-header">
+                <h3 class="widget-title">⏳ Pending Loan Approvals</h3>
+                <div class="widget-actions">
+                    <button class="btn btn-sm btn-primary" onclick="approveAllPending()">Approve All</button>
+                </div>
+            </div>
+            <div class="widget-body" id="pendingApprovalsBody">
+                <table class="data-table" id="pendingTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllPending" onchange="toggleSelectAll('pending')" />
+                            </th>
+                            <th>Staff Member</th>
+                            <th>Amount</th>
+                            <th>Purpose</th>
+                            <th>Term</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingTableBody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- All Loans -->
+        <div class="widget-card">
+            <div class="widget-header">
+                <h3 class="widget-title">📊 All Staff Loans</h3>
+            </div>
+
+            <!-- Bulk Actions Bar -->
+            <div class="bulk-actions" id="bulkActions">
+                <span class="selected-count"><span id="selectedCount">0</span> loans selected</span>
+                <div class="bulk-buttons">
+                    <button class="bulk-btn export" onclick="exportSelected()">📥 Export</button>
+                    <button class="bulk-btn approve-all" onclick="bulkApprove()">✅ Approve All</button>
+                    <button class="bulk-btn reject-all" onclick="bulkReject()">❌ Reject All</button>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="search-box">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M11.5 7a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM10.7 11.3a6 6 0 111.414-1.414l3.387 3.386a1 1 0 01-1.414 1.414l-3.387-3.386z" />
+                        </svg>
+                        <input type="text" placeholder="Search by staff name or ID..." id="searchInput"
+                            onkeyup="filterLoans()" />
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <select class="filter-select" id="statusFilter" onchange="filterLoans()"
+                        aria-label="Filter by status">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <select class="filter-select" id="sortFilter" onchange="sortLoans()" aria-label="Sort loans">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="amount-desc">Highest Amount</option>
+                        <option value="amount-asc">Lowest Amount</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="widget-body">
+                <table class="data-table" id="loansTable">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <input type="checkbox" id="selectAllLoans" onchange="toggleSelectAll('all')" />
+                            </th>
+                            <th>Staff Member</th>
+                            <th>Loan ID</th>
+                            <th>Amount</th>
+                            <th>Balance</th>
+                            <th>Purpose</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loansTableBody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info">
+                    Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span
+                        id="totalLoans">0</span> loans
+                </div>
+                <div class="pagination-buttons">
+                    <button class="page-btn" onclick="prevPage()" id="prevBtn">&larr; Previous</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn" onclick="nextPage()" id="nextBtn">Next &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Loan Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>✏️ Edit Loan Details</h3>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Current Loan Info -->
+                <div class="loan-detail-card">
+                    <div class="loan-detail-header">
+                        <h4 id="editLoanStaff">Staff Name</h4>
+                        <span class="status-badge active" id="editLoanStatus">Active</span>
+                    </div>
+                    <div class="loan-detail-grid">
+                        <div class="loan-detail-item">
+                            <div class="loan-detail-label">Loan ID</div>
+                            <div class="loan-detail-value" id="editLoanId">-</div>
+                        </div>
+                        <div class="loan-detail-item">
+                            <div class="loan-detail-label">Original Amount</div>
+                            <div class="loan-detail-value" id="editOriginalAmount">-</div>
+                        </div>
+                        <div class="loan-detail-item">
+                            <div class="loan-detail-label">Applied On</div>
+                            <div class="loan-detail-value" id="editAppliedDate">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Form -->
+                <form id="editLoanForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Amount</label>
+                            <input type="number" id="editAmount" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label>Outstanding Balance</label>
+                            <input type="number" id="editBalance" step="0.01" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monthly Payment</label>
+                            <input type="number" id="editMonthlyPayment" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label>Interest Rate (%)</label>
+                            <input type="number" id="editInterestRate" step="0.1" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="editStartDate" />
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" id="editDueDate" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editStatusSelect">
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Admin Notes</label>
+                        <textarea id="editNotes" rows="3"
+                            placeholder="Add any admin notes about this loan..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveLoanChanges()">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Loan Modal -->
+    <div id="viewModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>📋 Loan Details</h3>
+                <button class="modal-close" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="viewModalContent">
+                <!-- Content generated dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+                <button class="btn btn-primary" onclick="editFromView()">✏️ Edit Loan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer" style="margin-left: 260px;">
+        <div class="footer-content">
+            <p>&copy; 2026 Global Organization. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Use</a>
+                <a href="#">Help & Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        // Store loans data
+        let allLoans = [];
+        let selectedLoans = new Set();
+        let currentEditLoan = null;
+
+        // Sample loan data for demonstration
+        const sampleLoans = [
+            { id: 'LOAN-001', staffId: 'STF-1234', staffName: 'John Smith', amount: 5000, balance: 3500, purpose: 'Emergency', status: 'active', term: 12, monthly: 450, created_at: '2025-11-15', due_date: '2026-11-15' },
+            { id: 'LOAN-002', staffId: 'STF-1235', staffName: 'Sarah Johnson', amount: 10000, balance: 10000, purpose: 'Education', status: 'pending', term: 24, monthly: 450, created_at: '2026-01-05', due_date: null },
+            { id: 'LOAN-003', staffId: 'STF-1236', staffName: 'Michael Brown', amount: 3000, balance: 1500, purpose: 'Medical', status: 'active', term: 6, monthly: 525, created_at: '2025-10-20', due_date: '2026-04-20' },
+            { id: 'LOAN-004', staffId: 'STF-1237', staffName: 'Emily Davis', amount: 7500, balance: 7500, purpose: 'Housing', status: 'pending', term: 18, monthly: 440, created_at: '2026-01-08', due_date: null },
+            { id: 'LOAN-005', staffId: 'STF-1238', staffName: 'David Wilson', amount: 2000, balance: 0, purpose: 'Personal', status: 'completed', term: 6, monthly: 350, created_at: '2025-06-10', due_date: '2025-12-10' },
+            { id: 'LOAN-006', staffId: 'STF-1239', staffName: 'Jessica Martinez', amount: 15000, balance: 12500, purpose: 'Vehicle', status: 'active', term: 36, monthly: 480, created_at: '2025-08-01', due_date: '2028-08-01' },
+            { id: 'LOAN-007', staffId: 'STF-1240', staffName: 'James Taylor', amount: 4000, balance: 4000, purpose: 'Emergency', status: 'rejected', term: 12, monthly: 350, created_at: '2025-12-20', due_date: null },
+        ];
+
+        // Utility functions
+        const fmtMoney = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+        const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
+        const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+        // Toggle functions
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('open');
+        }
+
+        // Update stats
+        function updateStats() {
+            const pending = allLoans.filter(l => l.status === 'pending');
+            const active = allLoans.filter(l => l.status === 'active');
+            const totalOut = allLoans.filter(l => l.status === 'active').reduce((sum, l) => sum + (l.balance || 0), 0);
+            const totalPaid = allLoans.reduce((sum, l) => sum + ((l.amount || 0) - (l.balance || 0)), 0);
+
+            document.getElementById('pendingLoans').textContent = pending.length;
+            document.getElementById('activeLoans').textContent = active.length;
+            document.getElementById('totalOutstanding').textContent = fmtMoney(totalOut);
+            document.getElementById('totalCollected').textContent = fmtMoney(totalPaid);
+        }
+
+        // Render pending approvals
+        function renderPendingApprovals() {
+            const pending = allLoans.filter(l => l.status === 'pending');
+            const tbody = document.getElementById('pendingTableBody');
+
+            if (pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 40px;">No pending approvals</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pending.map(loan => `
+          <tr>
+            <td class="checkbox-cell">
+              <input type="checkbox" data-id="${loan.id}" onchange="updateSelection()" />
+            </td>
+            <td>
+              <div class="staff-info">
+                <div class="staff-avatar">${getInitials(loan.staffName)}</div>
+                <div class="staff-details">
+                  <div class="staff-name">${loan.staffName}</div>
+                  <div class="staff-id">${loan.staffId}</div>
+                </div>
+              </div>
+            </td>
+            <td class="amount-cell">${fmtMoney(loan.amount)}</td>
+            <td>${loan.purpose}</td>
+            <td>${loan.term} months</td>
+            <td>${fmtDate(loan.created_at)}</td>
+            <td>
+              <button class="action-btn approve" onclick="approveLoan('${loan.id}')" title="Approve loan">✓ Approve</button>
+              <button class="action-btn reject" onclick="rejectLoan('${loan.id}')" title="Reject loan">✕ Reject</button>
+              <button class="action-btn view" onclick="viewLoan('${loan.id}')" title="View details">👁</button>
+            </td>
+          </tr>
+        `).join('');
+        }
+
+        // Render all loans
+        function renderAllLoans() {
+            const tbody = document.getElementById('loansTableBody');
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allLoans;
+
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(l => l.status === statusFilter);
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(l =>
+                    l.staffName.toLowerCase().includes(searchTerm) ||
+                    l.staffId.toLowerCase().includes(searchTerm) ||
+                    l.id.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            document.getElementById('totalLoans').textContent = filtered.length;
+            document.getElementById('showingTo').textContent = Math.min(10, filtered.length);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #64748b; padding: 40px;">No loans found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(loan => `
+          <tr>
+            <td class="checkbox-cell">
+              <input type="checkbox" data-id="${loan.id}" onchange="updateSelection()" ${selectedLoans.has(loan.id) ? 'checked' : ''} />
+            </td>
+            <td>
+              <div class="staff-info">
+                <div class="staff-avatar">${getInitials(loan.staffName)}</div>
+                <div class="staff-details">
+                  <div class="staff-name">${loan.staffName}</div>
+                  <div class="staff-id">${loan.staffId}</div>
+                </div>
+              </div>
+            </td>
+            <td><code style="font-size: 0.8rem;">${loan.id}</code></td>
+            <td class="amount-cell">${fmtMoney(loan.amount)}</td>
+            <td class="amount-cell ${loan.balance > 5000 ? 'large' : ''}">${fmtMoney(loan.balance)}</td>
+            <td>${loan.purpose}</td>
+            <td><span class="status-badge ${loan.status}">${loan.status}</span></td>
+            <td>${fmtDate(loan.due_date)}</td>
+            <td>
+              <button class="action-btn view" onclick="viewLoan('${loan.id}')" title="View details">👁</button>
+              <button class="action-btn edit" onclick="editLoan('${loan.id}')" title="Edit loan">✏️</button>
+            </td>
+          </tr>
+        `).join('');
+        }
+
+        // Selection handling
+        function toggleSelectAll(section) {
+            const checkboxes = section === 'pending'
+                ? document.querySelectorAll('#pendingTableBody input[type="checkbox"]')
+                : document.querySelectorAll('#loansTableBody input[type="checkbox"]');
+
+            const selectAll = section === 'pending'
+                ? document.getElementById('selectAllPending')
+                : document.getElementById('selectAllLoans');
+
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                if (selectAll.checked) {
+                    selectedLoans.add(cb.dataset.id);
+                } else {
+                    selectedLoans.delete(cb.dataset.id);
+                }
+            });
+
+            updateBulkActionsVisibility();
+        }
+
+        function updateSelection() {
+            selectedLoans.clear();
+            document.querySelectorAll('input[type="checkbox"][data-id]:checked').forEach(cb => {
+                selectedLoans.add(cb.dataset.id);
+            });
+            updateBulkActionsVisibility();
+        }
+
+        function updateBulkActionsVisibility() {
+            const bulkActions = document.getElementById('bulkActions');
+            document.getElementById('selectedCount').textContent = selectedLoans.size;
+
+            if (selectedLoans.size > 0) {
+                bulkActions.classList.add('show');
+            } else {
+                bulkActions.classList.remove('show');
+            }
+        }
+
+        // Loan actions
+        function approveLoan(id) {
+            const loan = allLoans.find(l => l.id === id);
+            if (loan) {
+                loan.status = 'approved';
+                loan.due_date = new Date(Date.now() + loan.term * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                renderPendingApprovals();
+                renderAllLoans();
+                updateStats();
+                showNotification(`Loan ${id} approved successfully!`, 'success');
+            }
+        }
+
+        function rejectLoan(id) {
+            if (!confirm('Are you sure you want to reject this loan application?')) return;
+            const loan = allLoans.find(l => l.id === id);
+            if (loan) {
+                loan.status = 'rejected';
+                renderPendingApprovals();
+                renderAllLoans();
+                updateStats();
+                showNotification(`Loan ${id} rejected.`, 'warning');
+            }
+        }
+
+        function approveAllPending() {
+            if (!confirm('Are you sure you want to approve all pending loans?')) return;
+            allLoans.filter(l => l.status === 'pending').forEach(loan => {
+                loan.status = 'approved';
+                loan.due_date = new Date(Date.now() + loan.term * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            });
+            renderPendingApprovals();
+            renderAllLoans();
+            updateStats();
+            showNotification('All pending loans approved!', 'success');
+        }
+
+        function bulkApprove() {
+            selectedLoans.forEach(id => {
+                const loan = allLoans.find(l => l.id === id);
+                if (loan && loan.status === 'pending') {
+                    loan.status = 'approved';
+                    loan.due_date = new Date(Date.now() + loan.term * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                }
+            });
+            selectedLoans.clear();
+            renderPendingApprovals();
+            renderAllLoans();
+            updateStats();
+            updateBulkActionsVisibility();
+            showNotification('Selected loans approved!', 'success');
+        }
+
+        function bulkReject() {
+            if (!confirm('Are you sure you want to reject all selected loans?')) return;
+            selectedLoans.forEach(id => {
+                const loan = allLoans.find(l => l.id === id);
+                if (loan && loan.status === 'pending') {
+                    loan.status = 'rejected';
+                }
+            });
+            selectedLoans.clear();
+            renderPendingApprovals();
+            renderAllLoans();
+            updateStats();
+            updateBulkActionsVisibility();
+            showNotification('Selected loans rejected.', 'warning');
+        }
+
+        // View Loan
+        function viewLoan(id) {
+            const loan = allLoans.find(l => l.id === id);
+            if (!loan) return;
+
+            currentEditLoan = loan;
+            const content = document.getElementById('viewModalContent');
+
+            content.innerHTML = `
+          <div class="loan-detail-card">
+            <div class="loan-detail-header">
+              <h4>${loan.staffName} (${loan.staffId})</h4>
+              <span class="status-badge ${loan.status}">${loan.status}</span>
+            </div>
+            <div class="loan-detail-grid">
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Loan ID</div>
+                <div class="loan-detail-value">${loan.id}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Total Amount</div>
+                <div class="loan-detail-value">${fmtMoney(loan.amount)}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Outstanding Balance</div>
+                <div class="loan-detail-value" style="color: #e53e3e;">${fmtMoney(loan.balance)}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Purpose</div>
+                <div class="loan-detail-value">${loan.purpose}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Term</div>
+                <div class="loan-detail-value">${loan.term} months</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Monthly Payment</div>
+                <div class="loan-detail-value">${fmtMoney(loan.monthly)}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Applied Date</div>
+                <div class="loan-detail-value">${fmtDate(loan.created_at)}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Due Date</div>
+                <div class="loan-detail-value">${fmtDate(loan.due_date)}</div>
+              </div>
+              <div class="loan-detail-item">
+                <div class="loan-detail-label">Paid So Far</div>
+                <div class="loan-detail-value" style="color: #38a169;">${fmtMoney(loan.amount - loan.balance)}</div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+            <h4 style="margin: 0 0 8px; font-size: 0.85rem;">Repayment Progress</h4>
+            <div style="height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden;">
+              <div style="height: 100%; width: ${((loan.amount - loan.balance) / loan.amount) * 100}%; background: linear-gradient(90deg, #38a169, #68d391); border-radius: 6px;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.75rem; color: #64748b;">
+              <span>${Math.round(((loan.amount - loan.balance) / loan.amount) * 100)}% Complete</span>
+              <span>${fmtMoney(loan.balance)} remaining</span>
+            </div>
+          </div>
+        `;
+
+            document.getElementById('viewModal').classList.add('show');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+        }
+
+        function editFromView() {
+            closeViewModal();
+            if (currentEditLoan) {
+                editLoan(currentEditLoan.id);
+            }
+        }
+
+        // Edit Loan
+        function editLoan(id) {
+            const loan = allLoans.find(l => l.id === id);
+            if (!loan) return;
+
+            currentEditLoan = loan;
+
+            document.getElementById('editLoanStaff').textContent = `${loan.staffName} (${loan.staffId})`;
+            document.getElementById('editLoanStatus').textContent = loan.status;
+            document.getElementById('editLoanStatus').className = `status-badge ${loan.status}`;
+            document.getElementById('editLoanId').textContent = loan.id;
+            document.getElementById('editOriginalAmount').textContent = fmtMoney(loan.amount);
+            document.getElementById('editAppliedDate').textContent = fmtDate(loan.created_at);
+
+            document.getElementById('editAmount').value = loan.amount;
+            document.getElementById('editBalance').value = loan.balance;
+            document.getElementById('editMonthlyPayment').value = loan.monthly;
+            document.getElementById('editInterestRate').value = 5;
+            document.getElementById('editStartDate').value = loan.created_at;
+            document.getElementById('editDueDate').value = loan.due_date || '';
+            document.getElementById('editStatusSelect').value = loan.status;
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function saveLoanChanges() {
+            if (!currentEditLoan) return;
+
+            currentEditLoan.amount = parseFloat(document.getElementById('editAmount').value);
+            currentEditLoan.balance = parseFloat(document.getElementById('editBalance').value);
+            currentEditLoan.monthly = parseFloat(document.getElementById('editMonthlyPayment').value);
+            currentEditLoan.status = document.getElementById('editStatusSelect').value;
+            currentEditLoan.due_date = document.getElementById('editDueDate').value;
+
+            closeEditModal();
+            renderPendingApprovals();
+            renderAllLoans();
+            updateStats();
+            showNotification(`Loan ${currentEditLoan.id} updated successfully!`, 'success');
+        }
+
+        // Filter and sort
+        function filterLoans() {
+            renderAllLoans();
+        }
+
+        function sortLoans() {
+            const sortBy = document.getElementById('sortFilter').value;
+
+            switch (sortBy) {
+                case 'date-desc':
+                    allLoans.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    break;
+                case 'date-asc':
+                    allLoans.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    break;
+                case 'amount-desc':
+                    allLoans.sort((a, b) => b.amount - a.amount);
+                    break;
+                case 'amount-asc':
+                    allLoans.sort((a, b) => a.amount - b.amount);
+                    break;
+            }
+
+            renderAllLoans();
+        }
+
+        // Export and notifications
+        function exportLoans() {
+            showNotification('Generating loan report...', 'info');
+            setTimeout(() => {
+                showNotification('Report exported successfully!', 'success');
+            }, 1500);
+        }
+
+        function exportSelected() {
+            showNotification(`Exporting ${selectedLoans.size} loans...`, 'info');
+        }
+
+        function sendReminders() {
+            const activeLoans = allLoans.filter(l => l.status === 'active');
+            showNotification(`Sending payment reminders to ${activeLoans.length} staff members...`, 'info');
+            setTimeout(() => {
+                showNotification('Payment reminders sent successfully!', 'success');
+            }, 2000);
+        }
+
+        function showNotification(message, type = 'info') {
+            alert(`${type.toUpperCase()}: ${message}`);
+        }
+
+        // Initialize
+        async function init() {
+            allLoans = [...sampleLoans];
+
+            updateStats();
+            renderPendingApprovals();
+            renderAllLoans();
+
+            // Try to load real data from API
+            try {
+                const res = await API.request('/admin/loans', { auth: true });
+                if (res?.data && Array.isArray(res.data)) {
+                    allLoans = res.data;
+                    updateStats();
+                    renderPendingApprovals();
+                    renderAllLoans();
+                }
+            } catch (e) {
+                console.log('Using sample data for demonstration');
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.user-menu')) {
+                document.getElementById('userDropdown')?.classList.remove('show');
+            }
+        });
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

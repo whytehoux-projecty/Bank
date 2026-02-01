@@ -1,0 +1,756 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String     @id @default(uuid()) @db.Uuid
+  staff_id              String     @unique @db.VarChar(20)
+  email                 String     @unique @db.VarChar(255)
+  password_hash         String     @db.VarChar
+  first_name            String     @db.VarChar(100)
+  last_name             String     @db.VarChar(100)
+  avatar_url            String?    @db.VarChar
+  status                UserStatus @default(active)
+  password_reset_token  String?    @db.VarChar
+  password_reset_expires DateTime?
+  created_at            DateTime   @default(now())
+  updated_at            DateTime   @updatedAt
+  
+  // Security
+  is_two_factor_enabled Boolean    @default(false)
+  two_factor_secret     String?    @db.VarChar
+
+  // Relations
+  roles              UserRole[]
+  contracts          Contract[]
+  employment_history EmploymentHistory[]
+  payroll_records    PayrollRecord[]
+  loans              Loan[]
+  applications       Application[]       @relation("Applicant")
+  decided_applications Application[]     @relation("Handler")
+  audit_actions      ApplicationAudit[]
+  updated_cms_settings CmsSetting[]
+
+  // UHI Enhanced Relations
+  staff_profile       StaffProfile?
+  bank_accounts       BankAccount[]
+  family_members      FamilyMember[]
+  deployments         Deployment[]
+  staff_documents     StaffDocument[]
+  leave_balances      LeaveBalance[]
+  grants              Grant[]
+
+  @@index([staff_id])
+  @@map("users")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  permissions Json     @db.JsonB
+
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  user_id String @db.Uuid
+  role_id Int
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, role_id])
+  @@map("user_roles")
+}
+
+model Department {
+  id       Int    @id @default(autoincrement())
+  name     String @unique @db.VarChar(100)
+  location String? @db.VarChar(100)
+
+  employment_history EmploymentHistory[]
+
+  @@map("departments")
+}
+
+model Contract {
+  id           String       @id @default(uuid()) @db.Uuid
+  user_id      String       @db.Uuid
+  type         ContractType
+  start_date   DateTime     @db.Date
+  end_date     DateTime?    @db.Date
+  document_url String?      @db.VarChar
+  status       ContractStatus @default(active)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("contracts")
+}
+
+model EmploymentHistory {
+  id             String    @id @default(uuid()) @db.Uuid
+  user_id        String    @db.Uuid
+  position_title String    @db.VarChar(100)
+  department_id  Int
+  supervisor_id  String?   @db.Uuid
+  start_date     DateTime  @db.Date
+  end_date       DateTime? @db.Date
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [department_id], references: [id])
+  // supervisor relation could be self-relation on User, but simple field is enough for now or explicit
+  // supervisor User? @relation("Supervisor", fields: [supervisor_id], references: [id]) 
+
+  @@map("employment_history")
+}
+
+model PayrollRecord {
+  id           String        @id @default(uuid()) @db.Uuid
+  user_id      String        @db.Uuid
+  period_month Int
+  period_year  Int
+  basic_salary Decimal       @db.Decimal
+  allowances       Decimal       @default(0) @db.Decimal
+  allowance_details Json?        @db.JsonB
+  deductions       Decimal       @default(0) @db.Decimal
+  deduction_details Json?        @db.JsonB
+  net_pay          Decimal       @db.Decimal
+  currency         String        @default("USD") @db.VarChar(3)
+  payment_date     DateTime?     @db.Date
+  status           PayrollStatus @default(draft)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([period_year, period_month])
+  @@map("payroll_records")
+}
+
+model Loan {
+  id               String     @id @default(uuid()) @db.Uuid
+  user_id          String     @db.Uuid
+  amount           Decimal    @db.Decimal
+  balance          Decimal    @db.Decimal
+  currency         String     @default("USD") @db.VarChar(10)
+  reason           String?    @db.Text
+  repayment_plan   Json?      @db.JsonB
+  repayment_months Int?
+  monthly_payment  Decimal?   @db.Decimal
+  interest_rate    Decimal?   @db.Decimal
+  status           LoanStatus @default(pending)
+  
+  // Dates
+  start_date       DateTime?
+  due_date         DateTime?
+  last_payment_date DateTime?
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+  
+  // Admin tracking
+  approved_by      String?    @db.Uuid
+  approved_at      DateTime?
+  rejected_by      String?    @db.Uuid
+  rejection_reason String?    @db.Text
+  admin_notes      String?    @db.Text
+
+  user     User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  payments LoanPayment[]
+  invoices LoanInvoice[]
+
+  @@index([user_id, status])
+  @@map("loans")
+}
+
+model LoanPayment {
+  id                String   @id @default(uuid()) @db.Uuid
+  loan_id           String   @db.Uuid
+  amount            Decimal  @db.Decimal
+  payment_reference String   @db.VarChar(100)
+  payment_method    String   @default("bank_transfer") @db.VarChar(50)
+  status            String   @default("pending") @db.VarChar(20) // pending, confirmed, rejected
+  notes             String?  @db.Text
+  created_at        DateTime @default(now())
+  confirmed_at      DateTime?
+  confirmed_by      String?  @db.Uuid
+
+  loan Loan @relation(fields: [loan_id], references: [id], onDelete: Cascade)
+
+  @@index([loan_id])
+  @@map("loan_payments")
+}
+
+
+
+model Application {
+  id                 String            @id @default(uuid()) @db.Uuid
+  user_id            String            @db.Uuid
+  type               ApplicationType
+  data               Json              @db.JsonB
+  status             ApplicationStatus @default(pending)
+  current_handler_id String?           @db.Uuid
+  created_at         DateTime          @default(now())
+
+  user    User  @relation("Applicant", fields: [user_id], references: [id], onDelete: Cascade)
+  handler User? @relation("Handler", fields: [current_handler_id], references: [id])
+
+  audits ApplicationAudit[]
+
+  @@index([user_id, status])
+  @@map("applications")
+}
+
+model ApplicationAudit {
+  id             String   @id @default(uuid()) @db.Uuid
+  application_id String   @db.Uuid
+  actor_id       String   @db.Uuid
+  action         String   @db.VarChar(50)
+  comment        String?  @db.Text
+  timestamp      DateTime @default(now())
+
+  application Application @relation(fields: [application_id], references: [id], onDelete: Cascade)
+  actor       User        @relation(fields: [actor_id], references: [id])
+
+  @@map("application_audit")
+}
+
+model CmsSetting {
+  id            Int      @id @default(autoincrement())
+  setting_key   String   @unique @db.VarChar(100)
+  setting_value String   @db.Text
+  setting_type  String   @db.VarChar(20) // 'text', 'image_url', 'color', 'boolean', 'json'
+  category      String   @db.VarChar(50)
+  description   String?  @db.Text
+  is_public     Boolean  @default(true)
+  updated_by    String?  @db.Uuid
+  updated_at    DateTime @default(now())
+  created_at    DateTime @default(now())
+
+  updatedByUser User? @relation(fields: [updated_by], references: [id])
+
+  @@index([category])
+  @@map("cms_settings")
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+}
+
+enum ContractType {
+  fixed_term
+  service
+  permanent
+}
+
+enum ContractStatus {
+  active
+  expired
+  terminated
+}
+
+enum PayrollStatus {
+  draft
+  processed
+  paid
+}
+
+enum LoanStatus {
+  pending
+  approved
+  rejected
+  active
+  paid_off
+}
+
+enum ApplicationType {
+  leave
+  transfer
+  training
+  loan
+  grant
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+  cancelled
+}
+
+// --- UHI Enhanced Models ---
+
+model StaffProfile {
+  id                      String    @id @default(uuid()) @db.Uuid
+  user_id                 String    @unique @db.Uuid
+  
+  // Personal Information
+  passport_photo_url      String?   @db.VarChar(500)
+  date_of_birth           DateTime? @db.Date
+  place_of_birth          String?   @db.VarChar(100)
+  nationality             String?   @db.VarChar(50)
+  secondary_nationality   String?   @db.VarChar(50)
+  blood_type              BloodType?
+  gender                  Gender?
+  marital_status          MaritalStatus?
+  
+  // Staff Classification
+  staff_type              StaffType @default(non_field)
+  specialization          String?   @db.VarChar(100)
+  qualifications          Json?     @db.JsonB
+  languages               Json?     @db.JsonB
+  
+  // Contact Information
+  personal_email          String?   @db.VarChar(255)
+  personal_phone          String?   @db.VarChar(30)
+  work_phone              String?   @db.VarChar(30)
+  whatsapp_number         String?   @db.VarChar(30)
+  
+  // Addresses
+  permanent_address       String?   @db.Text
+  permanent_city          String?   @db.VarChar(100)
+  permanent_country       String?   @db.VarChar(100)
+  current_address         String?   @db.Text
+  current_city            String?   @db.VarChar(100)
+  current_country         String?   @db.VarChar(100)
+  
+  // Emergency Contact
+  emergency_contact_name      String?   @db.VarChar(100)
+  emergency_contact_phone     String?   @db.VarChar(30)
+  emergency_contact_relation  String?   @db.VarChar(50)
+  emergency_contact_address   String?   @db.Text
+  
+  // Medical Information
+  medical_conditions      String?   @db.Text
+  allergies               String?   @db.Text
+  medications             String?   @db.Text
+  
+  // Metadata
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+  
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("staff_profiles")
+}
+
+enum BloodType {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum Gender {
+  male
+  female
+  other
+  prefer_not_to_say
+}
+
+enum MaritalStatus {
+  single
+  married
+  divorced
+  widowed
+  domestic_partnership
+}
+
+enum StaffType {
+  field
+  non_field
+}
+
+model BankAccount {
+  id                    String    @id @default(uuid()) @db.Uuid
+  user_id               String    @db.Uuid
+  
+  // Account Details
+  is_primary            Boolean   @default(true)
+  account_holder_name   String    @db.VarChar(200)
+  bank_name             String    @db.VarChar(200)
+  bank_branch           String?   @db.VarChar(200)
+  account_number        String    @db.VarChar(50)
+  routing_number        String?   @db.VarChar(50)
+  swift_code            String?   @db.VarChar(20)
+  iban                  String?   @db.VarChar(50)
+  currency              String    @default("USD") @db.VarChar(10)
+  
+  // Bank Address
+  bank_address          String?   @db.Text
+  bank_city             String?   @db.VarChar(100)
+  bank_country          String?   @db.VarChar(100)
+  
+  // Account Type
+  account_type          BankAccountType @default(checking)
+  account_purpose       BankAccountPurpose @default(salary)
+  
+  // Verification
+  is_verified           Boolean   @default(false)
+  verified_by           String?   @db.Uuid
+  verified_at           DateTime?
+  
+  // Metadata
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  created_by            String    @db.Uuid
+  updated_by            String?   @db.Uuid
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("bank_accounts")
+}
+
+enum BankAccountType {
+  checking
+  savings
+  current
+}
+
+enum BankAccountPurpose {
+  salary
+  reimbursement
+  loan_repayment
+  other
+}
+
+model FamilyMember {
+  id                    String    @id @default(uuid()) @db.Uuid
+  user_id               String    @db.Uuid
+  
+  // Personal Details
+  first_name            String    @db.VarChar(100)
+  last_name             String    @db.VarChar(100)
+  relationship          FamilyRelationship
+  date_of_birth         DateTime? @db.Date
+  gender                Gender?
+  nationality           String?   @db.VarChar(50)
+  
+  // Contact
+  phone                 String?   @db.VarChar(30)
+  email                 String?   @db.VarChar(255)
+  address               String?   @db.Text
+  
+  // Status
+  is_dependent          Boolean   @default(false)
+  is_emergency_contact  Boolean   @default(false)
+  is_beneficiary        Boolean   @default(false)
+  beneficiary_percentage Decimal?  @db.Decimal(5, 2)
+  
+  // Documents
+  id_document_url       String?   @db.VarChar(500)
+  
+  // Notes
+  notes                 String?   @db.Text
+  
+  // Metadata
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  created_by            String    @db.Uuid
+  updated_by            String?   @db.Uuid
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("family_members")
+}
+
+enum FamilyRelationship {
+  spouse
+  child
+  parent
+  sibling
+  grandparent
+  grandchild
+  in_law
+  guardian
+  other
+}
+
+model Deployment {
+  id                    String    @id @default(uuid()) @db.Uuid
+  user_id               String    @db.Uuid
+  
+  // Mission Details
+  mission_name          String    @db.VarChar(200)
+  mission_code          String?   @db.VarChar(50)
+  project_name          String?   @db.VarChar(200)
+  project_code          String?   @db.VarChar(50)
+  
+  // Location
+  country               String    @db.VarChar(100)
+  region                String?   @db.VarChar(100)
+  city                  String?   @db.VarChar(100)
+  duty_station          String?   @db.VarChar(100)
+  
+  // Dates
+  start_date            DateTime  @db.Date
+  end_date              DateTime? @db.Date
+  expected_end_date     DateTime? @db.Date
+  
+  // Position Details
+  deployment_role       String    @db.VarChar(100)
+  reporting_to          String?   @db.VarChar(100)
+  supervisor_id         String?   @db.Uuid
+  
+  // Classification
+  deployment_type       DeploymentType @default(standard)
+  status                DeploymentStatus @default(active)
+  
+  // UN/USAID Specific
+  hardship_level        HardshipLevel?
+  danger_pay_eligible   Boolean   @default(false)
+  r_and_r_eligible      Boolean   @default(false)
+  security_level        SecurityLevel?
+  
+  // Contract
+  contract_type         String?   @db.VarChar(50)
+  per_diem_rate         Decimal?  @db.Decimal(10, 2)
+  currency              String    @default("USD") @db.VarChar(10)
+  
+  // Documentation
+  deployment_letter_url String?   @db.VarChar(500)
+  
+  // Notes
+  notes                 String?   @db.Text
+  
+  // Metadata
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  created_by            String    @db.Uuid
+  updated_by            String?   @db.Uuid
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, status])
+  @@map("deployments")
+}
+
+enum DeploymentType {
+  standard
+  emergency
+  short_term
+  consultancy
+  training
+  detail
+}
+
+enum DeploymentStatus {
+  planned
+  active
+  completed
+  cancelled
+  extended
+}
+
+enum HardshipLevel {
+  A
+  B
+  C
+  D
+  E
+}
+
+enum SecurityLevel {
+  minimal
+  low
+  intermediate
+  high
+  extreme
+}
+
+model StaffDocument {
+  id                    String    @id @default(uuid()) @db.Uuid
+  user_id               String    @db.Uuid
+  
+  // Document Info
+  document_type         DocumentType
+  document_name         String    @db.VarChar(200)
+  document_number       String?   @db.VarChar(100)
+  
+  // Issuing Details
+  issuing_authority     String?   @db.VarChar(200)
+  issuing_country       String?   @db.VarChar(100)
+  issue_date            DateTime? @db.Date
+  expiry_date           DateTime? @db.Date
+  
+  // File
+  file_url              String    @db.VarChar(500)
+  file_name             String    @db.VarChar(255)
+  file_size             Int?
+  file_type             String?   @db.VarChar(50)
+  
+  // Verification
+  verification_status   VerificationStatus @default(pending)
+  verified_by           String?   @db.Uuid
+  verified_at           DateTime?
+  rejection_reason      String?   @db.Text
+  
+  // Status
+  is_active             Boolean   @default(true)
+  is_expired            Boolean   @default(false)
+  
+  // Notes
+  notes                 String?   @db.Text
+  
+  // Metadata
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  uploaded_by           String    @db.Uuid
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, document_type])
+  @@index([expiry_date])
+  @@map("staff_documents")
+}
+
+enum DocumentType {
+  passport
+  national_id
+  drivers_license
+  medical_license
+  nursing_license
+  professional_cert
+  work_permit
+  visa
+  un_laissez_passer
+  usaid_badge
+  security_clearance
+  vaccination_record
+  contract
+  diploma
+  other
+}
+
+enum VerificationStatus {
+  pending
+  verified
+  rejected
+  expired
+}
+
+
+model Grant {
+  id              String      @id @default(uuid()) @db.Uuid
+  user_id         String      @db.Uuid
+  amount          Decimal     @db.Decimal
+  currency        String      @default("USD") @db.VarChar(10)
+  reason          String      @db.Text
+  category        String      @db.VarChar(50) // e.g., "Education", "Medical"
+  status          GrantStatus @default(pending)
+  
+  // Admin Tracking
+  approved_by     String?     @db.Uuid
+  approved_at     DateTime?
+  rejected_by     String?     @db.Uuid
+  rejection_reason String?    @db.Text
+
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  user            User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("grants")
+}
+
+model LoanInvoice {
+  id              String        @id @default(uuid()) @db.Uuid
+  loan_id         String        @db.Uuid
+  invoice_number  String        @unique @db.VarChar(50) // e.g INV-2026-XXXX
+  payment_pin     String        @db.VarChar(20)         // Secret PIN for validation
+  
+  // Amounts
+  principal_amount Decimal      @db.Decimal
+  tax_amount       Decimal      @default(0) @db.Decimal
+  fee_amount       Decimal      @default(0) @db.Decimal
+  amount          Decimal       @db.Decimal // Total including all above
+  
+  currency        String        @default("USD") @db.VarChar(10)
+  due_date        DateTime      @db.Date
+  status          InvoiceStatus @default(pending)
+  
+  // Metadata for the invoice PDF/UI
+  qr_code_data    String?       @db.Text
+  generated_by    String?       @db.Uuid // Admin or User ID
+  generated_at    DateTime      @default(now())
+  paid_at         DateTime?
+  payment_transaction_ref String? @db.VarChar(100) // Reference from Main Bank
+
+  loan            Loan          @relation(fields: [loan_id], references: [id], onDelete: Cascade)
+
+  @@index([invoice_number])
+  @@index([loan_id])
+  @@map("loan_invoices")
+}
+
+enum GrantStatus {
+  pending
+  approved
+  rejected
+  disbursed
+}
+
+enum InvoiceStatus {
+  pending
+  paid
+  expired
+  cancelled
+}
+
+model LeaveBalance {
+  id                    String    @id @default(uuid()) @db.Uuid
+  user_id               String    @db.Uuid
+  year                  Int
+  
+  // Annual Leave
+  annual_total          Int       @default(21)
+  annual_used           Int       @default(0)
+  annual_pending        Int       @default(0)
+  annual_carried_over   Int       @default(0)
+  
+  // Sick Leave
+  sick_total            Int       @default(15)
+  sick_used             Int       @default(0)
+  
+  // Maternity/Paternity
+  maternity_total       Int       @default(90)
+  maternity_used        Int       @default(0)
+  paternity_total       Int       @default(14)
+  paternity_used        Int       @default(0)
+  
+  // Special Leave
+  compassionate_total   Int       @default(5)
+  compassionate_used    Int       @default(0)
+  study_total           Int       @default(10)
+  study_used            Int       @default(0)
+  
+  // R&R
+  rr_total              Int       @default(0)
+  rr_used               Int       @default(0)
+  
+  // Unpaid Leave
+  unpaid_days_taken     Int       @default(0)
+  
+  // Metadata
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  last_accrued_at       DateTime?
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, year])
+  @@map("leave_balances")
+}

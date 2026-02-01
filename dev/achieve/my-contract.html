@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="My Contract - Staff Portal" />
+    <title>My Contract | Staff Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/dashboard-enhanced.css" />
+    <style>
+      /* Employment Page Specific Styles */
+      :root {
+        --card-bg: #ffffff;
+        --card-border: rgba(0, 0, 0, 0.04);
+        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04),
+          0 1px 2px rgba(0, 0, 0, 0.02);
+        --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* Layout */
+      .employment-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 24px;
+      }
+
+      .employment-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .employment-main {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      /* Timeline */
+      .timeline {
+        position: relative;
+        padding-left: 32px;
+      }
+
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: #e2e8f0;
+      }
+
+      .timeline-item {
+        position: relative;
+        padding-bottom: 24px;
+      }
+
+      .timeline-item:last-child {
+        padding-bottom: 0;
+      }
+
+      .timeline-dot {
+        position: absolute;
+        left: -24px;
+        top: 4px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #1a365d;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #1a365d;
+      }
+
+      .timeline-item.current .timeline-dot {
+        background: #38a169;
+        box-shadow: 0 0 0 2px #38a169;
+      }
+
+      .timeline-content h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px;
+      }
+
+      .timeline-content p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0;
+      }
+
+      .timeline-content .timeline-meta {
+        display: flex;
+        gap: 16px;
+        margin-top: 8px;
+      }
+
+      .timeline-meta span {
+        font-size: 0.75rem;
+        color: #94a3b8;
+      }
+
+      /* Documents Grid */
+      .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+      }
+
+      .document-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        transition: var(--transition-smooth);
+      }
+
+      .document-card:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+      }
+
+      .document-icon {
+        width: 48px;
+        height: 48px;
+        background: #fff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .document-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .document-info h4 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .document-info p {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin: 0;
+      }
+
+      .document-download {
+        padding: 8px 12px;
+        background: #1a365d;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .document-download:hover {
+        background: #0f2744;
+      }
+
+      /* Skills */
+      .skills-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        background: #ebf4ff;
+        color: #1a365d;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      /* Contact Icons */
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 10px;
+        margin-bottom: 12px;
+      }
+
+      .contact-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .contact-icon {
+        width: 36px;
+        height: 36px;
+        background: #fff;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      .contact-details {
+        flex: 1;
+      }
+
+      .contact-details .label {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .contact-details .value {
+        font-size: 0.85rem;
+        color: #1e293b;
+        font-weight: 500;
+      }
+
+      /* Responsive */
+      @media (max-width: 900px) {
+        .employment-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .documents-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <div class="org-logo-small">
+          <img src="assets/logo.svg" alt="Staff Portal" />
+        </div>
+        <h1 class="portal-title">Staff Portal</h1>
+      </div>
+
+      <nav class="main-nav">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+        <a href="my-contract.html" class="nav-link active">My Contract</a>
+        <a href="payments.html" class="nav-link">Payslips &amp; Payments</a>
+        <a href="requests.html" class="nav-link">Requests</a>
+        <a href="notifications.html" class="nav-link">Notifications</a>
+        <a href="account.html" class="nav-link">Account</a>
+      </nav>
+
+      <div class="header-right">
+        <button
+          class="icon-btn"
+          title="Notifications"
+          aria-label="Notifications"
+          onclick="window.location.href='notifications.html'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+          </svg>
+          <span class="badge">3</span>
+        </button>
+
+        <div class="user-menu">
+          <button
+            class="user-btn"
+            onclick="toggleUserMenu()"
+            aria-label="User menu">
+            <div class="avatar" id="headerAvatar"></div>
+            <span id="headerName"></span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <path d="M6 8L2 4h8L6 8z" />
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="userDropdown">
+            <a href="account.html">Account</a>
+            <hr />
+            <a href="#" onclick="logout()">Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <section class="page-title-card">
+        <div class="page-title-text">
+          <h1>My Contract</h1>
+          <p>Employment profile, contract, and documents</p>
+        </div>
+        <div class="page-title-actions">
+          <a href="account.html" class="btn btn-secondary btn-sm">Account</a>
+          <button class="btn btn-primary btn-sm" onclick="window.print()">
+            🖨️ Print Record
+          </button>
+        </div>
+      </section>
+
+      <!-- Layout -->
+      <div class="employment-layout">
+        <!-- Sidebar -->
+        <div class="employment-sidebar">
+          <div class="panel-card">
+            <div class="panel-card-body">
+              <div class="profile-summary-row">
+                <img
+                  class="profile-summary-avatar"
+                  src="assets/images/avatar-placeholder.png"
+                  alt="Profile Photo"
+                  id="profilePhoto" />
+                <div style="min-width: 0">
+                  <div class="profile-summary-name" id="fullName">
+                    Loading...
+                  </div>
+                  <div class="profile-summary-role" id="jobTitle">-</div>
+                </div>
+              </div>
+              <div class="profile-badges" style="margin-top: 12px">
+                <span class="profile-badge">
+                  <span>🏢</span>
+                  <span id="badgeDepartment">-</span>
+                </span>
+                <span class="profile-badge">
+                  <span>📍</span>
+                  <span id="badgeLocation">Headquarters</span>
+                </span>
+                <span class="profile-badge" id="statusBadge">
+                  <span>✓</span>
+                  <span>Active</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Personal Info -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 class="panel-card-title">👤 Personal Info</h3>
+            </div>
+            <div class="panel-card-body">
+              <div class="info-list">
+                <div class="info-item">
+                  <span class="info-label">Staff ID</span>
+                  <span class="info-value" id="staffId">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Date of Birth</span>
+                  <span class="info-value" id="dob">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Gender</span>
+                  <span class="info-value" id="gender">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Nationality</span>
+                  <span class="info-value" id="nationality">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Date Joined</span>
+                  <span class="info-value" id="joinDate">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 class="panel-card-title">📞 Contact Info</h3>
+            </div>
+            <div class="panel-card-body">
+              <div class="contact-item">
+                <div class="contact-icon">📧</div>
+                <div class="contact-details">
+                  <div class="label">Email</div>
+                  <div class="value" id="email">-</div>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">📱</div>
+                <div class="contact-details">
+                  <div class="label">Phone</div>
+                  <div class="value" id="phone">-</div>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">🏠</div>
+                <div class="contact-details">
+                  <div class="label">Address</div>
+                  <div class="value" id="address">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 class="panel-card-title">🎯 Skills &amp; Expertise</h3>
+            </div>
+            <div class="panel-card-body">
+              <div class="skills-grid" id="skillsGrid">
+                <span class="skill-tag">Leadership</span>
+                <span class="skill-tag">Project Management</span>
+                <span class="skill-tag">Communication</span>
+                <span class="skill-tag">Problem Solving</span>
+                <span class="skill-tag">Team Work</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="employment-main">
+          <!-- Employment History -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 class="panel-card-title">📊 Employment History</h3>
+            </div>
+            <div class="panel-card-body">
+              <div class="timeline" id="employmentTimeline">
+                <!-- Will be populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 class="panel-card-title">📄 Employment Documents</h3>
+              <div class="panel-card-actions">
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="requestDocument()">
+                  Request Document
+                </button>
+              </div>
+            </div>
+            <div class="panel-card-body">
+              <div class="documents-grid" id="documentsGrid">
+                <!-- Will be populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Contract -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <h3 class="panel-card-title">📋 Current Contract</h3>
+            </div>
+            <div class="panel-card-body">
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(3, 1fr);
+                  gap: 16px;
+                ">
+                <div class="contact-item">
+                  <div class="contact-icon">📄</div>
+                  <div class="contact-details">
+                    <div class="label">Contract Type</div>
+                    <div class="value" id="contractType">-</div>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <div class="contact-icon">📅</div>
+                  <div class="contact-details">
+                    <div class="label">Start Date</div>
+                    <div class="value" id="contractStart">-</div>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <div class="contact-icon">⏰</div>
+                  <div class="contact-details">
+                    <div class="label">End Date</div>
+                    <div class="value" id="contractEnd">-</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Global Organization. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Help & Support</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+      // Utility functions
+      const safe = (v) => (v === undefined || v === null ? "" : String(v));
+      const fmtDate = (d) =>
+        d
+          ? new Date(d).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "-";
+
+      // User menu
+      function toggleUserMenu() {
+        document.getElementById("userDropdown").classList.toggle("show");
+      }
+
+      // Request document modal
+      function requestDocument() {
+        alert("Document request feature coming soon!");
+      }
+
+      // Load profile data
+      async function loadProfile() {
+        if (!window.Auth) return;
+        const user = await Auth.checkAuth();
+        if (!user) return;
+
+        // Set header info
+        const fullName =
+          [user.firstName, user.lastName].filter(Boolean).join(" ") || "User";
+        document.getElementById("headerName").textContent = fullName;
+        document.getElementById("headerAvatar").textContent = (
+          user.firstName?.charAt(0) || "U"
+        ).toUpperCase();
+
+        // Profile header
+        document.getElementById("fullName").textContent = fullName;
+        document.getElementById("jobTitle").textContent =
+          user.position || "Staff Member";
+        document.getElementById("badgeDepartment").textContent =
+          user.department || "General";
+
+        // Profile photo
+        if (user.avatarUrl) {
+          document.getElementById("profilePhoto").src = user.avatarUrl;
+        }
+
+        // Personal info
+        document.getElementById("staffId").textContent =
+          user.staffId || user.staff_id || "-";
+        document.getElementById("joinDate").textContent = fmtDate(
+          user.joinedAt || user.joined_at
+        );
+        document.getElementById("dob").textContent = fmtDate(
+          user.dateOfBirth || user.date_of_birth
+        );
+        document.getElementById("gender").textContent = user.gender || "-";
+        document.getElementById("nationality").textContent =
+          user.nationality || "-";
+
+        // Contact info
+        document.getElementById("email").textContent = user.email || "-";
+        document.getElementById("phone").textContent =
+          user.phone || user.phoneNumber || "-";
+        document.getElementById("address").textContent = user.address || "-";
+      }
+
+      // Load employment history
+      async function loadEmploymentHistory() {
+        try {
+          const res = await API.request("/staff/employment", { auth: true });
+          const history = Array.isArray(res?.data) ? res.data : [];
+
+          const timeline = document.getElementById("employmentTimeline");
+
+          if (history.length === 0) {
+            timeline.innerHTML = `
+              <div style="text-align: center; color: #64748b; padding: 24px;">
+                <p>No employment history available</p>
+              </div>
+            `;
+            return;
+          }
+
+          timeline.innerHTML = history
+            .map((item, index) => {
+              const isCurrent = !item.end_date;
+              const period = `${fmtDate(item.start_date)} - ${
+                item.end_date ? fmtDate(item.end_date) : "Present"
+              }`;
+
+              return `
+              <div class="timeline-item ${isCurrent ? "current" : ""}">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <h4>${item.position_title || "Position"}</h4>
+                  <p>${item.department?.name || "Department"}</p>
+                  <div class="timeline-meta">
+                    <span>${period}</span>
+                    ${
+                      isCurrent
+                        ? '<span class="status-badge active" style="font-size: 0.65rem; padding: 2px 8px;">Current</span>'
+                        : ""
+                    }
+                  </div>
+                </div>
+              </div>
+            `;
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error loading employment history:", error);
+        }
+      }
+
+      // Load documents
+      async function loadDocuments() {
+        try {
+          const res = await API.request("/staff/documents", { auth: true });
+          const docs = Array.isArray(res?.data) ? res.data : [];
+
+          const grid = document.getElementById("documentsGrid");
+
+          if (docs.length === 0) {
+            grid.innerHTML = `
+              <div style="text-align: center; color: #64748b; padding: 24px; grid-column: 1 / -1;">
+                <p>No documents available</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Also update contract info from first document
+          const latestContract = docs[0];
+          if (latestContract) {
+            document.getElementById("contractType").textContent =
+              latestContract.type || "Permanent";
+            document.getElementById("contractStart").textContent = fmtDate(
+              latestContract.start_date
+            );
+            document.getElementById("contractEnd").textContent =
+              latestContract.end_date
+                ? fmtDate(latestContract.end_date)
+                : "Ongoing";
+          }
+
+          grid.innerHTML = docs
+            .map((doc) => {
+              const name = doc.document_url
+                ? doc.document_url.split("/").pop()
+                : `${doc.type} Contract`;
+              const icon =
+                doc.type === "employment"
+                  ? "📄"
+                  : doc.type === "offer"
+                  ? "📋"
+                  : doc.type === "nda"
+                  ? "🔒"
+                  : "📁";
+
+              return `
+              <div class="document-card">
+                <div class="document-icon">${icon}</div>
+                <div class="document-info">
+                  <h4>${safe(name)}</h4>
+                  <p>${doc.type || "Document"} • ${fmtDate(doc.start_date)}</p>
+                </div>
+                ${
+                  doc.document_url
+                    ? `<a href="${doc.document_url}" target="_blank" class="document-download">Download</a>`
+                    : `<span style="font-size: 0.75rem; color: #94a3b8;">Unavailable</span>`
+                }
+              </div>
+            `;
+            })
+            .join("");
+        } catch (error) {
+          console.error("Error loading documents:", error);
+        }
+      }
+
+      // Initialize
+      async function init() {
+        await loadProfile();
+        await loadEmploymentHistory();
+        await loadDocuments();
+      }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".user-menu")) {
+          document.getElementById("userDropdown")?.classList.remove("show");
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>

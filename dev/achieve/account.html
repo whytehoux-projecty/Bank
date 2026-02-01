@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Account - Staff Portal" />
+    <title>Account | Staff Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/profile-settings.css" />
+    <link rel="stylesheet" href="css/dashboard-enhanced.css" />
+  </head>
+
+  <body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <div class="org-logo-small">
+          <img src="assets/logo.svg" alt="Staff Portal" />
+        </div>
+        <h1 class="portal-title">Staff Portal</h1>
+      </div>
+
+      <nav class="main-nav">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+        <a href="my-contract.html" class="nav-link">My Contract</a>
+        <a href="payments.html" class="nav-link">Payslips &amp; Payments</a>
+        <a href="requests.html" class="nav-link">Requests</a>
+        <a href="notifications.html" class="nav-link">Notifications</a>
+        <a href="account.html" class="nav-link active">Account</a>
+      </nav>
+
+      <div class="header-right">
+        <button
+          class="icon-btn"
+          title="Notifications"
+          aria-label="Notifications"
+          onclick="window.location.href='notifications.html'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+          </svg>
+          <span class="badge">3</span>
+        </button>
+
+        <div class="user-menu">
+          <button
+            class="user-btn"
+            onclick="toggleUserMenu()"
+            aria-label="User menu">
+            <div class="avatar" id="headerAvatar"></div>
+            <span id="headerName"></span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <path d="M6 8L2 4h8L6 8z" />
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="userDropdown">
+            <a href="account.html">Account</a>
+            <hr />
+            <a href="#" onclick="logout()">Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <section class="page-title-card">
+        <div class="page-title-text">
+          <h1>Account</h1>
+          <p>Security, notifications, and preferences</p>
+        </div>
+      </section>
+
+      <!-- Alert Box -->
+      <div id="alertBox" class="alert-box"></div>
+
+      <!-- Settings Layout -->
+      <div class="settings-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+          <nav class="settings-nav">
+            <button class="settings-nav-item" onclick="showSection('details')">
+              <span class="nav-icon">👤</span>
+              <span>My Details</span>
+            </button>
+            <button
+              class="settings-nav-item active"
+              onclick="showSection('security')">
+              <span class="nav-icon">🔒</span>
+              <span>Password & Security</span>
+            </button>
+            <button
+              class="settings-nav-item"
+              onclick="showSection('notifications')">
+              <span class="nav-icon">🔔</span>
+              <span>Notifications</span>
+            </button>
+            <button
+              class="settings-nav-item"
+              onclick="showSection('preferences')">
+              <span class="nav-icon">🎨</span>
+              <span>Preferences</span>
+            </button>
+          </nav>
+        </aside>
+
+        <!-- Settings Content -->
+        <div class="settings-content">
+          <!-- Details Section -->
+          <section id="details-section" class="settings-section">
+            <div class="section-header">
+              <h2>👤 My Details</h2>
+              <p>Profile details are managed by your administrator</p>
+            </div>
+            <div class="settings-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input
+                    type="text"
+                    id="detailsFullName"
+                    class="form-control readonly"
+                    readonly />
+                </div>
+                <div class="form-group">
+                  <label>Staff ID</label>
+                  <input
+                    type="text"
+                    id="detailsStaffId"
+                    class="form-control readonly"
+                    readonly />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    id="detailsEmail"
+                    class="form-control readonly"
+                    readonly />
+                </div>
+                <div class="form-group">
+                  <label>Role</label>
+                  <input
+                    type="text"
+                    id="detailsRole"
+                    class="form-control readonly"
+                    readonly />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Note</label>
+                <div class="form-hint">
+                  To request changes to personal details, contact Admin/HR.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Security Section -->
+          <section id="security-section" class="settings-section active">
+            <div class="section-header">
+              <h2>🔒 Password & Security</h2>
+              <p>Manage your password and security settings</p>
+            </div>
+            <form id="passwordForm" class="settings-form">
+              <div class="form-group">
+                <label for="currentPassword">Current Password *</label>
+                <div class="password-input">
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    class="form-control"
+                    required
+                    placeholder="Enter current password" />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('currentPassword')"
+                    aria-label="Toggle password visibility">
+                    👁️
+                  </button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="newPassword">New Password *</label>
+                <div class="password-input">
+                  <input
+                    type="password"
+                    id="newPassword"
+                    class="form-control"
+                    required
+                    minlength="8"
+                    placeholder="Enter new password" />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('newPassword')"
+                    aria-label="Toggle password visibility">
+                    👁️
+                  </button>
+                </div>
+                <div class="password-strength" id="passwordStrength"></div>
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Confirm New Password *</label>
+                <div class="password-input">
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    class="form-control"
+                    required
+                    placeholder="Confirm new password" />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('confirmPassword')"
+                    aria-label="Toggle password visibility">
+                    👁️
+                  </button>
+                </div>
+              </div>
+              <div class="password-requirements">
+                <h4>Password Requirements</h4>
+                <ul>
+                  <li id="req-length" class="requirement">
+                    At least 8 characters
+                  </li>
+                  <li id="req-upper" class="requirement">
+                    At least one uppercase letter
+                  </li>
+                  <li id="req-lower" class="requirement">
+                    At least one lowercase letter
+                  </li>
+                  <li id="req-number" class="requirement">
+                    At least one number
+                  </li>
+                  <li id="req-special" class="requirement">
+                    At least one special character (@$!%*?&)
+                  </li>
+                </ul>
+              </div>
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  onclick="document.getElementById('passwordForm').reset()">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm">
+                  🔐 Update Password
+                </button>
+              </div>
+            </form>
+
+            <div class="security-info">
+              <h4>🔐 Security Information</h4>
+              <div class="security-item">
+                <span class="security-label">Last Password Change</span>
+                <span class="security-value" id="lastPasswordChange">-</span>
+              </div>
+              <div class="security-item">
+                <span class="security-label">Last Login</span>
+                <span class="security-value" id="lastLogin">-</span>
+              </div>
+              <div class="security-item">
+                <span class="security-label">Active Sessions</span>
+                <span class="security-value">1 device</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Notifications Section -->
+          <section id="notifications-section" class="settings-section">
+            <div class="section-header">
+              <h2>🔔 Notification Preferences</h2>
+              <p>Choose how you want to be notified</p>
+            </div>
+            <form id="notificationsForm" class="settings-form">
+              <div class="notification-group">
+                <h4>Email Notifications</h4>
+                <label class="toggle-option">
+                  <input type="checkbox" id="emailPayroll" checked />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">
+                    <strong>Payroll Updates</strong>
+                    <small
+                      >Receive notifications when your payslip is
+                      available</small
+                    >
+                  </span>
+                </label>
+                <label class="toggle-option">
+                  <input type="checkbox" id="emailApplications" checked />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">
+                    <strong>Application Updates</strong>
+                    <small
+                      >Get notified about your application status changes</small
+                    >
+                  </span>
+                </label>
+                <label class="toggle-option">
+                  <input type="checkbox" id="emailLoans" checked />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">
+                    <strong>Loan Notifications</strong>
+                    <small>Payment reminders and loan status updates</small>
+                  </span>
+                </label>
+                <label class="toggle-option">
+                  <input type="checkbox" id="emailAnnouncements" checked />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">
+                    <strong>System Announcements</strong>
+                    <small>Important organization-wide announcements</small>
+                  </span>
+                </label>
+              </div>
+
+              <div class="notification-group">
+                <h4>Portal Notifications</h4>
+                <label class="toggle-option">
+                  <input type="checkbox" id="portalAlerts" checked />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label">
+                    <strong>In-Portal Alerts</strong>
+                    <small>Show notification badge on portal</small>
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  💾 Save Preferences
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Preferences Section -->
+          <section id="preferences-section" class="settings-section">
+            <div class="section-header">
+              <h2>🎨 Preferences</h2>
+              <p>Customize your portal experience</p>
+            </div>
+            <form id="preferencesForm" class="settings-form">
+              <div class="preference-group">
+                <h4>Display Settings</h4>
+                <div class="form-group">
+                  <label for="language">Language</label>
+                  <select id="language" class="form-control">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="timezone">Timezone</label>
+                  <select id="timezone" class="form-control">
+                    <option value="UTC">UTC (GMT+0)</option>
+                    <option value="America/New_York">
+                      Eastern Time (GMT-5)
+                    </option>
+                    <option value="America/Chicago">
+                      Central Time (GMT-6)
+                    </option>
+                    <option value="America/Los_Angeles">
+                      Pacific Time (GMT-8)
+                    </option>
+                    <option value="Europe/London">London (GMT+0)</option>
+                    <option value="Europe/Paris">Paris (GMT+1)</option>
+                    <option value="Asia/Tokyo">Tokyo (GMT+9)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="dateFormat">Date Format</label>
+                  <select id="dateFormat" class="form-control">
+                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="preference-group">
+                <h4>Theme</h4>
+                <div class="theme-options">
+                  <label class="theme-option">
+                    <input type="radio" name="theme" value="light" checked />
+                    <span class="theme-preview light">
+                      <span class="theme-icon">☀️</span>
+                      <span>Light</span>
+                    </span>
+                  </label>
+                  <label class="theme-option">
+                    <input type="radio" name="theme" value="dark" />
+                    <span class="theme-preview dark">
+                      <span class="theme-icon">🌙</span>
+                      <span>Dark</span>
+                    </span>
+                  </label>
+                  <label class="theme-option">
+                    <input type="radio" name="theme" value="system" />
+                    <span class="theme-preview system">
+                      <span class="theme-icon">💻</span>
+                      <span>System</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-sm">
+                  💾 Save Preferences
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Global Organization. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Help & Support</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+      let currentUser = null;
+
+      // Toggle user menu
+      function toggleUserMenu() {
+        document.getElementById("userDropdown").classList.toggle("show");
+      }
+
+      // Show section
+      function showSection(sectionId) {
+        document
+          .querySelectorAll(".settings-section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".settings-nav-item")
+          .forEach((n) => n.classList.remove("active"));
+
+        document.getElementById(`${sectionId}-section`).classList.add("active");
+        event.target.closest(".settings-nav-item").classList.add("active");
+      }
+
+      // Show alert
+      function showAlert(message, type) {
+        const alertBox = document.getElementById("alertBox");
+        alertBox.innerHTML = `<div class="alert ${type}">${message}</div>`;
+        alertBox.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        setTimeout(() => {
+          alertBox.innerHTML = "";
+        }, 5000);
+      }
+
+      // Toggle password visibility
+      function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        input.type = input.type === "password" ? "text" : "password";
+      }
+
+      // Check password strength
+      function checkPasswordStrength(password) {
+        const requirements = {
+          length: password.length >= 8,
+          upper: /[A-Z]/.test(password),
+          lower: /[a-z]/.test(password),
+          number: /\d/.test(password),
+          special: /[@$!%*?&]/.test(password),
+        };
+
+        Object.keys(requirements).forEach((key) => {
+          const el = document.getElementById(`req-${key}`);
+          if (el) {
+            el.classList.toggle("met", requirements[key]);
+          }
+        });
+
+        const strength = Object.values(requirements).filter(Boolean).length;
+        const strengthBar = document.getElementById("passwordStrength");
+
+        if (strengthBar) {
+          let strengthClass = "weak";
+          let strengthText = "Weak";
+
+          if (strength >= 5) {
+            strengthClass = "strong";
+            strengthText = "Strong";
+          } else if (strength >= 3) {
+            strengthClass = "medium";
+            strengthText = "Medium";
+          }
+
+          strengthBar.innerHTML = `<div class="strength-bar ${strengthClass}"><span>${strengthText}</span></div>`;
+        }
+
+        return Object.values(requirements).every(Boolean);
+      }
+
+      // Load profile
+      async function loadProfile() {
+        try {
+          const response = await API.request("/staff/profile", { auth: true });
+          currentUser = response.data;
+
+          const firstName =
+            currentUser.first_name || currentUser.firstName || "";
+          const lastName = currentUser.last_name || currentUser.lastName || "";
+          const staffId = currentUser.staff_id || currentUser.staffId || "";
+          const email = currentUser.email || "";
+          const role = currentUser.role || currentUser.mainRole || "";
+          const fullName = `${firstName} ${lastName}`.trim();
+
+          const setValueIfPresent = (id, value) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if ("value" in el) el.value = value ?? "";
+            else el.textContent = value ?? "";
+          };
+
+          setValueIfPresent("detailsFullName", fullName);
+          setValueIfPresent("detailsStaffId", staffId);
+          setValueIfPresent("detailsEmail", email);
+          setValueIfPresent("detailsRole", role);
+
+          // Update header
+          document.getElementById("headerName").textContent = fullName;
+          document.getElementById("headerAvatar").textContent = (firstName ||
+            "U")[0].toUpperCase();
+
+          // Update photo section
+          const initials = `${(firstName[0] || "").toUpperCase()}${(
+            lastName[0] || ""
+          ).toUpperCase()}`.trim();
+          setValueIfPresent("photoInitials", initials);
+          setValueIfPresent("photoName", fullName);
+
+          if (currentUser.avatar_url || currentUser.profile_photo) {
+            const photoUrl =
+              currentUser.avatar_url || currentUser.profile_photo;
+            const photoPreview = document.getElementById("photoPreview");
+            if (photoPreview) {
+              photoPreview.innerHTML = `<img src="${photoUrl}" alt="Profile Photo" />`;
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load profile:", error);
+          showAlert("Failed to load profile information", "error");
+        }
+      }
+
+      // Change password
+      async function changePassword(event) {
+        event.preventDefault();
+
+        const currentPassword =
+          document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+
+        if (newPassword !== confirmPassword) {
+          showAlert("New passwords do not match", "error");
+          return;
+        }
+
+        if (!checkPasswordStrength(newPassword)) {
+          showAlert("Password does not meet all requirements", "error");
+          return;
+        }
+
+        try {
+          await API.request("/auth/change-password", {
+            method: "POST",
+            auth: true,
+            body: { currentPassword, newPassword },
+          });
+
+          showAlert("Password changed successfully!", "success");
+          document.getElementById("passwordForm").reset();
+        } catch (error) {
+          console.error("Failed to change password:", error);
+          showAlert(error.message || "Failed to change password", "error");
+        }
+      }
+
+      // Photo upload handler
+      function handlePhotoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+          showAlert("File too large. Maximum size is 2MB", "error");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById(
+            "photoPreview"
+          ).innerHTML = `<img src="${e.target.result}" alt="Preview" />`;
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        uploadPhoto(file);
+      }
+
+      async function uploadPhoto(file) {
+        const formData = new FormData();
+        formData.append("photo", file);
+
+        try {
+          const response = await API.request("/staff/profile/photo", {
+            method: "POST",
+            auth: true,
+            body: formData,
+            headers: {},
+          });
+
+          showAlert("Profile photo updated!", "success");
+        } catch (error) {
+          console.error("Failed to upload photo:", error);
+          showAlert("Failed to upload photo", "error");
+        }
+      }
+
+      async function removePhoto() {
+        if (!confirm("Are you sure you want to remove your profile photo?"))
+          return;
+
+        try {
+          await API.request("/staff/profile/photo", {
+            method: "DELETE",
+            auth: true,
+          });
+
+          const initials = `${
+            (currentUser?.first_name || currentUser?.firstName || "")[0] || ""
+          }${(currentUser?.last_name || currentUser?.lastName || "")[0] || ""}`;
+          document.getElementById(
+            "photoPreview"
+          ).innerHTML = `<span class="photo-initials">${initials}</span>`;
+          showAlert("Profile photo removed", "success");
+        } catch (error) {
+          console.error("Failed to remove photo:", error);
+          showAlert("Failed to remove photo", "error");
+        }
+      }
+
+      // Save notifications
+      async function saveNotifications(event) {
+        event.preventDefault();
+
+        const preferences = {
+          emailPayroll: document.getElementById("emailPayroll").checked,
+          emailApplications:
+            document.getElementById("emailApplications").checked,
+          emailLoans: document.getElementById("emailLoans").checked,
+          emailAnnouncements:
+            document.getElementById("emailAnnouncements").checked,
+          portalAlerts: document.getElementById("portalAlerts").checked,
+        };
+
+        try {
+          await API.request("/staff/profile/notifications", {
+            method: "PUT",
+            auth: true,
+            body: preferences,
+          });
+          showAlert("Notification preferences saved!", "success");
+        } catch (error) {
+          try {
+            localStorage.setItem(
+              "staffPortal.notificationPreferences",
+              JSON.stringify(preferences)
+            );
+            showAlert("Notification preferences saved!", "success");
+          } catch {
+            console.error("Failed to save preferences:", error);
+            showAlert("Failed to save preferences", "error");
+          }
+        }
+      }
+
+      // Save preferences
+      async function savePreferences(event) {
+        event.preventDefault();
+
+        const preferences = {
+          language: document.getElementById("language").value,
+          timezone: document.getElementById("timezone").value,
+          dateFormat: document.getElementById("dateFormat").value,
+          theme: document.querySelector('input[name="theme"]:checked').value,
+        };
+
+        try {
+          await API.request("/staff/profile/preferences", {
+            method: "PUT",
+            auth: true,
+            body: preferences,
+          });
+          showAlert("Preferences saved!", "success");
+        } catch (error) {
+          try {
+            localStorage.setItem(
+              "staffPortal.preferences",
+              JSON.stringify(preferences)
+            );
+            showAlert("Preferences saved!", "success");
+          } catch {
+            console.error("Failed to save preferences:", error);
+            showAlert("Failed to save preferences", "error");
+          }
+        }
+      }
+
+      // Initialize
+      async function init() {
+        if (!window.Auth) return;
+        const user = await Auth.checkAuth();
+        if (!user) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        await loadProfile();
+
+        // Set up form handlers
+        document
+          .getElementById("passwordForm")
+          ?.addEventListener("submit", changePassword);
+        document
+          .getElementById("notificationsForm")
+          ?.addEventListener("submit", saveNotifications);
+        document
+          .getElementById("preferencesForm")
+          ?.addEventListener("submit", savePreferences);
+
+        // Password strength checker
+        document
+          .getElementById("newPassword")
+          ?.addEventListener("input", (e) => {
+            checkPasswordStrength(e.target.value);
+          });
+
+        // Photo upload handler
+        document
+          .getElementById("photoUpload")
+          ?.addEventListener("change", handlePhotoUpload);
+
+        try {
+          const notificationPrefs = localStorage.getItem(
+            "staffPortal.notificationPreferences"
+          );
+          if (notificationPrefs) {
+            const prefs = JSON.parse(notificationPrefs);
+            Object.entries(prefs).forEach(([k, v]) => {
+              const el = document.getElementById(k);
+              if (el && el.type === "checkbox") el.checked = Boolean(v);
+            });
+          }
+
+          const savedPrefs = localStorage.getItem("staffPortal.preferences");
+          if (savedPrefs) {
+            const prefs = JSON.parse(savedPrefs);
+            if (prefs.language)
+              document.getElementById("language").value = prefs.language;
+            if (prefs.timezone)
+              document.getElementById("timezone").value = prefs.timezone;
+            if (prefs.dateFormat)
+              document.getElementById("dateFormat").value = prefs.dateFormat;
+            if (prefs.theme) {
+              const radio = document.querySelector(
+                `input[name="theme"][value="${prefs.theme}"]`
+              );
+              if (radio) radio.checked = true;
+            }
+          }
+        } catch {}
+      }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".user-menu")) {
+          document.getElementById("userDropdown")?.classList.remove("show");
+        }
+      });
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>

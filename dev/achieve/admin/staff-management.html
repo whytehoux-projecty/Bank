@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Management | Admin Portal</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/dashboard.css" />
+    <style>
+        .admin-sidebar {
+            position: fixed;
+            left: 0;
+            top: 64px;
+            bottom: 0;
+            width: 260px;
+            background-color: var(--white);
+            border-right: 1px solid var(--gray-200);
+            padding: var(--spacing-xl) 0;
+            overflow-y: auto;
+        }
+
+        .admin-main {
+            margin-left: 260px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-xl);
+            color: var(--gray-700);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: var(--gray-50);
+            color: var(--primary-color);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            background: white;
+            min-width: 150px;
+        }
+
+        .staff-table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .staff-table th {
+            background: var(--gray-50);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .staff-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .staff-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn.edit {
+            background: #0066cc;
+            color: white;
+        }
+
+        .action-btn.edit:hover {
+            background: #0052a3;
+        }
+
+        .action-btn.deactivate {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn.deactivate:hover {
+            background: #c82333;
+        }
+
+        .action-btn.activate {
+            background: #28a745;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-600);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="header-left">
+            <button class="icon-btn menu-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar"
+                aria-label="Toggle sidebar">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+            <div class="org-logo-small">
+                <img src="../assets/logo.svg" alt="OneHR" />
+            </div>
+            <h1 class="portal-title">Admin Portal</h1>
+        </div>
+
+        <div class="header-right">
+            <div class="user-menu">
+                <button class="user-btn" onclick="toggleUserMenu()" title="User menu" aria-label="User menu">
+                    <div class="avatar"></div>
+                    <span></span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 8L2 4h8L6 8z" />
+                    </svg>
+                </button>
+                <div class="dropdown-menu" id="userDropdown">
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <nav class="sidebar-menu">
+            <a href="admin_interface.html" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="staff-management.html" class="sidebar-item active">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                Staff Management
+            </a>
+            <a href="cms-settings.html" class="sidebar-item">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                        d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
+                </svg>
+                CMS Settings
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content admin-main">
+        <div class="page-header">
+            <div>
+                <h2>Staff Management</h2>
+                <p class="date-display" id="currentDate"></p>
+            </div>
+            <button class="btn btn-primary" onclick="showCreateStaffModal()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="btn-icon">
+                    <path d="M8 0a1 1 0 011 1v6h6a1 1 0 110 2H9v6a1 1 0 11-2 0V9H1a1 1 0 110-2h6V1a1 1 0 011-1z" />
+                </svg>
+                Add New Staff
+            </button>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-bar">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search by name, staff ID, or email..."
+                onkeyup="filterStaff()" />
+            <select class="filter-select" id="statusFilter" onchange="filterStaff()" aria-label="Filter by status"
+                title="Filter by status">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+            <select class="filter-select" id="roleFilter" onchange="filterStaff()" aria-label="Filter by role"
+                title="Filter by role">
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+            </select>
+        </div>
+
+        <!-- Staff Table -->
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>Staff ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="staffTableBody">
+                <!-- Populated by JavaScript -->
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Create/Edit Staff Modal -->
+    <div id="staffModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Staff</h3>
+                <button class="close-btn" onclick="closeStaffModal()">&times;</button>
+            </div>
+            <form id="staffForm" onsubmit="saveStaff(event)">
+                <input type="hidden" id="staffId" />
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="staffIdInput">Staff ID *</label>
+                        <input type="text" id="staffIdInput" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="role">Role *</label>
+                        <select id="role" class="form-control" required>
+                            <option value="">Select Role</option>
+                            <option value="staff">Staff</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="position">Position</label>
+                    <input type="text" id="position" class="form-control" />
+                </div>
+
+                <div class="form-group" id="passwordGroup">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" class="form-control" minlength="6" />
+                    <small class="form-hint">Minimum 6 characters</small>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeStaffModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Save Staff
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        let allStaff = [];
+        let editingStaffId = null;
+
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('open');
+        }
+
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+
+        async function loadStaff() {
+            try {
+                const response = await API.request('/admin/users', { auth: true });
+                allStaff = response.data || [];
+                renderStaffTable(allStaff);
+            } catch (error) {
+                console.error('Failed to load staff:', error);
+                alert('Failed to load staff list');
+            }
+        }
+
+        function renderStaffTable(staff) {
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = '';
+
+            if (staff.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No staff members found</td></tr>';
+                return;
+            }
+
+            staff.forEach(member => {
+                const tr = document.createElement('tr');
+                const role = member.roles?.[0]?.role?.name || member.role || 'staff';
+                const status = member.status || 'active';
+
+                tr.innerHTML = `
+            <td>${member.staff_id || member.staffId || 'N/A'}</td>
+            <td>${member.first_name || member.firstName || ''} ${member.last_name || member.lastName || ''}</td>
+            <td>${member.email || 'N/A'}</td>
+            <td style="text-transform: capitalize">${role}</td>
+            <td>${member.department || 'N/A'}</td>
+            <td><span class="status-badge ${status}">${status}</span></td>
+            <td>
+              <button class="action-btn edit" onclick="editStaff('${member.id}')">Edit</button>
+              ${status === 'active'
+                        ? `<button class="action-btn deactivate" onclick="toggleStaffStatus('${member.id}', 'inactive')">Deactivate</button>`
+                        : `<button class="action-btn activate" onclick="toggleStaffStatus('${member.id}', 'active')">Activate</button>`
+                    }
+            </td>
+          `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterStaff() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
+
+            const filtered = allStaff.filter(member => {
+                const matchesSearch =
+                    (member.first_name?.toLowerCase().includes(searchTerm) || member.firstName?.toLowerCase().includes(searchTerm)) ||
+                    (member.last_name?.toLowerCase().includes(searchTerm) || member.lastName?.toLowerCase().includes(searchTerm)) ||
+                    (member.staff_id?.toLowerCase().includes(searchTerm) || member.staffId?.toLowerCase().includes(searchTerm)) ||
+                    member.email?.toLowerCase().includes(searchTerm);
+
+                const matchesStatus = !statusFilter || member.status === statusFilter;
+                const memberRole = member.roles?.[0]?.role?.name || member.role || 'staff';
+                const matchesRole = !roleFilter || memberRole === roleFilter;
+
+                return matchesSearch && matchesStatus && matchesRole;
+            });
+
+            renderStaffTable(filtered);
+        }
+
+        function showCreateStaffModal() {
+            editingStaffId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Staff';
+            document.getElementById('staffForm').reset();
+            document.getElementById('staffId').value = '';
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('password').required = true;
+            document.getElementById('staffModal').classList.add('show');
+        }
+
+        function editStaff(id) {
+            const staff = allStaff.find(s => s.id === id);
+            if (!staff) return;
+
+            editingStaffId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Staff';
+            document.getElementById('staffId').value = id;
+            document.getElementById('firstName').value = staff.first_name || staff.firstName || '';
+            document.getElementById('lastName').value = staff.last_name || staff.lastName || '';
+            document.getElementById('staffIdInput').value = staff.staff_id || staff.staffId || '';
+            document.getElementById('email').value = staff.email || '';
+            document.getElementById('role').value = staff.roles?.[0]?.role?.name || staff.role || 'staff';
+            document.getElementById('department').value = staff.department || '';
+            document.getElementById('position').value = staff.position || '';
+            document.getElementById('passwordGroup').style.display = 'none';
+            document.getElementById('password').required = false;
+            document.getElementById('staffModal').classList.add('show');
+        }
+
+        function closeStaffModal() {
+            document.getElementById('staffModal').classList.remove('show');
+            document.getElementById('staffForm').reset();
+            editingStaffId = null;
+        }
+
+        async function saveStaff(event) {
+            event.preventDefault();
+
+            const data = {
+                staffId: document.getElementById('staffIdInput').value,
+                email: document.getElementById('email').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                role: document.getElementById('role').value,
+                department: document.getElementById('department').value,
+                position: document.getElementById('position').value,
+            };
+
+            if (!editingStaffId) {
+                data.password = document.getElementById('password').value;
+            }
+
+            try {
+                if (editingStaffId) {
+                    await API.request(`/admin/users/${editingStaffId}`, {
+                        method: 'PUT',
+                        auth: true,
+                        body: data
+                    });
+                    alert('Staff updated successfully');
+                } else {
+                    await API.request('/auth/register', {
+                        method: 'POST',
+                        auth: true,
+                        body: data
+                    });
+                    alert('Staff created successfully');
+                }
+
+                closeStaffModal();
+                loadStaff();
+            } catch (error) {
+                console.error('Failed to save staff:', error);
+                alert(error.message || 'Failed to save staff');
+            }
+        }
+
+        async function toggleStaffStatus(id, newStatus) {
+            if (!confirm(`Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} this staff member?`)) {
+                return;
+            }
+
+            try {
+                await API.request(`/admin/users/${id}`, {
+                    method: 'PUT',
+                    auth: true,
+                    body: { status: newStatus }
+                });
+                alert(`Staff ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+                loadStaff();
+            } catch (error) {
+                console.error('Failed to update status:', error);
+                alert('Failed to update staff status');
+            }
+        }
+
+        // Close modal on overlay click
+        document.getElementById('staffModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeStaffModal();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await Auth.checkAuth();
+            if (!user || user.role !== 'admin') {
+                window.location.href = '../login.html';
+                return;
+            }
+            loadStaff();
+        });
+    </script>
+</body>
+
+</html>

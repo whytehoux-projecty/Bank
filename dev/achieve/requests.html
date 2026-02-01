@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Requests - Staff Portal" />
+    <title>Requests | Staff Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/dashboard-enhanced.css" />
+    <style>
+      /* Applications Page Specific Styles */
+      :root {
+        --card-bg: #ffffff;
+        --card-border: rgba(0, 0, 0, 0.04);
+        --card-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .panel-card-actions select {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        color: #64748b;
+        background: #fff;
+        cursor: pointer;
+      }
+
+      /* Application List */
+      .applications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .application-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border-left: 4px solid #d4d4d4;
+        transition: var(--transition-smooth);
+      }
+
+      .application-item:hover {
+        background: #f1f5f9;
+      }
+
+      .application-item.pending {
+        border-left-color: #dd6b20;
+      }
+
+      .application-item.approved {
+        border-left-color: #38a169;
+      }
+
+      .application-item.rejected {
+        border-left-color: #e53e3e;
+      }
+
+      .app-icon {
+        width: 48px;
+        height: 48px;
+        background: #fff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+
+      .app-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .app-content h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px;
+      }
+
+      .app-meta {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+
+      .app-details {
+        font-size: 0.85rem;
+        color: #475569;
+        margin: 0;
+      }
+
+      .app-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .app-actions .btn {
+        font-size: 0.75rem;
+        padding: 8px 12px;
+      }
+
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: #64748b;
+      }
+
+      .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+
+      .empty-state h3 {
+        font-size: 1.1rem;
+        color: #1e293b;
+        margin-bottom: 8px;
+      }
+
+      .empty-state p {
+        font-size: 0.875rem;
+        margin-bottom: 0;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal-overlay.show {
+        display: flex;
+      }
+
+      .modal-container {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 560px;
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 20px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #f8fafc, #fff);
+      }
+
+      .modal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 1.25rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .modal-close:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+      }
+
+      .modal-body {
+        padding: 24px;
+      }
+
+      .modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        background: #f8fafc;
+      }
+
+      /* Form Styles */
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #1a365d;
+        box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .form-hint {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 6px;
+      }
+
+      /* Tabs */
+      .app-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 24px;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 12px;
+      }
+
+      .app-tab {
+        flex: 1;
+        padding: 12px 16px;
+        background: transparent;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+
+      .app-tab:hover {
+        color: #1e293b;
+      }
+
+      .app-tab.active {
+        background: #fff;
+        color: #1a365d;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Responsive */
+      @media (max-width: 900px) {
+      }
+
+      @media (max-width: 640px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .application-item {
+          flex-direction: column;
+        }
+
+        .app-actions {
+          width: 100%;
+        }
+
+        .app-actions .btn {
+          flex: 1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <div class="org-logo-small">
+          <img src="assets/logo.svg" alt="Staff Portal" />
+        </div>
+        <h1 class="portal-title">Staff Portal</h1>
+      </div>
+
+      <nav class="main-nav">
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+        <a href="my-contract.html" class="nav-link">My Contract</a>
+        <a href="payments.html" class="nav-link">Payslips &amp; Payments</a>
+        <a href="requests.html" class="nav-link active">Requests</a>
+        <a href="notifications.html" class="nav-link">Notifications</a>
+        <a href="account.html" class="nav-link">Account</a>
+      </nav>
+
+      <div class="header-right">
+        <button
+          class="icon-btn"
+          title="Notifications"
+          aria-label="Notifications"
+          onclick="window.location.href = 'notifications.html'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+          </svg>
+          <span class="badge">3</span>
+        </button>
+
+        <div class="user-menu">
+          <button
+            class="user-btn"
+            onclick="toggleUserMenu()"
+            aria-label="User menu">
+            <div class="avatar" id="headerAvatar"></div>
+            <span id="headerName"></span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <path d="M6 8L2 4h8L6 8z" />
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="userDropdown">
+            <a href="account.html">Account</a>
+            <hr />
+            <a href="#" onclick="logout()">Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <section class="page-title-card">
+        <div class="page-title-text">
+          <h1>Requests</h1>
+          <p>Submit and track staff requests</p>
+        </div>
+        <div class="page-title-actions">
+          <button
+            class="btn btn-accent btn-sm"
+            onclick="openApplicationModal()">
+            + New Request
+          </button>
+        </div>
+      </section>
+
+      <!-- Application Types -->
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <div>
+            <h3 class="panel-card-title">Start a request</h3>
+            <p class="panel-card-subtitle">Choose a request type</p>
+          </div>
+        </div>
+        <div class="panel-card-body">
+          <div class="action-tiles">
+            <button
+              type="button"
+              class="action-tile"
+              onclick="openApplicationModal('leave')">
+              <div class="action-tile-icon">🏖️</div>
+              <div class="action-tile-text">
+                <div class="action-tile-title">Leave Request</div>
+                <div class="action-tile-desc">
+                  Annual, sick, or special leave
+                </div>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="action-tile"
+              onclick="openApplicationModal('transfer')">
+              <div class="action-tile-icon">🌍</div>
+              <div class="action-tile-text">
+                <div class="action-tile-title">Transfer Request</div>
+                <div class="action-tile-desc">Request duty station change</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="action-tile"
+              onclick="openApplicationModal('training')">
+              <div class="action-tile-icon">🎓</div>
+              <div class="action-tile-text">
+                <div class="action-tile-title">Training Request</div>
+                <div class="action-tile-desc">Professional development</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="action-tile"
+              onclick="openApplicationModal('termination')">
+              <div class="action-tile-icon">📄</div>
+              <div class="action-tile-text">
+                <div class="action-tile-title">Contract Cancellation</div>
+                <div class="action-tile-desc">
+                  Request employment termination
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="panel-card" style="margin-bottom: 16px">
+        <div class="panel-card-body" style="padding: 10px 12px">
+          <div class="app-tabs" style="margin: 0">
+            <button class="app-tab active" onclick="switchTab('pending')">
+              ⏳ Pending (<span id="pendingCount">0</span>)
+            </button>
+            <button class="app-tab" onclick="switchTab('approved')">
+              ✅ Approved (<span id="approvedCount">0</span>)
+            </button>
+            <button class="app-tab" onclick="switchTab('all')">
+              📋 All Applications
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Tab -->
+      <div id="pending-tab" class="tab-content active">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h3 class="panel-card-title">⏳ Pending Applications</h3>
+          </div>
+          <div class="panel-card-body">
+            <div class="applications-list" id="pendingList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved Tab -->
+      <div id="approved-tab" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h3 class="panel-card-title">✅ Approved Applications</h3>
+          </div>
+          <div class="panel-card-body">
+            <div class="applications-list" id="approvedList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Tab -->
+      <div id="all-tab" class="tab-content">
+        <div class="panel-card">
+          <div class="panel-card-header">
+            <h3 class="panel-card-title">📋 Application History</h3>
+            <div class="panel-card-actions">
+              <select
+                onchange="filterApplications(this.value)"
+                aria-label="Filter applications">
+                <option value="all">All Types</option>
+                <option value="leave">Leave Requests</option>
+                <option value="transfer">Transfers</option>
+                <option value="training">Training</option>
+                <option value="termination">Contract Cancellation</option>
+              </select>
+            </div>
+          </div>
+          <div class="panel-card-body" style="padding: 0">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th>Details</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Application Modal -->
+    <div id="applicationModal" class="modal-overlay">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h3 id="modalTitle">📝 New Application</h3>
+          <button class="modal-close" onclick="closeApplicationModal()">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="applicationForm">
+            <div class="form-group">
+              <label>Application Type</label>
+              <select id="appType" required onchange="handleTypeChange()">
+                <option value="">Select type...</option>
+                <option value="leave">Leave Request</option>
+                <option value="transfer">Transfer Request</option>
+                <option value="training">Training Request</option>
+                <option value="termination">Contract Cancellation</option>
+              </select>
+            </div>
+
+            <!-- Leave-specific fields -->
+            <div id="leaveFields" style="display: none">
+              <div class="form-group">
+                <label>Leave Type</label>
+                <select id="leaveType">
+                  <option value="annual">Annual Leave</option>
+                  <option value="sick">Sick Leave</option>
+                  <option value="special">Special Leave</option>
+                  <option value="maternity">Maternity/Paternity Leave</option>
+                  <option value="bereavement">Bereavement Leave</option>
+                  <option value="unpaid">Unpaid Leave</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Start Date</label>
+                  <input type="date" id="startDate" />
+                </div>
+                <div class="form-group">
+                  <label>End Date</label>
+                  <input type="date" id="endDate" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Transfer-specific fields -->
+            <div id="transferFields" style="display: none">
+              <div class="form-group">
+                <label>Requested Location</label>
+                <select id="transferLocation">
+                  <option value="">Select location...</option>
+                  <option value="headquarters">Headquarters</option>
+                  <option value="regional-north">
+                    Regional Office - North
+                  </option>
+                  <option value="regional-south">
+                    Regional Office - South
+                  </option>
+                  <option value="regional-east">Regional Office - East</option>
+                  <option value="regional-west">Regional Office - West</option>
+                  <option value="remote">Remote Work</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Preferred Transfer Date</label>
+                <input type="date" id="transferDate" />
+              </div>
+            </div>
+
+            <!-- Training-specific fields -->
+            <div id="trainingFields" style="display: none">
+              <div class="form-group">
+                <label>Training Program</label>
+                <input
+                  type="text"
+                  id="trainingProgram"
+                  placeholder="Name of training or course" />
+              </div>
+              <div class="form-group">
+                <label>Training Provider</label>
+                <input
+                  type="text"
+                  id="trainingProvider"
+                  placeholder="Institution or organization" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Start Date</label>
+                  <input type="date" id="trainingStart" />
+                </div>
+                <div class="form-group">
+                  <label>End Date</label>
+                  <input type="date" id="trainingEnd" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Estimated Cost</label>
+                <input type="number" id="trainingCost" placeholder="0.00" />
+              </div>
+            </div>
+
+            <!-- Termination-specific fields -->
+            <div id="terminationFields" style="display: none">
+              <div class="form-group">
+                <label>Termination Reason</label>
+                <select id="terminationReason">
+                  <option value="">Select reason...</option>
+                  <option value="resignation">Voluntary Resignation</option>
+                  <option value="retirement">Retirement</option>
+                  <option value="relocation">Relocation</option>
+                  <option value="career">Career Change</option>
+                  <option value="personal">Personal Reasons</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Last Working Day</label>
+                <input type="date" id="lastWorkingDay" />
+                <div class="form-hint">Minimum notice period: 30 days</div>
+              </div>
+            </div>
+
+            <!-- Common fields -->
+            <div class="form-group">
+              <label>Reason / Additional Details</label>
+              <textarea
+                id="reason"
+                rows="4"
+                placeholder="Please provide details for your request..."
+                required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Attachments (optional)</label>
+              <input type="file" id="attachments" multiple />
+              <div class="form-hint">
+                Supported: PDF, DOC, DOCX, JPG, PNG (Max 5MB each)
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeApplicationModal()">
+            Cancel
+          </button>
+          <button class="btn btn-primary" onclick="submitApplication()">
+            Submit Application
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <div class="footer-content">
+        <p>&copy; 2026 Global Organization. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Help & Support</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+      let allApplications = [];
+      let currentFilter = "all";
+
+      // Type configuration
+      const typeConfig = {
+        leave: { label: "Leave Request", icon: "🏖️" },
+        transfer: { label: "Transfer Request", icon: "🌍" },
+        training: { label: "Training Request", icon: "🎓" },
+        termination: { label: "Contract Cancellation", icon: "📄" },
+      };
+
+      const statusConfig = {
+        pending: { class: "pending", label: "Pending" },
+        approved: { class: "approved", label: "Approved" },
+        rejected: { class: "rejected", label: "Rejected" },
+        cancelled: { class: "completed", label: "Cancelled" },
+      };
+
+      // Utility functions
+      const safe = (v) => (v === undefined || v === null ? "" : String(v));
+      const fmtDate = (d) =>
+        d
+          ? new Date(d).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "-";
+
+      // User menu
+      function toggleUserMenu() {
+        document.getElementById("userDropdown").classList.toggle("show");
+      }
+
+      // Tab switching
+      function switchTab(tabName) {
+        document
+          .querySelectorAll(".app-tab")
+          .forEach((tab) => tab.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+
+        event.target.classList.add("active");
+        document.getElementById(`${tabName}-tab`).classList.add("active");
+      }
+
+      // Modal functions
+      function openApplicationModal(type = "") {
+        document.getElementById("applicationModal").classList.add("show");
+        document.getElementById("applicationForm").reset();
+
+        if (type) {
+          document.getElementById("appType").value = type;
+          handleTypeChange();
+        }
+
+        const title = type
+          ? `${typeConfig[type]?.icon || "📝"} ${
+              typeConfig[type]?.label || "Application"
+            }`
+          : "📝 New Application";
+        document.getElementById("modalTitle").textContent = title;
+      }
+
+      function closeApplicationModal() {
+        document.getElementById("applicationModal").classList.remove("show");
+      }
+
+      function handleTypeChange() {
+        const type = document.getElementById("appType").value;
+
+        // Hide all type-specific fields
+        [
+          "leaveFields",
+          "transferFields",
+          "trainingFields",
+          "terminationFields",
+        ].forEach((id) => {
+          document.getElementById(id).style.display = "none";
+        });
+
+        // Show relevant fields
+        if (type === "leave")
+          document.getElementById("leaveFields").style.display = "block";
+        if (type === "transfer")
+          document.getElementById("transferFields").style.display = "block";
+        if (type === "training")
+          document.getElementById("trainingFields").style.display = "block";
+        if (type === "termination")
+          document.getElementById("terminationFields").style.display = "block";
+      }
+
+      // Submit application
+      async function submitApplication() {
+        const submitBtn = document.querySelector(
+          "#applicationModal .btn.btn-primary",
+        );
+        const type = document.getElementById("appType").value;
+        const reason = document.getElementById("reason").value;
+
+        const requireValue = (id, label) => {
+          const el = document.getElementById(id);
+          const value = (el?.value || "").toString().trim();
+          if (!value) throw new Error(`${label} is required`);
+          return value;
+        };
+
+        if (!type) {
+          alert("Please select an application type");
+          return;
+        }
+        if (!String(reason || "").trim()) {
+          alert("Please provide a reason");
+          return;
+        }
+
+        const data = { reason };
+
+        try {
+          // Collect type-specific data
+          if (type === "leave") {
+            data.leaveType = requireValue("leaveType", "Leave type");
+            data.startDate = requireValue("startDate", "Start date");
+            data.endDate = requireValue("endDate", "End date");
+          } else if (type === "transfer") {
+            data.location = requireValue("transferLocation", "New location");
+            data.transferDate = requireValue("transferDate", "Transfer date");
+          } else if (type === "training") {
+            data.program = requireValue("trainingProgram", "Program name");
+            data.provider = requireValue("trainingProvider", "Provider");
+            data.startDate = requireValue("trainingStart", "Start date");
+            data.endDate = requireValue("trainingEnd", "End date");
+            data.cost = requireValue("trainingCost", "Cost");
+          } else if (type === "termination") {
+            data.terminationReason = requireValue(
+              "terminationReason",
+              "Termination reason",
+            );
+            data.lastWorkingDay = requireValue(
+              "lastWorkingDay",
+              "Last working day",
+            );
+          }
+        } catch (e) {
+          alert(e?.message || "Please fill in all required fields");
+          return;
+        }
+
+        try {
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.dataset.originalText = submitBtn.textContent || "";
+            submitBtn.textContent = "Submitting...";
+          }
+          await API.request("/applications", {
+            method: "POST",
+            auth: true,
+            body: { type, data },
+          });
+          closeApplicationModal();
+          await loadApplications();
+          alert("Application submitted successfully!");
+        } catch (error) {
+          console.error("Error submitting application:", error);
+          alert(
+            error?.message || "Failed to submit application. Please try again.",
+          );
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = submitBtn.dataset.originalText || "Submit";
+            delete submitBtn.dataset.originalText;
+          }
+        }
+      }
+
+      // Filter applications
+      function filterApplications(type) {
+        currentFilter = type;
+        renderHistory();
+      }
+
+      // Render pending applications
+      function renderPending() {
+        const list = document.getElementById("pendingList");
+        const pending = allApplications.filter((a) => a.status === "pending");
+
+        document.getElementById("pendingCount").textContent = pending.length;
+
+        if (pending.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">✅</div>
+              <h3>No Pending Applications</h3>
+              <p>All your applications have been processed.</p>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = pending
+          .map(
+            (app) => `
+          <div class="application-item pending">
+            <div class="app-icon">${typeConfig[app.type]?.icon || "📝"}</div>
+            <div class="app-content">
+              <h4>${typeConfig[app.type]?.label || app.type}</h4>
+              <p class="app-meta">Submitted: ${fmtDate(app.created_at)} | ID: ${
+                app.id
+              }</p>
+              <p class="app-details">${safe(
+                app.data?.reason || app.data?.details || "",
+              )}</p>
+            </div>
+            <div class="app-actions">
+              <button class="btn btn-sm btn-secondary" onclick="viewApplication('${
+                app.id
+              }')">View</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="cancelApplication('${
+                app.id
+              }')">Cancel</button>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      // Render approved applications
+      function renderApproved() {
+        const list = document.getElementById("approvedList");
+        const approved = allApplications.filter((a) => a.status === "approved");
+
+        document.getElementById("approvedCount").textContent = approved.length;
+
+        if (approved.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <h3>No Approved Applications</h3>
+              <p>Your approved applications will appear here.</p>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = approved
+          .map(
+            (app) => `
+          <div class="application-item approved">
+            <div class="app-icon">${typeConfig[app.type]?.icon || "📝"}</div>
+            <div class="app-content">
+              <h4>${typeConfig[app.type]?.label || app.type}</h4>
+              <p class="app-meta">Approved: ${fmtDate(app.updated_at)} | ID: ${
+                app.id
+              }</p>
+              <p class="app-details">${safe(
+                app.data?.reason || app.data?.details || "",
+              )}</p>
+            </div>
+            <div class="app-actions">
+              <button class="btn btn-sm btn-secondary" onclick="viewApplication('${
+                app.id
+              }')">View Details</button>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      // Render history table
+      function renderHistory() {
+        const body = document.getElementById("historyBody");
+        let filtered = allApplications;
+
+        if (currentFilter !== "all") {
+          filtered = filtered.filter((a) => a.type === currentFilter);
+        }
+
+        if (filtered.length === 0) {
+          body.innerHTML =
+            '<tr><td colspan="6" style="text-align: center; color: #64748b; padding: 40px;">No applications found</td></tr>';
+          return;
+        }
+
+        body.innerHTML = filtered
+          .map((app) => {
+            const status = statusConfig[app.status] || statusConfig.pending;
+            return `
+            <tr>
+              <td><code style="font-size: 0.8rem;">${app.id}</code></td>
+              <td>${typeConfig[app.type]?.icon || "📝"} ${
+                typeConfig[app.type]?.label || app.type
+              }</td>
+              <td>${fmtDate(app.created_at)}</td>
+              <td><span class="status-badge ${status.class}">${
+                status.label
+              }</span></td>
+              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${safe(
+                app.data?.reason || "-",
+              )}</td>
+              <td><button class="btn btn-sm btn-secondary" onclick="viewApplication('${
+                app.id
+              }')">View</button></td>
+            </tr>
+          `;
+          })
+          .join("");
+      }
+
+      // View application details
+      function viewApplication(id) {
+        const app = allApplications.find((a) => a.id === id);
+        if (!app) return;
+
+        alert(
+          `Application Details:\n\nType: ${
+            typeConfig[app.type]?.label || app.type
+          }\nStatus: ${app.status}\nSubmitted: ${fmtDate(
+            app.created_at,
+          )}\n\nDetails:\n${JSON.stringify(app.data, null, 2)}`,
+        );
+      }
+
+      // Cancel application
+      async function cancelApplication(id) {
+        if (!confirm("Are you sure you want to cancel this application?"))
+          return;
+
+        try {
+          await API.request(`/applications/${id}/cancel`, {
+            method: "PATCH",
+            auth: true,
+          });
+          await loadApplications();
+          alert("Application cancelled successfully.");
+        } catch (error) {
+          console.error("Error cancelling application:", error);
+          alert(error?.message || "Failed to cancel application.");
+        }
+      }
+
+      // Load all applications
+      async function loadApplications() {
+        try {
+          const res = await API.request("/applications/my", { auth: true });
+          allApplications = Array.isArray(res?.data) ? res.data : [];
+
+          renderPending();
+          renderApproved();
+          renderHistory();
+        } catch (error) {
+          console.error("Error loading applications:", error);
+          alert(error?.message || "Failed to load applications.");
+        }
+      }
+
+      // Initialize
+      async function init() {
+        if (!window.Auth) return;
+        const user = await Auth.checkAuth();
+        if (!user) return;
+
+        const fullName =
+          [user.firstName, user.lastName].filter(Boolean).join(" ") || "User";
+        document.getElementById("headerName").textContent = fullName;
+        document.getElementById("headerAvatar").textContent = (
+          user.firstName?.charAt(0) || "U"
+        ).toUpperCase();
+
+        await loadApplications();
+      }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".user-menu")) {
+          document.getElementById("userDropdown")?.classList.remove("show");
+        }
+      });
+
+      // Close modal when clicking outside
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            modal.classList.remove("show");
+          }
+        });
+      });
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
