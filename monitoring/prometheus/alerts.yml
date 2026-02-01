@@ -1,0 +1,190 @@
+groups:
+  - name: uhi_staff_portal_alerts
+    interval: 30s
+    rules:
+      # Service Health Alerts
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} on {{ $labels.instance }} has been down for more than 2 minutes."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          category: errors
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.service }}"
+
+      # Performance Alerts
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.service }}"
+
+      - alert: HighCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanize }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanize }}% on {{ $labels.instance }}"
+
+      # Database Alerts
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding"
+
+      - alert: HighDatabaseConnections
+        expr: sum(pg_stat_activity_count) > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High number of database connections"
+          description: "Database has {{ $value }} active connections"
+
+      - alert: SlowQueries
+        expr: rate(pg_stat_statements_mean_time_seconds[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query time is {{ $value }}s"
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is not responding"
+
+      - alert: HighRedisMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanize }}%"
+
+      # Disk Space Alerts
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+          category: resources
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is {{ $value | humanize }}% available on {{ $labels.instance }}"
+
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 5
+        for: 1m
+        labels:
+          severity: critical
+          category: resources
+        annotations:
+          summary: "Critical disk space"
+          description: "Only {{ $value | humanize }}% disk space available on {{ $labels.instance }}"
+
+      # Container Alerts
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "Container high CPU usage"
+          description: "Container {{ $labels.name }} CPU usage is {{ $value | humanize }}%"
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "Container high memory usage"
+          description: "Container {{ $labels.name }} memory usage is {{ $value | humanize }}%"
+
+      - alert: ContainerRestarting
+        expr: rate(container_last_seen{name!=""}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: containers
+        annotations:
+          summary: "Container is restarting"
+          description: "Container {{ $labels.name }} is restarting frequently"
+
+      # Application-specific Alerts
+      - alert: HighFailedLogins
+        expr: rate(failed_login_attempts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "{{ $value }} failed login attempts per second"
+
+      - alert: BackupFailed
+        expr: time() - last_successful_backup_timestamp > 86400
+        for: 1h
+        labels:
+          severity: critical
+          category: backup
+        annotations:
+          summary: "Database backup failed"
+          description: "No successful backup in the last 24 hours"
+
+      - alert: CertificateExpiringSoon
+        expr: (ssl_certificate_expiry_seconds - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate expires in {{ $value }} days"
