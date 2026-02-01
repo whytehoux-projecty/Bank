@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
+import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import * as Sentry from '@sentry/node';
 
@@ -25,6 +26,7 @@ import { errorHandler } from './shared/middleware/errorHandler.middleware';
 import { generalLimiter, authLimiter } from './shared/middleware/rateLimit.middleware';
 import { loggingMiddleware, errorLoggingMiddleware } from './shared/middleware/logging.middleware';
 import { metricsMiddleware } from './shared/middleware/metrics.middleware';
+import { csrfProtection, getCsrfToken } from './shared/middleware/csrf.middleware';
 import { redis } from './config/redis';
 
 // Initialize Sentry
@@ -37,7 +39,8 @@ app.use(helmet());
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-XSRF-Token'],
+    credentials: true // Allow cookies for CSRF tokens
 }));
 
 // Performance Metrics
@@ -49,6 +52,7 @@ app.use(loggingMiddleware);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Apply general rate limiter
 app.use(generalLimiter);
@@ -58,6 +62,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Serve static files (Legacy/Fallback)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// CSRF Token endpoint (must be before CSRF protection)
+app.get('/api/v1/csrf-token', getCsrfToken);
 
 // Routes
 app.use('/api/v1/auth', authLimiter, authRoutes);

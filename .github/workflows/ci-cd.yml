@@ -1,0 +1,300 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+env:
+    NODE_VERSION: "20"
+    REGISTRY: ghcr.io
+    IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+    # ==========================================
+    # Linting and Code Quality
+    # ==========================================
+    lint:
+        name: Lint Code
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                service: [backend, staff-portal, admin-interface]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+                  cache-dependency-path: |
+                      UHI-STAFF-PORTAL/staff_backend/package-lock.json
+                      UHI-STAFF-PORTAL/staff_portal/package-lock.json
+                      UHI-STAFF-PORTAL/staff_admin_interface/package-lock.json
+
+            - name: Install dependencies - Backend
+              if: matrix.service == 'backend'
+              working-directory: ./UHI-STAFF-PORTAL/staff_backend
+              run: npm ci
+
+            - name: Install dependencies - Staff Portal
+              if: matrix.service == 'staff-portal'
+              working-directory: ./UHI-STAFF-PORTAL/staff_portal
+              run: npm ci
+
+            - name: Install dependencies - Admin Interface
+              if: matrix.service == 'admin-interface'
+              working-directory: ./UHI-STAFF-PORTAL/staff_admin_interface
+              run: npm ci
+
+            - name: Run ESLint - Backend
+              if: matrix.service == 'backend'
+              working-directory: ./UHI-STAFF-PORTAL/staff_backend
+              run: npm run lint
+
+            - name: Run ESLint - Staff Portal
+              if: matrix.service == 'staff-portal'
+              working-directory: ./UHI-STAFF-PORTAL/staff_portal
+              run: npm run lint
+
+            - name: Run ESLint - Admin Interface
+              if: matrix.service == 'admin-interface'
+              working-directory: ./UHI-STAFF-PORTAL/staff_admin_interface
+              run: npm run lint
+
+    # ==========================================
+    # Backend Tests
+    # ==========================================
+    test-backend:
+        name: Test Backend
+        runs-on: ubuntu-latest
+        needs: lint
+
+        services:
+            postgres:
+                image: postgres:15-alpine
+                env:
+                    POSTGRES_USER: test_user
+                    POSTGRES_PASSWORD: test_password
+                    POSTGRES_DB: test_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+            redis:
+                image: redis:7-alpine
+                ports:
+                    - 6379:6379
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: "npm"
+                  cache-dependency-path: UHI-STAFF-PORTAL/staff_backend/package-lock.json
+
+            - name: Install dependencies
+              working-directory: ./UHI-STAFF-PORTAL/staff_backend
+              run: npm ci
+
+            - name: Run Prisma migrations
+              working-directory: ./UHI-STAFF-PORTAL/staff_backend
+              env:
+                  DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+              run: npx prisma migrate deploy
+
+            - name: Run tests with coverage
+              working-directory: ./UHI-STAFF-PORTAL/staff_backend
+              env:
+                  DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+                  REDIS_URL: redis://localhost:6379
+                  JWT_SECRET: test_jwt_secret_minimum_32_characters
+                  JWT_REFRESH_SECRET: test_refresh_secret_minimum_32_characters
+              run: npm run test:coverage
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                  files: ./UHI-STAFF-PORTAL/staff_backend/coverage/lcov.info
+                  flags: backend
+                  name: backend-coverage
+
+    # ==========================================
+    # Build Docker Images
+    # ==========================================
+    build:
+        name: Build Docker Images
+        runs-on: ubuntu-latest
+        needs: [lint, test-backend]
+        if: github.event_name == 'push'
+        strategy:
+            matrix:
+                service: [backend, staff-portal, admin-interface]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Extract metadata
+              id: meta
+              uses: docker/metadata-action@v5
+              with:
+                  images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+                  tags: |
+                      type=ref,event=branch
+                      type=ref,event=pr
+                      type=semver,pattern={{version}}
+                      type=semver,pattern={{major}}.{{minor}}
+                      type=sha,prefix={{branch}}-
+
+            - name: Build and push - Backend
+              if: matrix.service == 'backend'
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./UHI-STAFF-PORTAL/staff_backend
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Build and push - Staff Portal
+              if: matrix.service == 'staff-portal'
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./UHI-STAFF-PORTAL/staff_portal
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Build and push - Admin Interface
+              if: matrix.service == 'admin-interface'
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./UHI-STAFF-PORTAL/staff_admin_interface
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+                  labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+    # ==========================================
+    # Security Scanning
+    # ==========================================
+    security-scan:
+        name: Security Scan
+        runs-on: ubuntu-latest
+        needs: build
+        if: github.event_name == 'push'
+        strategy:
+            matrix:
+                service: [backend, staff-portal, admin-interface]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Run Trivy vulnerability scanner
+              uses: aquasecurity/trivy-action@master
+              with:
+                  image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:${{ github.ref_name }}
+                  format: "sarif"
+                  output: "trivy-results.sarif"
+
+            - name: Upload Trivy results to GitHub Security
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: "trivy-results.sarif"
+
+    # ==========================================
+    # Deploy to Staging
+    # ==========================================
+    deploy-staging:
+        name: Deploy to Staging
+        runs-on: ubuntu-latest
+        needs: [build, security-scan]
+        if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+        environment:
+            name: staging
+            url: https://staging.uhi-portal.com
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Deploy to staging server
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ secrets.STAGING_HOST }}
+                  username: ${{ secrets.STAGING_USER }}
+                  key: ${{ secrets.STAGING_SSH_KEY }}
+                  script: |
+                      cd /opt/uhi-staff-portal
+                      docker-compose pull
+                      docker-compose up -d
+                      docker-compose exec -T backend npx prisma migrate deploy
+
+    # ==========================================
+    # Deploy to Production
+    # ==========================================
+    deploy-production:
+        name: Deploy to Production
+        runs-on: ubuntu-latest
+        needs: [build, security-scan]
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        environment:
+            name: production
+            url: https://portal.uhi.org
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Deploy to production server
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ secrets.PRODUCTION_HOST }}
+                  username: ${{ secrets.PRODUCTION_USER }}
+                  key: ${{ secrets.PRODUCTION_SSH_KEY }}
+                  script: |
+                      cd /opt/uhi-staff-portal
+                      docker-compose pull
+                      docker-compose up -d
+                      docker-compose exec -T backend npx prisma migrate deploy
+
+            - name: Notify deployment
+              uses: 8398a7/action-slack@v3
+              with:
+                  status: ${{ job.status }}
+                  text: "Production deployment completed"
+                  webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+              if: always()
