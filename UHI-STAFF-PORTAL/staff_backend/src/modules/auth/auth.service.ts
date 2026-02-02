@@ -14,9 +14,14 @@ export class AuthService {
     async login(data: LoginDTO) {
         const { staffId, password } = data;
 
-        // Find user by staff ID
-        const user = await prisma.user.findUnique({
-            where: { staff_id: staffId },
+        // Find user by staff ID or email (flexible login)
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { staff_id: staffId },
+                    { email: staffId } // Allow email as login identifier
+                ]
+            },
             include: { roles: { include: { role: true } } }
         });
 
