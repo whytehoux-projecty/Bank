@@ -3,24 +3,48 @@ import { logger } from './logger';
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-export const redis = new Redis(redisUrl, {
-    maxRetriesPerRequest: 3,
-    retryStrategy(times) {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-    },
-    // Don't crash the app if Redis is down, just log errors
-    // We set it to true to buffer commands if Redis is temporarily down/connecting
-    enableOfflineQueue: true,
-});
+// Make Redis optional - if REDIS_URL is not set or connection fails, app continues
+let redis: Redis | null = null;
 
-redis.on('connect', () => {
-    logger.info('Redis connected successfully');
-});
+try {
+    // Only attempt connection if REDIS_URL is explicitly set
+    if (process.env.REDIS_URL && process.env.REDIS_URL !== 'redis://localhost:6379') {
+        redis = new Redis(redisUrl, {
+            maxRetriesPerRequest: 3,
+            retryStrategy(times) {
+                if (times > 10) {
+                    logger.warn('Redis connection failed after 10 retries, disabling Redis');
+                    return null; // Stop retrying
+                }
+                const delay = Math.min(times * 50, 2000);
+                return delay;
+            },
+            enableOfflineQueue: false, // Don't queue commands if Redis is down
+            lazyConnect: true, // Don't connect immediately
+        });
 
-redis.on('error', (err) => {
-    logger.error('Redis connection error:', err);
-});
+        redis.on('connect', () => {
+            logger.info('Redis connected successfully');
+        });
+
+        redis.on('error', (err) => {
+            logger.warn('Redis connection error (continuing without Redis):', err.message);
+        });
+
+        // Attempt to connect
+        redis.connect().catch((err) => {
+            logger.warn('Failed to connect to Redis, continuing without cache:', err.message);
+            redis = null;
+        });
+    } else {
+        logger.info('Redis not configured, running without cache');
+    }
+} catch (err) {
+    logger.warn('Redis initialization failed, continuing without cache:', err);
+    redis = null;
+}
+
+export { redis };
 
 export const CACHE_TTL = {
     SHORT: 60 * 5, // 5 minutes
