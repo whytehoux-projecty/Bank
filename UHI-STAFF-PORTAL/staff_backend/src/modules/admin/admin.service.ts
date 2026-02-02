@@ -1,9 +1,117 @@
 import { prisma } from "../../config/database";
 import { AppError } from "../../shared/middleware/errorHandler.middleware";
 import { CreateDeploymentDTO } from "../staff/staff.types";
-import { DeploymentStatus, DeploymentType, HardshipLevel } from "@prisma/client";
+import { DeploymentStatus, DeploymentType, HardshipLevel, Prisma } from "@prisma/client";
+import bcrypt from 'bcrypt';
+import { RegisterDTO } from "../auth/auth.types";
 
 export class AdminService {
+  async createUser(data: RegisterDTO & { role?: string; department?: string; position?: string }) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { staff_id: data.staffId },
+          { email: data.email }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      throw new AppError('User already exists with this Staff ID or Email', 409);
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Transaction to create user, assign role, and create staff profile
+    const newUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const user = await tx.user.create({
+        data: {
+          staff_id: data.staffId,
+          email: data.email,
+          password_hash: hashedPassword,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          status: 'active'
+        }
+      });
+
+      // Assign role (default to staff if not provided)
+      const roleName = data.role || 'staff';
+      const role = await tx.role.findUnique({ where: { name: roleName } });
+
+      if (role) {
+        await tx.userRole.create({
+          data: {
+            user_id: user.id,
+            role_id: role.id
+          }
+        });
+      } else {
+        // Fallback to staff if specific role not found
+        const staffRole = await tx.role.findUnique({ where: { name: 'staff' } });
+        if (staffRole) {
+          await tx.userRole.create({
+            data: {
+              user_id: user.id,
+              role_id: staffRole.id
+            }
+          });
+        }
+      }
+
+      // Create Staff Profile
+      await tx.staffProfile.create({
+        data: {
+          user_id: user.id,
+          // Add any other initial fields if needed
+        }
+      });
+
+      // Handle Department and Position (via EmploymentHistory)
+      if (data.department || data.position) {
+        let departmentId = 1; // Default ID logic needs to be robust
+
+        if (data.department) {
+          // Find or create department
+          const dept = await tx.department.findUnique({ where: { name: data.department } });
+          if (dept) {
+            departmentId = dept.id;
+          } else {
+            const newDept = await tx.department.create({
+              data: { name: data.department }
+            });
+            departmentId = newDept.id;
+          }
+        } else {
+          // Try to get a default department or skip
+          // For now, if no department provided but position is, we might fail constraint if dept_id is required
+          // Let's ensure we have at least one department in DB or handle this gracefully.
+          // Assuming ID 1 exists or creating a "General" department fallback
+          const defaultDept = await tx.department.findFirst();
+          if (defaultDept) {
+            departmentId = defaultDept.id;
+          } else {
+            const newDefault = await tx.department.create({ data: { name: 'General' } });
+            departmentId = newDefault.id;
+          }
+        }
+
+        await tx.employmentHistory.create({
+          data: {
+            user_id: user.id,
+            department_id: departmentId,
+            position_title: data.position || 'Unassigned',
+            start_date: new Date(),
+          }
+        });
+      }
+
+      return user;
+    });
+
+    return newUser;
+  }
+
   async getAllUsers() {
     return prisma.user.findMany({
       select: {

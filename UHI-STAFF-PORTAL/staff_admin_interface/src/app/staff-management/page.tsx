@@ -162,7 +162,7 @@ function StaffManagementContent() {
                 setMessage({ type: 'success', text: 'Staff updated successfully!' });
             } else {
                 // Create new staff
-                await API.request('/auth/register', {
+                await API.request('/admin/users', {
                     method: 'POST',
                     auth: true,
                     body: formData,

@@ -11,6 +11,16 @@ export class AdminController {
     }
   }
 
+  async createUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      // In a real app, strict validation should be here (Zod)
+      const newUser = await adminService.createUser(req.body);
+      res.status(201).json({ success: true, data: newUser, message: 'User created successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getStats(req: Request, res: Response, next: NextFunction) {
     try {
       const stats = await adminService.getSystemStats();

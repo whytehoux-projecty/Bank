@@ -16,6 +16,7 @@ router.use(adminOnly);
 
 // ============ USER MANAGEMENT ============
 router.get('/users', adminController.getAllUsers);
+router.post('/users', adminController.createUser); // Added route
 router.get('/users/:id/full', adminController.getFullUserDetails);
 router.post('/users/:id/deployments', validateBody(deploymentSchema), adminController.createUserDeployment);
 router.get('/stats', adminController.getStats);
