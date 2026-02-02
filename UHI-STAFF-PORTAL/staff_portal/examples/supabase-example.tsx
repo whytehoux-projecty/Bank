@@ -7,7 +7,7 @@
 'use client'; // Required for Next.js App Router with hooks
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../src/lib/supabase';
 
 // Define TypeScript interface for your data
 interface User {

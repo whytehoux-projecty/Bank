@@ -16,7 +16,7 @@ interface SecretsCache {
 }
 
 class SecretsManager {
-    private client: SecretsManagerClient;
+    private client!: SecretsManagerClient;
     private cache: SecretsCache = {};
     private cacheTTL: number = 300000; // 5 minutes in milliseconds
     private useSecretsManager: boolean;
