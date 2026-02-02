@@ -8,7 +8,10 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.string().default('3000'),
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z.string().min(1, 'DATABASE_URL is required').refine(
+        (val) => val.startsWith('postgresql://') || val.startsWith('postgres://'),
+        { message: 'DATABASE_URL must be a valid PostgreSQL connection string' }
+    ),
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
     CORS_ORIGIN: z.string().optional(),
     SMTP_HOST: z.string().optional(),
