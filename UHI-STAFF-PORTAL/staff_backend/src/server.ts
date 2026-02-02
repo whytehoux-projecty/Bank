@@ -9,7 +9,7 @@ import { validateEnv } from './config/env.validation';
 dotenv.config();
 validateEnv();
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 let server: http.Server;
 
@@ -19,7 +19,7 @@ async function startServer() {
         await prisma.$connect();
         logger.info('✅ Connected to database');
 
-        server = app.listen(PORT, () => {
+        server = app.listen(PORT, '0.0.0.0', () => {
             logger.info(`🚀 Server running on port ${PORT}`);
         });
     } catch (error) {
