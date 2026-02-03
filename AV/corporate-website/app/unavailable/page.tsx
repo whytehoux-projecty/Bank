@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+
 import Link from 'next/link';
 import { WifiOff, RefreshCw, Home, Phone, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -16,14 +16,14 @@ export default function ServiceUnavailablePage() {
         try {
             // Check if e-banking portal is available
             const portalUrl = process.env.NEXT_PUBLIC_PORTAL_URL || 'http://localhost:4000';
-            const response = await fetch(`${portalUrl}/api/health`, {
+            await fetch(`${portalUrl}/api/health`, {
                 method: 'HEAD',
                 mode: 'no-cors'
             });
 
             // If we can reach the portal, redirect to it
             window.location.href = portalUrl;
-        } catch (error) {
+        } catch (_) {
             console.log('E-Banking Portal still unavailable');
         } finally {
             setIsChecking(false);
@@ -64,7 +64,7 @@ export default function ServiceUnavailablePage() {
 
                         {/* Description */}
                         <p className="text-lg text-charcoal-light mb-8 max-w-xl mx-auto">
-                            We're sorry, but the E-Banking Portal is currently unavailable. Our team is working to restore service as quickly as possible.
+                            We&apos;re sorry, but the E-Banking Portal is currently unavailable. Our team is working to restore service as quickly as possible.
                         </p>
 
                         {/* Status Info */}

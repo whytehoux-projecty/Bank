@@ -29,7 +29,7 @@ export function EBankingWidget({ className = '' }: EBankingWidgetProps) {
 
         try {
             // Check if portal is available
-            const response = await fetch(`${portalUrl}/api/health`, {
+            await fetch(`${portalUrl}/api/health`, {
                 method: 'HEAD',
                 mode: 'no-cors',
                 cache: 'no-cache'
@@ -37,7 +37,7 @@ export function EBankingWidget({ className = '' }: EBankingWidgetProps) {
 
             // If portal is available, redirect to it
             window.location.href = portalUrl;
-        } catch (error) {
+        } catch (_) {
             // If portal is not available, show unavailable page
             router.push('/unavailable');
         } finally {

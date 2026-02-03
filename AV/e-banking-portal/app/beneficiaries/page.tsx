@@ -253,8 +253,7 @@ export default function BeneficiariesPage() {
                                 </div>
                                 <Button
                                     variant="ghost"
-                                    size="icon"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-red-600"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-muted-foreground hover:text-red-600 flex items-center justify-center"
                                     onClick={() => handleDelete(beneficiary.id)}
                                 >
                                     <Trash2 className="w-4 h-4" />
