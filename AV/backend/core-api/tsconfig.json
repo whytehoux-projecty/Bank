@@ -20,7 +20,7 @@
     "removeComments": true,
     "noImplicitAny": false,
     "strictPropertyInitialization": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
