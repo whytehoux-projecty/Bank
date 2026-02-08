@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 
 import { build } from '../src/server';
 import { IncomingMessage, ServerResponse } from 'http';
