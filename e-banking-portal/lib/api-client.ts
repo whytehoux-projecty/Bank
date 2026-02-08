@@ -264,12 +264,28 @@ export const api = {
             const response = await apiClient.patch(`/api/transactions/${id}/category`, { category });
             return response.data;
         },
+
+        getStats: async (period: 'week' | 'month' | 'year' = 'month') => {
+            const response = await apiClient.get('/api/transactions/stats', { params: { period } });
+            return response.data;
+        },
+
+        // Alias for internal transfers
+        create: async (transferData: any) => {
+            const response = await apiClient.post('/api/transfers', transferData);
+            return response.data;
+        },
     },
 
     // Transfers
     transfers: {
         create: async (transferData: any) => {
             const response = await apiClient.post('/api/transfers', transferData);
+            return response.data;
+        },
+
+        createWire: async (wireData: any) => {
+            const response = await apiClient.post('/api/wire-transfers', wireData);
             return response.data;
         },
 
@@ -385,20 +401,28 @@ export const api = {
     // User Profile
     profile: {
         get: async () => {
-            const response = await apiClient.get('/api/profile');
+            const response = await apiClient.get('/api/auth/profile');
             return response.data;
         },
 
         update: async (profileData: any) => {
-            const response = await apiClient.put('/api/profile', profileData);
+            const response = await apiClient.put('/api/auth/profile', profileData);
             return response.data;
         },
 
         changePassword: async (passwordData: any) => {
-            const response = await apiClient.post('/api/profile/change-password', passwordData);
+            const response = await apiClient.post('/api/auth/change-password', passwordData);
             return response.data;
         },
     },
+
+    // Notifications
+    notifications: {
+        getAll: async () => {
+            const response = await apiClient.get('/api/notifications');
+            return response.data;
+        }
+    }
 };
 
 export { getAccessToken, getRefreshToken, setAccessToken, setRefreshToken, clearTokens };

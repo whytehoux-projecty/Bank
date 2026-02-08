@@ -10,41 +10,37 @@ import { RightSidebar } from '@/components/layout/RightSidebar';
 export default function EBankingLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-    const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
 
     // Don't show layout on auth pages
     if (pathname?.includes('/auth/')) {
-        return <>{children}</>;
+        return <div className="min-h-screen bg-background">{children}</div>;
     }
 
     return (
-        <div className="min-h-screen bg-off-white/50 dark:bg-background">
-            {/* Sticky Header */}
-            <Header
-                leftSidebarOpen={leftSidebarOpen}
-                rightSidebarOpen={rightSidebarOpen}
-                onLeftSidebarToggle={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                onRightSidebarToggle={() => setRightSidebarOpen(!rightSidebarOpen)}
-            />
+        <div className="min-h-screen bg-background">
+            <Header />
 
-            {/* Left Sidebar */}
-            <LeftSidebar isOpen={leftSidebarOpen} />
+            <div className="flex pt-[70px] h-screen overflow-hidden">
+                <LeftSidebar
+                    isOpen={leftSidebarOpen}
+                    onToggle={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                />
 
-            {/* Right Sidebar */}
-            <RightSidebar isOpen={rightSidebarOpen} />
-
-            {/* Main Content Area */}
-            <main
-                className={cn(
-                    "transition-all duration-300 ease-in-out pt-6 px-4 md:px-8 pb-10 min-h-[calc(100vh-4rem)]",
-                    leftSidebarOpen ? "ml-64" : "ml-20",
-                    rightSidebarOpen ? "mr-[300px]" : "mr-20"
-                )}
-            >
-                <div className="max-w-6xl mx-auto">
+                <main className={cn(
+                    "flex-1 overflow-y-auto transition-all duration-300 ease-in-out px-4 py-6 md:px-8",
+                    // Dynamic padding based on sidebar states
+                    leftSidebarOpen ? "md:ml-64" : "md:ml-16",
+                    isRightSidebarOpen ? "md:mr-80" : "md:mr-16"
+                )}>
                     {children}
-                </div>
-            </main>
+                </main>
+
+                <RightSidebar
+                    isOpen={isRightSidebarOpen}
+                    onToggle={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                />
+            </div>
         </div>
     );
 }

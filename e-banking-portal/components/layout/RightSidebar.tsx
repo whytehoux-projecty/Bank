@@ -12,12 +12,14 @@ import {
     Banknote,
     BellRing,
     ChevronRight,
+    ChevronLeft,
     Briefcase
 } from 'lucide-react';
 import { VintageIcon } from '@/components/ui/vintage-icon';
 
 interface RightSidebarProps {
     isOpen: boolean;
+    onToggle: () => void;
 }
 
 const extraServices = [
@@ -27,14 +29,27 @@ const extraServices = [
     { name: 'Business Suite', href: '#', icon: Briefcase, desc: 'For your enterprise' },
 ];
 
-export function RightSidebar({ isOpen }: RightSidebarProps) {
+export function RightSidebar({ isOpen, onToggle }: RightSidebarProps) {
     return (
         <aside
             className={cn(
-                "fixed top-16 right-0 z-40 h-[calc(100vh-4rem)] border-l bg-background transition-all duration-300 ease-in-out",
-                isOpen ? "w-[300px]" : "w-20"
+                "fixed top-[70px] right-0 z-40 h-[calc(100vh-70px)] border-l bg-background transition-all duration-300 ease-in-out",
+                isOpen ? "w-[300px]" : "w-16"
             )}
         >
+            {/* Toggle Button - positioned at the left edge of sidebar */}
+            <button
+                onClick={onToggle}
+                className="absolute -left-3 top-6 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-[#D4AF7A] text-[#3D3D3D] shadow-md hover:bg-[#B8941F] transition-colors"
+                aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+                {isOpen ? (
+                    <ChevronRight className="h-4 w-4" />
+                ) : (
+                    <ChevronLeft className="h-4 w-4" />
+                )}
+            </button>
+
             <ScrollArea className="h-full">
                 <div className={cn("p-6", !isOpen && "px-2 py-6 flex flex-col items-center")}>
 
@@ -59,7 +74,7 @@ export function RightSidebar({ isOpen }: RightSidebarProps) {
 
                     {/* Alert Box (Replacing Notification Icon) */}
                     {isOpen ? (
-                        <div className="mb-8 p-4 rounded-xl bg-accent/50 border border-accent">
+                        <div className="mb-8 p-4 rounded-xl bg-accent border border-accent">
                             <div className="flex items-start gap-3">
                                 <BellRing className="w-5 h-5 text-secondary mt-0.5" />
                                 <div>
@@ -79,8 +94,8 @@ export function RightSidebar({ isOpen }: RightSidebarProps) {
                             <div className="relative">
                                 <VintageIcon icon={BellRing} size="sm" variant="gold" />
                                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-secondary"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF7A] opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#D4AF7A]"></span>
                                 </span>
                             </div>
                         </div>
@@ -103,7 +118,7 @@ export function RightSidebar({ isOpen }: RightSidebarProps) {
                                         !isOpen && "justify-center p-2"
                                     )}
                                 >
-                                    <VintageIcon icon={service.icon} size="sm" variant="charcoal" className="bg-white" />
+                                    <VintageIcon icon={service.icon} size="sm" variant="charcoal" />
 
                                     {isOpen && (
                                         <div className="flex-1">

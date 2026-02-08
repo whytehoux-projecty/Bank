@@ -14,12 +14,15 @@ import {
     Users,
     Settings,
     HelpCircle,
-    LogOut
+    LogOut,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { VintageIcon } from '@/components/ui/vintage-icon';
 
 interface LeftSidebarProps {
     isOpen: boolean;
+    onToggle: () => void;
 }
 
 const navigation = [
@@ -35,16 +38,29 @@ const navigation = [
     { name: 'Support', href: '/support', icon: HelpCircle },
 ];
 
-export function LeftSidebar({ isOpen }: LeftSidebarProps) {
+export function LeftSidebar({ isOpen, onToggle }: LeftSidebarProps) {
     const pathname = usePathname();
 
     return (
         <aside
             className={cn(
-                "fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] border-r bg-background transition-all duration-300 ease-in-out",
-                isOpen ? "w-64" : "w-20"
+                "fixed top-[70px] left-0 z-40 h-[calc(100vh-70px)] border-r bg-background transition-all duration-300 ease-in-out",
+                isOpen ? "w-64" : "w-16"
             )}
         >
+            {/* Toggle Button - positioned at the edge of sidebar */}
+            <button
+                onClick={onToggle}
+                className="absolute -right-3 top-6 z-50 flex h-6 w-6 items-center justify-center rounded-full bg-[#D4AF7A] text-[#3D3D3D] shadow-md hover:bg-[#B8941F] transition-colors"
+                aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+                {isOpen ? (
+                    <ChevronLeft className="h-4 w-4" />
+                ) : (
+                    <ChevronRight className="h-4 w-4" />
+                )}
+            </button>
+
             <ScrollArea className="h-full py-6">
                 <nav className="space-y-2 px-2">
                     {navigation.map((item) => {
@@ -55,7 +71,9 @@ export function LeftSidebar({ isOpen }: LeftSidebarProps) {
                                 href={item.href}
                                 className={cn(
                                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                                    isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                                    isActive
+                                        ? "bg-accent text-accent-foreground"
+                                        : "text-muted-foreground",
                                     !isOpen && "justify-center px-0"
                                 )}
                             >

@@ -1,9 +1,8 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/forms/Input';
 import {
     HelpCircle,
     MessageCircle,
@@ -11,102 +10,68 @@ import {
     Mail,
     Clock,
     Search,
-    ChevronDown,
-    ChevronUp,
-    Send
+    Send,
+    ChevronRight,
+    ExternalLink
 } from 'lucide-react';
 
-const faqs = [
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+const FAQS = [
     {
-        id: 1,
+        id: '1',
         category: 'Account',
         question: 'How do I reset my password?',
         answer: 'You can reset your password by clicking "Forgot Password" on the login page. Follow the instructions sent to your registered email address.',
     },
     {
-        id: 2,
+        id: '2',
         category: 'Transfers',
         question: 'How long do transfers take?',
         answer: 'Internal transfers between AURUM VAULT accounts are instant. External transfers typically take 1-3 business days.',
     },
     {
-        id: 3,
+        id: '3',
         category: 'Cards',
         question: 'What should I do if my card is lost or stolen?',
         answer: 'Immediately freeze your card through the Cards page or call our 24/7 support line at 1-800-AURUM-VAULT. We\'ll help you secure your account and order a replacement card.',
     },
     {
-        id: 4,
+        id: '4',
         category: 'Security',
         question: 'How do I enable two-factor authentication?',
         answer: 'Go to Settings > Security and toggle on Two-Factor Authentication. You\'ll receive a verification code via SMS or email for each login.',
     },
     {
-        id: 5,
+        id: '5',
         category: 'Bills',
         question: 'Can I schedule recurring bill payments?',
         answer: 'Yes! When adding a biller, you can enable AutoPay to automatically pay bills on their due date each month.',
-    },
-    {
-        id: 6,
-        category: 'Account',
-        question: 'How do I update my contact information?',
-        answer: 'Navigate to Settings > Profile to update your email, phone number, and address information.',
-    },
-    {
-        id: 7,
-        category: 'Statements',
-        question: 'How can I download my account statements?',
-        answer: 'Go to the Statements page, select the statement you need, and click the Download button. Statements are available in PDF format.',
-    },
-    {
-        id: 8,
-        category: 'Transfers',
-        question: 'Are there any fees for transfers?',
-        answer: 'Transfers between AURUM VAULT accounts are free. External transfers may incur a small fee depending on the destination bank.',
-    },
-];
-
-const contactMethods = [
-    {
-        id: 1,
-        icon: <Phone className="w-6 h-6" />,
-        title: 'Phone Support',
-        description: '24/7 customer service',
-        contact: '1-800-AURUM-VAULT',
-        action: 'Call Now',
-    },
-    {
-        id: 2,
-        icon: <Mail className="w-6 h-6" />,
-        title: 'Email Support',
-        description: 'Response within 24 hours',
-        contact: 'support@aurumvault.com',
-        action: 'Send Email',
-    },
-    {
-        id: 3,
-        icon: <MessageCircle className="w-6 h-6" />,
-        title: 'Live Chat',
-        description: 'Available Mon-Fri 9AM-6PM',
-        contact: 'Start a conversation',
-        action: 'Start Chat',
     },
 ];
 
 export default function SupportPage() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
     const [contactForm, setContactForm] = useState({
         subject: '',
         category: '',
         message: '',
     });
 
-    const filteredFaqs = faqs.filter(faq =>
+    const filteredFaqs = FAQS.filter(faq =>
         faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.category.toLowerCase().includes(searchQuery.toLowerCase())
+        faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handleSubmitContact = () => {
@@ -119,197 +84,166 @@ export default function SupportPage() {
     };
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="text-center">
-                <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">How Can We Help?</h1>
-                <p className="text-lg text-charcoal-light">Find answers or get in touch with our support team</p>
-            </div>
+        <div className="space-y-8 max-w-7xl mx-auto p-4 animate-fade-in-up">
 
-            {/* Search */}
-            <Card>
-                <CardContent className="p-6">
+            <div className="text-center py-6 space-y-2">
+                <h1 className="text-4xl font-playfair font-bold text-charcoal">How can we help you?</h1>
+                <p className="text-muted-foreground text-lg">Search our knowledge base or get in touch with support.</p>
+
+                <div className="max-w-xl mx-auto pt-4 relative">
+                    <Search className="absolute left-3 top-7 h-5 w-5 text-muted-foreground" />
                     <Input
-                        type="text"
-                        placeholder="Search for help..."
+                        className="pl-10 h-12 text-lg shadow-sm"
+                        placeholder="Search for answers..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        icon={<Search className="w-5 h-5" />}
                     />
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* Contact Methods */}
-            <div className="grid md:grid-cols-3 gap-4">
-                {contactMethods.map((method) => (
-                    <Card key={method.id} className="hover:shadow-vintage-lg transition-all">
-                        <CardContent className="p-6 text-center">
-                            <div className="w-16 h-16 mx-auto rounded-full bg-vintage-green/10 flex items-center justify-center text-vintage-green mb-4">
-                                {method.icon}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Contact Options */}
+                <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-vintage-green">
+                    <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                        <div className="h-12 w-12 rounded-full bg-vintage-green/10 flex items-center justify-center text-vintage-green">
+                            <Phone className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg">Call Us</h3>
+                            <p className="text-muted-foreground text-sm">24/7 Priority Support</p>
+                        </div>
+                        <p className="font-mono text-charcoal font-semibold">1-800-AURUM-VAULT</p>
+                        <Button variant="outline" size="small" className="w-full">Call Now</Button>
+                    </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-vintage-gold">
+                    <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                        <div className="h-12 w-12 rounded-full bg-vintage-gold/10 flex items-center justify-center text-vintage-gold">
+                            <MessageCircle className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg">Live Chat</h3>
+                            <p className="text-muted-foreground text-sm">Mon-Fri 9AM-6PM EST</p>
+                        </div>
+                        <p className="font-mono text-charcoal font-semibold opacity-0">Placeholder</p>
+                        <Button variant="outline" size="small" className="w-full">Start Chat</Button>
+                    </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-400">
+                    <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                        <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                            <Mail className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg">Email Support</h3>
+                            <p className="text-muted-foreground text-sm">Response within 24h</p>
+                        </div>
+                        <p className="font-mono text-charcoal font-semibold">support@aurumvault.com</p>
+                        <Button variant="outline" size="small" className="w-full">Send Email</Button>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8">
+
+                {/* FAQs Column */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                        <HelpCircle className="w-5 h-5 text-vintage-green" />
+                        <h2 className="text-2xl font-bold font-playfair">Frequently Asked Questions</h2>
+                    </div>
+
+                    <Accordion type="single" collapsible className="w-full">
+                        {filteredFaqs.length > 0 ? (
+                            filteredFaqs.map((faq) => (
+                                <AccordionItem key={faq.id} value={faq.id}>
+                                    <AccordionTrigger className="text-left font-medium text-charcoal">
+                                        {faq.question}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="text-muted-foreground leading-relaxed">
+                                        {faq.answer}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))
+                        ) : (
+                            <div className="p-8 text-center border rounded-lg bg-muted/20">
+                                <p className="text-muted-foreground">No questions found matching your search.</p>
                             </div>
-                            <h3 className="font-semibold text-charcoal mb-1">{method.title}</h3>
-                            <p className="text-sm text-charcoal-light mb-3">{method.description}</p>
-                            <p className="text-sm font-semibold text-charcoal mb-4">{method.contact}</p>
-                            <Button variant="outline" size="small" className="w-full">
-                                {method.action}
+                        )}
+                    </Accordion>
+                </div>
+
+                {/* Contact Form Column */}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Send className="w-5 h-5 text-vintage-green" />
+                        <h2 className="text-2xl font-bold font-playfair">Send a Message</h2>
+                    </div>
+
+                    <Card>
+                        <CardContent className="p-6 space-y-4">
+                            <div className="space-y-2">
+                                <Label>Subject</Label>
+                                <Input
+                                    placeholder="Brief description"
+                                    value={contactForm.subject}
+                                    onChange={e => setContactForm({ ...contactForm, subject: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Category</Label>
+                                <Select value={contactForm.category} onValueChange={v => setContactForm({ ...contactForm, category: v })}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Issue Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="account">Account Issues</SelectItem>
+                                        <SelectItem value="billing">Billing & Payments</SelectItem>
+                                        <SelectItem value="technical">Technical Support</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Message</Label>
+                                <Textarea
+                                    placeholder="Describe your issue in detail..."
+                                    className="min-h-[120px]"
+                                    value={contactForm.message}
+                                    onChange={e => setContactForm({ ...contactForm, message: e.target.value })}
+                                />
+                            </div>
+
+                            <Button onClick={handleSubmitContact} className="w-full bg-vintage-green hover:bg-vintage-green-dark text-white">
+                                Send Message
                             </Button>
                         </CardContent>
                     </Card>
-                ))}
+
+                    <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-none shadow-inner">
+                        <CardContent className="p-6 space-y-3">
+                            <h4 className="font-semibold flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-muted-foreground" /> Support Hours
+                            </h4>
+                            <ul className="space-y-2 text-sm text-muted-foreground">
+                                <li className="flex justify-between">
+                                    <span>Phone & Email</span>
+                                    <span className="font-medium text-charcoal">24/7</span>
+                                </li>
+                                <li className="flex justify-between">
+                                    <span>Live Chat</span>
+                                    <span className="font-medium text-charcoal">M-F, 9am - 6pm</span>
+                                </li>
+                            </ul>
+                        </CardContent>
+                    </Card>
+                </div>
+
             </div>
-
-            {/* FAQs */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Frequently Asked Questions</CardTitle>
-                    <CardDescription>
-                        {searchQuery ? `${filteredFaqs.length} result${filteredFaqs.length !== 1 ? 's' : ''} found` : 'Common questions and answers'}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {filteredFaqs.length === 0 ? (
-                        <div className="p-12 text-center">
-                            <HelpCircle className="w-12 h-12 text-charcoal-light mx-auto mb-4" />
-                            <p className="text-charcoal-light">No FAQs found matching your search</p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-faded-gray-light">
-                            {filteredFaqs.map((faq) => (
-                                <div key={faq.id} className="p-4">
-                                    <button
-                                        onClick={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
-                                        className="w-full flex items-center justify-between text-left hover:bg-parchment p-2 rounded-lg transition-colors"
-                                    >
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="px-2 py-0.5 bg-vintage-green/10 text-vintage-green text-xs rounded-full font-semibold">
-                                                    {faq.category}
-                                                </span>
-                                            </div>
-                                            <p className="font-semibold text-charcoal">{faq.question}</p>
-                                        </div>
-                                        {expandedFaq === faq.id ? (
-                                            <ChevronUp className="w-5 h-5 text-charcoal-light flex-shrink-0 ml-4" />
-                                        ) : (
-                                            <ChevronDown className="w-5 h-5 text-charcoal-light flex-shrink-0 ml-4" />
-                                        )}
-                                    </button>
-                                    {expandedFaq === faq.id && (
-                                        <div className="mt-3 pl-2 pr-8">
-                                            <p className="text-charcoal-light">{faq.answer}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Contact Form */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Send Us a Message</CardTitle>
-                    <CardDescription>Can't find what you're looking for? Contact us directly</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <Input
-                        label="Subject"
-                        type="text"
-                        placeholder="Brief description of your issue"
-                        value={contactForm.subject}
-                        onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                    />
-                    <div>
-                        <label htmlFor="supportCategory" className="block text-sm font-semibold text-charcoal mb-2">Category</label>
-                        <select
-                            id="supportCategory"
-                            value={contactForm.category}
-                            onChange={(e) => setContactForm({ ...contactForm, category: e.target.value })}
-                            className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
-                        >
-                            <option value="">Select a category</option>
-                            <option value="account">Account Issues</option>
-                            <option value="transfers">Transfers</option>
-                            <option value="cards">Cards</option>
-                            <option value="bills">Bill Payments</option>
-                            <option value="security">Security</option>
-                            <option value="technical">Technical Support</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-charcoal mb-2">Message</label>
-                        <textarea
-                            value={contactForm.message}
-                            onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                            placeholder="Describe your issue in detail..."
-                            className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors resize-none"
-                            rows={6}
-                        />
-                    </div>
-                    <Button
-                        variant="primary"
-                        size="large"
-                        icon={<Send className="w-5 h-5" />}
-                        onClick={handleSubmitContact}
-                        className="w-full"
-                    >
-                        Send Message
-                    </Button>
-                </CardContent>
-            </Card>
-
-            {/* Support Hours */}
-            <Card className="bg-gradient-to-br from-parchment to-warm-cream border-vintage-green/20">
-                <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-vintage-green/10 flex items-center justify-center flex-shrink-0">
-                            <Clock className="w-6 h-6 text-vintage-green" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-charcoal mb-2">Support Hours</h3>
-                            <div className="space-y-1 text-sm text-charcoal-light">
-                                <p><strong className="text-charcoal">Phone Support:</strong> 24/7 (Every day)</p>
-                                <p><strong className="text-charcoal">Live Chat:</strong> Monday - Friday, 9:00 AM - 6:00 PM EST</p>
-                                <p><strong className="text-charcoal">Email Support:</strong> 24/7 (Response within 24 hours)</p>
-                            </div>
-                            <div className="mt-4 p-3 bg-white rounded-lg border border-vintage-green/20">
-                                <p className="text-sm text-charcoal">
-                                    <strong>Emergency?</strong> For urgent issues like lost cards or suspicious activity, call our 24/7 hotline immediately.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Quick Links */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Quick Links</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid md:grid-cols-2 gap-3">
-                        <a href="#" className="p-3 bg-parchment rounded-lg hover:bg-warm-cream transition-colors flex items-center justify-between">
-                            <span className="text-charcoal font-semibold">Security Center</span>
-                            <ChevronDown className="w-5 h-5 text-charcoal-light rotate-[-90deg]" />
-                        </a>
-                        <a href="#" className="p-3 bg-parchment rounded-lg hover:bg-warm-cream transition-colors flex items-center justify-between">
-                            <span className="text-charcoal font-semibold">Fee Schedule</span>
-                            <ChevronDown className="w-5 h-5 text-charcoal-light rotate-[-90deg]" />
-                        </a>
-                        <a href="#" className="p-3 bg-parchment rounded-lg hover:bg-warm-cream transition-colors flex items-center justify-between">
-                            <span className="text-charcoal font-semibold">Terms & Conditions</span>
-                            <ChevronDown className="w-5 h-5 text-charcoal-light rotate-[-90deg]" />
-                        </a>
-                        <a href="#" className="p-3 bg-parchment rounded-lg hover:bg-warm-cream transition-colors flex items-center justify-between">
-                            <span className="text-charcoal font-semibold">Privacy Policy</span>
-                            <ChevronDown className="w-5 h-5 text-charcoal-light rotate-[-90deg]" />
-                        </a>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     );
 }

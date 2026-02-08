@@ -1,62 +1,26 @@
 "use client"
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
-const data = [
-    {
-        name: "Jan",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Feb",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Mar",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Apr",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "May",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Jun",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Jul",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Aug",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Sep",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Oct",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Nov",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Dec",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-]
+interface OverviewProps {
+    data?: any[];
+    income?: number; // Keep for backward compatibility if needed, or remove
+    expense?: number;
+}
 
-export function Overview() {
+export function Overview({ data, income, expense }: OverviewProps) {
+    // Use provided data or fallback to single bar
+    const chartData = data || [
+        {
+            name: "Current Month",
+            income: income || 0,
+            expense: expense || 0,
+        },
+    ];
+
     return (
         <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={data}>
+            <BarChart data={chartData}>
                 <XAxis
                     dataKey="name"
                     stroke="#888888"
@@ -71,11 +35,23 @@ export function Overview() {
                     axisLine={false}
                     tickFormatter={(value) => `$${value}`}
                 />
+                <Tooltip
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, '']}
+                    cursor={{ fill: 'transparent' }}
+                />
                 <Bar
-                    dataKey="total"
-                    fill="currentColor"
+                    dataKey="income"
+                    fill="#16a34a" // Green
+                    name="Income"
                     radius={[4, 4, 0, 0]}
-                    className="fill-primary"
+                    barSize={60}
+                />
+                <Bar
+                    dataKey="expense"
+                    fill="#dc2626" // Red
+                    name="Expense"
+                    radius={[4, 4, 0, 0]}
+                    barSize={60}
                 />
             </BarChart>
         </ResponsiveContainer>

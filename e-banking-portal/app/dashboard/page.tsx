@@ -3,22 +3,28 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+
 import {
     Activity,
     CreditCard,
     DollarSign,
     Users,
-    Download
+    Download,
+    Wallet,
+    ArrowDownLeft,
+    ArrowUpRight,
+    PiggyBank
 } from 'lucide-react';
 
-import { api, setAccessToken } from '@/lib/api-client';
+import { api } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Overview } from '@/components/dashboard/overview';
 import { RecentTransactions } from '@/components/dashboard/recent-sales';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { formatCurrency } from '@/lib/utils';
 
 interface UserProfile {
     firstName: string;
@@ -26,24 +32,61 @@ interface UserProfile {
     email: string;
 }
 
+interface DashboardStats {
+    totalBalance: number;
+    income: number;
+    expenses: number;
+    savingsGoal: number; // Simulated for now as backend doesn't support goals yet
+}
+
 function DashboardContent() {
-    const searchParams = useSearchParams();
+
     const [user, setUser] = useState<UserProfile | null>(null);
+    const [stats, setStats] = useState<DashboardStats>({
+        totalBalance: 0,
+        income: 0,
+        expenses: 0,
+        savingsGoal: 12500,
+    });
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState("overview");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        if (token) {
-            setAccessToken(token);
-            window.history.replaceState({}, '', '/dashboard');
-        }
         loadDashboardData();
-    }, [searchParams]);
+    }, []);
 
     const loadDashboardData = async () => {
         try {
-            const profileData = await api.profile.get();
+            const [profileData, accountsData, txStats, recentTx] = await Promise.all([
+                api.profile.get(),
+                api.accounts.getAll(),
+                api.transactions.getStats('month'),
+                api.transactions.getAll({ limit: 5 })
+            ]);
+
             setUser(profileData.user);
+
+            // Calculate total balance from all accounts
+            const totalBalance = accountsData.accounts.reduce(
+                (sum: number, acc: any) => sum + Number(acc.balance), 0
+            );
+
+            setStats({
+                totalBalance,
+                income: txStats.deposits || 0,
+                expenses: txStats.withdrawals + txStats.transfers || 0, // Treat transfers as expenses for overview
+                savingsGoal: 12500
+            });
+
+            setTransactions(recentTx.transactions || []);
+
+            // Process analytics data from larger set (fetching 50 for demo)
+            const analyticsTx = await api.transactions.getAll({ limit: 50 });
+            const processedData = processChartData(analyticsTx.transactions || []);
+            setAnalyticsData(processedData);
+
         } catch (error) {
             console.error('Error loading dashboard:', error);
         } finally {
@@ -54,47 +97,62 @@ function DashboardContent() {
     if (isLoading) {
         return (
             <div className="flex-1 space-y-4 p-8 pt-6">
-                <div className="flex items-center justify-between space-y-2">
-                    <Skeleton className="h-8 w-[150px]" />
-                    <Skeleton className="h-8 w-[200px]" />
-                </div>
-                <div className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <Skeleton className="h-[120px] rounded-xl" />
-                        <Skeleton className="h-[120px] rounded-xl" />
-                        <Skeleton className="h-[120px] rounded-xl" />
-                        <Skeleton className="h-[120px] rounded-xl" />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                        <Skeleton className="col-span-4 h-[400px] rounded-xl" />
-                        <Skeleton className="col-span-3 h-[400px] rounded-xl" />
-                    </div>
+                <Skeleton className="h-[200px] w-full rounded-xl" />
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Skeleton className="h-[100px] rounded-xl" />
+                    <Skeleton className="h-[100px] rounded-xl" />
+                    <Skeleton className="h-[100px] rounded-xl" />
+                    <Skeleton className="h-[100px] rounded-xl" />
                 </div>
             </div>
         )
     }
 
+    const processChartData = (txs: any[]) => {
+        const monthlyData: Record<string, { name: string, income: number, expense: number }> = {};
+
+        // Sort by date ascending to process
+        const sortedTxs = [...txs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+        sortedTxs.forEach(tx => {
+            const date = new Date(tx.createdAt);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            const monthName = date.toLocaleString('default', { month: 'short' });
+
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = { name: monthName, income: 0, expense: 0 };
+            }
+
+            // Assuming positive amount is income (deposit) and negative is expense
+            // Check type as well for accuracy if needed
+            const amt = Number(tx.amount);
+            if (amt > 0) {
+                monthlyData[monthKey].income += amt;
+            } else {
+                monthlyData[monthKey].expense += Math.abs(amt);
+            }
+        });
+
+        return Object.values(monthlyData);
+    };
+
     return (
         <div className="flex-1 space-y-4 p-4 pt-0">
             <div className="flex items-center justify-between space-y-2 pb-4">
-                <h2 className="text-3xl font-bold tracking-tight font-playfair">Dashboard</h2>
+                <h2 className="text-3xl font-bold tracking-tight font-playfair">
+                    Welcome back, {user?.firstName}
+                </h2>
                 <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="small">
-                        Oct 20, 2025 - Nov 20, 2025
-                    </Button>
-                    <Button size="small">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
+                    <Button size="small" onClick={() => loadDashboardData()}>
+                        Refresh Data
                     </Button>
                 </div>
             </div>
 
-            <Tabs defaultValue="overview" className="space-y-4">
+            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="analytics" disabled>Analytics</TabsTrigger>
-                    <TabsTrigger value="reports" disabled>Reports</TabsTrigger>
-                    <TabsTrigger value="notifications" disabled>Notifications</TabsTrigger>
+                    <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
@@ -102,56 +160,60 @@ function DashboardContent() {
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium font-sans">
-                                    Total Revenue
+                                    Total Balance
                                 </CardTitle>
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <Wallet className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">$45,231.89</div>
+                                <div className="text-2xl font-bold">{formatCurrency(stats.totalBalance)}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    +20.1% from last month
+                                    Across all accounts
                                 </p>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium font-sans">
-                                    Subscriptions
+                                    Income (Month)
                                 </CardTitle>
-                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <ArrowDownLeft className="h-4 w-4 text-green-600" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">+2350</div>
+                                <div className="text-2xl font-bold text-green-600">
+                                    +{formatCurrency(stats.income)}
+                                </div>
                                 <p className="text-xs text-muted-foreground">
-                                    +180.1% from last month
+                                    Total deposits
                                 </p>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium font-sans">
-                                    Sales
+                                    Expenses (Month)
                                 </CardTitle>
-                                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                <ArrowUpRight className="h-4 w-4 text-red-600" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">+12,234</div>
+                                <div className="text-2xl font-bold text-red-600">
+                                    -{formatCurrency(stats.expenses)}
+                                </div>
                                 <p className="text-xs text-muted-foreground">
-                                    +19% from last month
+                                    Withdrawals & transfers
                                 </p>
                             </CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium font-sans">
-                                    Active Now
+                                    Savings Goals
                                 </CardTitle>
-                                <Activity className="h-4 w-4 text-muted-foreground" />
+                                <PiggyBank className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">+573</div>
+                                <div className="text-2xl font-bold">{formatCurrency(stats.savingsGoal)}</div>
                                 <p className="text-xs text-muted-foreground">
-                                    +201 since last hour
+                                    Target 2026
                                 </p>
                             </CardContent>
                         </Card>
@@ -163,18 +225,67 @@ function DashboardContent() {
                                 <CardTitle>Overview</CardTitle>
                             </CardHeader>
                             <CardContent className="pl-2">
-                                <Overview />
+                                <Overview income={stats.income} expense={stats.expenses} />
                             </CardContent>
                         </Card>
                         <Card className="col-span-3">
                             <CardHeader>
-                                <CardTitle>Recent Sales</CardTitle>
+                                <CardTitle>Recent Transactions</CardTitle>
                                 <CardDescription>
-                                    You made 265 sales this month.
+                                    Latest activity across all accounts.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <RecentTransactions />
+                                <RecentTransactions transactions={transactions} />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="analytics" className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        <Card className="col-span-4">
+                            <CardHeader>
+                                <CardTitle>Financial Analysis</CardTitle>
+                                <CardDescription>Income vs Expenses over time</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pl-2">
+                                <Overview data={analyticsData} />
+                            </CardContent>
+                        </Card>
+                        <Card className="col-span-3">
+                            <CardHeader>
+                                <CardTitle>Savings Progress</CardTitle>
+                                <CardDescription>Progress towards your goal of {formatCurrency(stats.savingsGoal)}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-8">
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="font-medium">Total Saved</span>
+                                        <span className="font-bold">{formatCurrency(stats.totalBalance)}</span>
+                                    </div>
+                                    <div className="w-full">
+                                        <Progress
+                                            value={(stats.totalBalance / stats.savingsGoal) * 100}
+                                            className="h-2"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground text-right">
+                                        {((stats.totalBalance / stats.savingsGoal) * 100).toFixed(1)}% of goal
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t">
+                                    <h4 className="text-sm font-medium mb-3">Top Categories</h4>
+                                    <div className="space-y-3">
+                                        {['Shopping', 'Utilities', 'Entertainment'].map((cat, i) => (
+                                            <div key={cat} className="flex items-center justify-between text-sm">
+                                                <span className="text-muted-foreground">{cat}</span>
+                                                <span className="font-bold">{formatCurrency(120 + i * 50)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

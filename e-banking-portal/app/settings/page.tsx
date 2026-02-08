@@ -1,9 +1,8 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/forms/Input';
 import {
     User,
     Lock,
@@ -14,11 +13,24 @@ import {
     Phone,
     Eye,
     EyeOff,
-    CheckCircle
+    CheckCircle,
+    Save,
+    Moon,
+    Sun,
+    Smartphone,
+    CreditCard
 } from 'lucide-react';
 
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { VintageIcon } from '@/components/ui/vintage-icon';
+
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState('profile');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
 
@@ -56,347 +68,317 @@ export default function SettingsPage() {
         theme: 'light',
     });
 
-    const tabs = [
-        { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
-        { id: 'security', label: 'Security', icon: <Lock className="w-5 h-5" /> },
-        { id: 'notifications', label: 'Notifications', icon: <Bell className="w-5 h-5" /> },
-        { id: 'preferences', label: 'Preferences', icon: <Globe className="w-5 h-5" /> },
-    ];
-
-    const handleSaveProfile = () => {
-        alert('Profile updated successfully!');
-    };
-
-    const handleChangePassword = () => {
-        if (securityData.newPassword !== securityData.confirmPassword) {
-            alert('Passwords do not match!');
-            return;
-        }
-        alert('Password changed successfully!');
-        setSecurityData({ ...securityData, currentPassword: '', newPassword: '', confirmPassword: '' });
-    };
-
-    const handleSaveNotifications = () => {
-        alert('Notification settings saved!');
-    };
-
-    const handleSavePreferences = () => {
-        alert('Preferences saved!');
+    const handleSave = (section: string) => {
+        // Simulate API call
+        alert(`${section} settings updated successfully.`);
     };
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">Settings</h1>
-                <p className="text-lg text-charcoal-light">Manage your account settings and preferences</p>
+        <div className="space-y-8 max-w-5xl mx-auto p-4 animate-fade-in-up">
+
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-playfair font-bold text-charcoal">Settings</h1>
+                <p className="text-muted-foreground">Manage your personal information, security, and app preferences.</p>
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-2">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${activeTab === tab.id
-                            ? 'bg-vintage-green text-white shadow-vintage-md'
-                            : 'bg-white text-charcoal hover:bg-parchment border border-faded-gray-light'
-                            }`}
-                    >
-                        {tab.icon}
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+            <Tabs defaultValue="profile" className="space-y-6">
+                <TabsList className="w-full flex h-auto p-1 bg-muted/50 rounded-xl overflow-x-auto justify-start md:justify-center">
+                    <TabsTrigger value="profile" className="flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg gap-2">
+                        <User className="w-4 h-4" /> Profile
+                    </TabsTrigger>
+                    <TabsTrigger value="security" className="flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg gap-2">
+                        <Lock className="w-4 h-4" /> Security
+                    </TabsTrigger>
+                    <TabsTrigger value="notifications" className="flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg gap-2">
+                        <Bell className="w-4 h-4" /> Notifications
+                    </TabsTrigger>
+                    <TabsTrigger value="preferences" className="flex-1 py-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg gap-2">
+                        <Globe className="w-4 h-4" /> Preferences
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Profile Tab */}
-            {activeTab === 'profile' && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Profile Information</CardTitle>
-                        <CardDescription>Update your personal information</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <Input
-                                label="First Name"
-                                type="text"
-                                value={profileData.firstName}
-                                onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                            />
-                            <Input
-                                label="Last Name"
-                                type="text"
-                                value={profileData.lastName}
-                                onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                            />
-                        </div>
-                        <Input
-                            label="Email Address"
-                            type="email"
-                            value={profileData.email}
-                            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                            icon={<Mail className="w-5 h-5" />}
-                        />
-                        <Input
-                            label="Phone Number"
-                            type="tel"
-                            value={profileData.phone}
-                            onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                            icon={<Phone className="w-5 h-5" />}
-                        />
-                        <Input
-                            label="Address"
-                            type="text"
-                            value={profileData.address}
-                            onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
-                        />
-                        <div className="grid md:grid-cols-3 gap-4">
-                            <Input
-                                label="City"
-                                type="text"
-                                value={profileData.city}
-                                onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
-                            />
-                            <Input
-                                label="State"
-                                type="text"
-                                value={profileData.state}
-                                onChange={(e) => setProfileData({ ...profileData, state: e.target.value })}
-                            />
-                            <Input
-                                label="ZIP Code"
-                                type="text"
-                                value={profileData.zipCode}
-                                onChange={(e) => setProfileData({ ...profileData, zipCode: e.target.value })}
-                            />
-                        </div>
-                        <Button variant="primary" size="large" onClick={handleSaveProfile}>
-                            Save Changes
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
+                {/* Profile Content */}
+                <TabsContent value="profile" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Personal Information</CardTitle>
+                            <CardDescription>Update your contact details and address.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>First Name</Label>
+                                    <Input
+                                        value={profileData.firstName}
+                                        onChange={e => setProfileData({ ...profileData, firstName: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Last Name</Label>
+                                    <Input
+                                        value={profileData.lastName}
+                                        onChange={e => setProfileData({ ...profileData, lastName: e.target.value })}
+                                    />
+                                </div>
+                            </div>
 
-            {/* Security Tab */}
-            {activeTab === 'security' && (
-                <div className="space-y-6">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Email Address</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            className="pl-9"
+                                            value={profileData.email}
+                                            onChange={e => setProfileData({ ...profileData, email: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Phone Number</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            className="pl-9"
+                                            value={profileData.phone}
+                                            onChange={e => setProfileData({ ...profileData, phone: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Address</Label>
+                                <Input
+                                    value={profileData.address}
+                                    onChange={e => setProfileData({ ...profileData, address: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label>City</Label>
+                                    <Input
+                                        value={profileData.city}
+                                        onChange={e => setProfileData({ ...profileData, city: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>State</Label>
+                                    <Input
+                                        value={profileData.state}
+                                        onChange={e => setProfileData({ ...profileData, state: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Zip Code</Label>
+                                    <Input
+                                        value={profileData.zipCode}
+                                        onChange={e => setProfileData({ ...profileData, zipCode: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="bg-muted/30 flex justify-end">
+                            <Button onClick={() => handleSave('Profile')} icon={<Save className="w-4 h-4" />}>
+                                Save Changes
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </TabsContent>
+
+                {/* Security Content */}
+                <TabsContent value="security" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                     <Card>
                         <CardHeader>
                             <CardTitle>Change Password</CardTitle>
-                            <CardDescription>Update your account password</CardDescription>
+                            <CardDescription>Ensure your account is using a long, random password to stay secure.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="relative">
-                                <Input
-                                    label="Current Password"
-                                    type={showCurrentPassword ? 'text' : 'password'}
-                                    value={securityData.currentPassword}
-                                    onChange={(e) => setSecurityData({ ...securityData, currentPassword: e.target.value })}
-                                    icon={<Lock className="w-5 h-5" />}
-                                />
-                                <button
-                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                    className="absolute right-3 top-9 text-charcoal-lighter hover:text-charcoal transition-colors"
-                                >
-                                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+                            <div className="space-y-2">
+                                <Label>Current Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        type={showCurrentPassword ? "text" : "password"}
+                                        value={securityData.currentPassword}
+                                        onChange={e => setSecurityData({ ...securityData, currentPassword: e.target.value })}
+                                    />
+                                    <button
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+                                    >
+                                        {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
-                            <div className="relative">
-                                <Input
-                                    label="New Password"
-                                    type={showNewPassword ? 'text' : 'password'}
-                                    value={securityData.newPassword}
-                                    onChange={(e) => setSecurityData({ ...securityData, newPassword: e.target.value })}
-                                    icon={<Lock className="w-5 h-5" />}
-                                />
-                                <button
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-9 text-charcoal-lighter hover:text-charcoal transition-colors"
-                                >
-                                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+                            <div className="space-y-2">
+                                <Label>New Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        type={showNewPassword ? "text" : "password"}
+                                        value={securityData.newPassword}
+                                        onChange={e => setSecurityData({ ...securityData, newPassword: e.target.value })}
+                                    />
+                                    <button
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
+                                    >
+                                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
-                            <Input
-                                label="Confirm New Password"
-                                type="password"
-                                value={securityData.confirmPassword}
-                                onChange={(e) => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
-                                icon={<Lock className="w-5 h-5" />}
-                            />
-                            <Button variant="primary" size="large" onClick={handleChangePassword}>
-                                Change Password
-                            </Button>
+                            <div className="space-y-2">
+                                <Label>Confirm New Password</Label>
+                                <Input
+                                    type="password"
+                                    value={securityData.confirmPassword}
+                                    onChange={e => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
+                                />
+                            </div>
                         </CardContent>
+                        <CardFooter className="bg-muted/30 flex justify-end">
+                            <Button onClick={() => handleSave('Password')}>Update Password</Button>
+                        </CardFooter>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Two-Factor Authentication</CardTitle>
-                            <CardDescription>Add an extra layer of security to your account</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-between p-4 bg-parchment rounded-lg">
-                                <div className="flex items-center gap-3">
-                                    <Shield className="w-6 h-6 text-vintage-green" />
-                                    <div>
-                                        <p className="font-semibold text-charcoal">Two-Factor Authentication</p>
-                                        <p className="text-sm text-charcoal-light">
-                                            {securityData.twoFactorEnabled ? 'Currently enabled' : 'Currently disabled'}
-                                        </p>
-                                    </div>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        aria-label="Toggle two-factor authentication"
-                                        checked={securityData.twoFactorEnabled}
-                                        onChange={(e) => setSecurityData({ ...securityData, twoFactorEnabled: e.target.checked })}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-faded-gray rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-vintage-green after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
+                            <div className="flex items-center gap-2">
+                                <VintageIcon icon={Shield} variant="green" size="sm" />
+                                <CardTitle className="text-lg">Two-Factor Authentication</CardTitle>
                             </div>
+                        </CardHeader>
+                        <CardContent className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                                <Label className="text-base">Enable 2FA</Label>
+                                <p className="text-sm text-muted-foreground max-w-[300px]">
+                                    Secure your account with an additional confirmation step via SMS or Authenticator App.
+                                </p>
+                            </div>
+                            <Switch
+                                checked={securityData.twoFactorEnabled}
+                                onCheckedChange={(checked) => setSecurityData({ ...securityData, twoFactorEnabled: checked })}
+                            />
                         </CardContent>
                     </Card>
-                </div>
-            )}
+                </TabsContent>
 
-            {/* Notifications Tab */}
-            {activeTab === 'notifications' && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Notification Preferences</CardTitle>
-                        <CardDescription>Choose how you want to be notified</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-4">
+                {/* Notifications Content */}
+                <TabsContent value="notifications" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Notification Preferences</CardTitle>
+                            <CardDescription>Choose when and how you want to be notified.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="divide-y divide-border">
                             {[
-                                { key: 'emailNotifications', label: 'Email Notifications', description: 'Receive notifications via email' },
-                                { key: 'smsNotifications', label: 'SMS Notifications', description: 'Receive notifications via text message' },
-                                { key: 'pushNotifications', label: 'Push Notifications', description: 'Receive push notifications on your device' },
-                                { key: 'transactionAlerts', label: 'Transaction Alerts', description: 'Get notified of all transactions' },
-                                { key: 'loginAlerts', label: 'Login Alerts', description: 'Get notified of new login attempts' },
-                                { key: 'marketingEmails', label: 'Marketing Emails', description: 'Receive promotional offers and updates' },
-                            ].map((setting) => (
-                                <div key={setting.key} className="flex items-center justify-between p-4 bg-parchment rounded-lg">
-                                    <div>
-                                        <p className="font-semibold text-charcoal">{setting.label}</p>
-                                        <p className="text-sm text-charcoal-light">{setting.description}</p>
+                                { key: 'emailNotifications', icon: Mail, label: 'Email Notifications', desc: 'Receive updates via email' },
+                                { key: 'smsNotifications', icon: Smartphone, label: 'SMS Notifications', desc: 'Receive updates via text message' },
+                                { key: 'transactionAlerts', icon: CreditCard, label: 'Transaction Alerts', desc: 'Get notified for every transaction' },
+                                { key: 'pushNotifications', icon: Bell, label: 'Push Notifications', desc: 'Receive push notifications' },
+                            ].map((item) => (
+                                <div key={item.key} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                                            <item.icon size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">{item.label}</p>
+                                            <p className="text-xs text-muted-foreground">{item.desc}</p>
+                                        </div>
                                     </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            aria-label={`Toggle ${setting.label}`}
-                                            checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
-                                            onChange={(e) => setNotificationSettings({
-                                                ...notificationSettings,
-                                                [setting.key]: e.target.checked
-                                            })}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-faded-gray rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-vintage-green after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                    </label>
+                                    <Switch
+                                        checked={notificationSettings[item.key as keyof typeof notificationSettings]}
+                                        onCheckedChange={c => setNotificationSettings({ ...notificationSettings, [item.key]: c })}
+                                    />
                                 </div>
                             ))}
-                        </div>
-                        <Button variant="primary" size="large" onClick={handleSaveNotifications}>
-                            Save Preferences
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-            {/* Preferences Tab */}
-            {activeTab === 'preferences' && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Application Preferences</CardTitle>
-                        <CardDescription>Customize your banking experience</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div>
-                            <label htmlFor="language" className="block text-sm font-semibold text-charcoal mb-2">Language</label>
-                            <select
-                                id="language"
-                                value={preferences.language}
-                                onChange={(e) => setPreferences({ ...preferences, language: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
-                            >
-                                <option value="en">English</option>
-                                <option value="es">Español</option>
-                                <option value="fr">Français</option>
-                                <option value="de">Deutsch</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="currency" className="block text-sm font-semibold text-charcoal mb-2">Currency</label>
-                            <select
-                                id="currency"
-                                value={preferences.currency}
-                                onChange={(e) => setPreferences({ ...preferences, currency: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
-                            >
-                                <option value="USD">USD - US Dollar</option>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="GBP">GBP - British Pound</option>
-                                <option value="JPY">JPY - Japanese Yen</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="timezone" className="block text-sm font-semibold text-charcoal mb-2">Timezone</label>
-                            <select
-                                id="timezone"
-                                value={preferences.timezone}
-                                onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
-                            >
-                                <option value="America/New_York">Eastern Time (ET)</option>
-                                <option value="America/Chicago">Central Time (CT)</option>
-                                <option value="America/Denver">Mountain Time (MT)</option>
-                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="theme" className="block text-sm font-semibold text-charcoal mb-2">Theme</label>
-                            <select
-                                id="theme"
-                                value={preferences.theme}
-                                onChange={(e) => setPreferences({ ...preferences, theme: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
-                            >
-                                <option value="light">Light</option>
-                                <option value="dark">Dark</option>
-                                <option value="auto">Auto (System)</option>
-                            </select>
-                        </div>
-                        <Button variant="primary" size="large" onClick={handleSavePreferences}>
-                            Save Preferences
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
+                {/* Preferences Content */}
+                <TabsContent value="preferences" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>App Preferences</CardTitle>
+                            <CardDescription>Customize your regional and visual settings.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label>Language</Label>
+                                    <Select value={preferences.language} onValueChange={v => setPreferences({ ...preferences, language: v })}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Language" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="en">English</SelectItem>
+                                            <SelectItem value="es">Español</SelectItem>
+                                            <SelectItem value="fr">Français</SelectItem>
+                                            <SelectItem value="de">Deutsch</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-            {/* Security Info */}
-            <Card className="bg-gradient-to-br from-parchment to-warm-cream border-vintage-green/20">
-                <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-vintage-green/10 flex items-center justify-center flex-shrink-0">
-                            <CheckCircle className="w-6 h-6 text-vintage-green" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-charcoal mb-2">Security Tips</h3>
-                            <ul className="space-y-1 text-sm text-charcoal-light">
-                                <li>• Use a strong, unique password for your account</li>
-                                <li>• Enable two-factor authentication for added security</li>
-                                <li>• Never share your password or security codes</li>
-                                <li>• Review your account activity regularly</li>
-                                <li>• Keep your contact information up to date</li>
-                            </ul>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                                <div className="space-y-2">
+                                    <Label>Currency</Label>
+                                    <Select value={preferences.currency} onValueChange={v => setPreferences({ ...preferences, currency: v })}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Currency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="USD">USD ($)</SelectItem>
+                                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                                            <SelectItem value="JPY">JPY (¥)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Timezone</Label>
+                                    <Select value={preferences.timezone} onValueChange={v => setPreferences({ ...preferences, timezone: v })}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Timezone" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="America/New_York">Eastern Time (ET)</SelectItem>
+                                            <SelectItem value="America/Chicago">Central Time (CT)</SelectItem>
+                                            <SelectItem value="America/Denver">Mountain Time (MT)</SelectItem>
+                                            <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Theme</Label>
+                                    <Select value={preferences.theme} onValueChange={v => setPreferences({ ...preferences, theme: v })}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Theme" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="light">
+                                                <div className="flex items-center gap-2"><Sun size={14} /> Light</div>
+                                            </SelectItem>
+                                            <SelectItem value="dark">
+                                                <div className="flex items-center gap-2"><Moon size={14} /> Dark</div>
+                                            </SelectItem>
+                                            <SelectItem value="system">
+                                                <div className="flex items-center gap-2"><Smartphone size={14} /> System</div>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="bg-muted/30 flex justify-end">
+                            <Button onClick={() => handleSave('Preferences')}>Save Preferences</Button>
+                        </CardFooter>
+                    </Card>
+                </TabsContent>
+
+            </Tabs>
         </div>
     );
 }

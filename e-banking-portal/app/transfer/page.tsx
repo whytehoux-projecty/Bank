@@ -1,518 +1,358 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeftRight, History, CreditCard, ShieldCheck } from 'lucide-react';
+import { api } from '@/lib/api-client';
+
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/forms/Input';
-import { ArrowRightLeft, CheckCircle, AlertCircle, Wallet } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { VintageIcon } from '@/components/ui/vintage-icon';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency } from '@/lib/utils'; // Try import from utils
 
-const userAccounts = [
-    {
-        id: 1,
-        name: 'Classic Checking',
-        accountNumber: '****5678',
-        fullAccountNumber: '1234567890',
-        balance: 5847.32,
-        type: 'checking',
-    },
-    {
-        id: 2,
-        name: 'Growth Savings',
-        accountNumber: '****9012',
-        fullAccountNumber: '9876543210',
-        balance: 15420.00,
-        type: 'savings',
-    },
-    {
-        id: 3,
-        name: 'Business Checking',
-        accountNumber: '****3456',
-        fullAccountNumber: '5555666677',
-        balance: 8234.50,
-        type: 'checking',
-    },
-];
+interface Account {
+    id: string;
+    accountNumber: string;
+    accountType: string;
+    balance: number;
+    currency: string;
+}
 
-const savedBeneficiaries = [
-    { id: 1, name: 'Sarah Martinez', accountNumber: '****1234', bank: 'AURUM VAULT' },
-    { id: 2, name: 'Robert Chen', accountNumber: '****5678', bank: 'AURUM VAULT' },
-    { id: 3, name: 'Emily Thompson', accountNumber: '****9012', bank: 'Other Bank' },
-];
+interface TransferFormData {
+    fromAccountId: string;
+    toAccountNumber: string;
+    amount: string;
+    description: string;
+    routingNumber?: string;
+    bankName?: string;
+    swiftCode?: string;
+    recipientName?: string;
+    transferType: 'INTERNAL' | 'WIRE';
+}
 
-export default function TransferPage() {
-    const [transferType, setTransferType] = useState<'own' | 'beneficiary' | 'new'>('own');
-    const [formData, setFormData] = useState({
-        fromAccount: '',
-        toAccount: '',
-        beneficiary: '',
-        newAccountNumber: '',
-        newAccountName: '',
+function TransferContent() {
+    const router = useRouter();
+    const [accounts, setAccounts] = useState<Account[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    const [formData, setFormData] = useState<TransferFormData>({
+        fromAccountId: '',
+        toAccountNumber: '',
         amount: '',
         description: '',
-        scheduleDate: '',
+        recipientName: '',
+        transferType: 'INTERNAL'
     });
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [showConfirmation, setShowConfirmation] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [transferSuccess, setTransferSuccess] = useState(false);
 
-    const selectedFromAccount = userAccounts.find(acc => acc.id.toString() === formData.fromAccount);
-    const selectedToAccount = userAccounts.find(acc => acc.id.toString() === formData.toAccount);
-    const selectedBeneficiary = savedBeneficiaries.find(ben => ben.id.toString() === formData.beneficiary);
+    useEffect(() => {
+        loadAccounts();
+    }, []);
 
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
-
-        if (!formData.fromAccount) {
-            newErrors.fromAccount = 'Please select a source account';
-        }
-
-        if (transferType === 'own' && !formData.toAccount) {
-            newErrors.toAccount = 'Please select a destination account';
-        }
-
-        if (transferType === 'own' && formData.fromAccount === formData.toAccount) {
-            newErrors.toAccount = 'Source and destination accounts must be different';
-        }
-
-        if (transferType === 'beneficiary' && !formData.beneficiary) {
-            newErrors.beneficiary = 'Please select a beneficiary';
-        }
-
-        if (transferType === 'new') {
-            if (!formData.newAccountNumber) {
-                newErrors.newAccountNumber = 'Account number is required';
-            } else if (!/^\d{10,12}$/.test(formData.newAccountNumber)) {
-                newErrors.newAccountNumber = 'Account number must be 10-12 digits';
-            }
-            if (!formData.newAccountName) {
-                newErrors.newAccountName = 'Account holder name is required';
-            }
-        }
-
-        if (!formData.amount) {
-            newErrors.amount = 'Amount is required';
-        } else if (parseFloat(formData.amount) <= 0) {
-            newErrors.amount = 'Amount must be greater than 0';
-        } else if (selectedFromAccount && parseFloat(formData.amount) > selectedFromAccount.balance) {
-            newErrors.amount = 'Insufficient funds';
-        }
-
-        return newErrors;
-    };
-
-    const handleContinue = () => {
-        const newErrors = validateForm();
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-        setErrors({});
-        setShowConfirmation(true);
-    };
-
-    const handleConfirm = () => {
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+    const loadAccounts = async () => {
+        try {
+            const data = await api.accounts.getAll();
+            setAccounts(data.accounts || data.data?.accounts || []);
+        } catch (error) {
+            console.error('Failed to load accounts:', error);
+            setMessage({ type: 'error', text: 'Failed to load accounts. Please try again.' });
+        } finally {
             setIsLoading(false);
-            setTransferSuccess(true);
-        }, 2000);
+        }
     };
 
-    const handleReset = () => {
-        setFormData({
-            fromAccount: '',
-            toAccount: '',
-            beneficiary: '',
-            newAccountNumber: '',
-            newAccountName: '',
-            amount: '',
-            description: '',
-            scheduleDate: '',
-        });
-        setErrors({});
-        setShowConfirmation(false);
-        setTransferSuccess(false);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage(null);
+        setIsSubmitting(true);
+
+        try {
+            if (formData.transferType === 'INTERNAL') {
+                await api.transactions.create({
+                    fromAccountId: formData.fromAccountId,
+                    toAccountNumber: formData.toAccountNumber,
+                    amount: parseFloat(formData.amount),
+                    description: formData.description,
+                    type: 'DEBIT',
+                });
+            } else {
+                await api.transfers.createWire({
+                    fromAccountId: formData.fromAccountId,
+                    recipientAccount: formData.toAccountNumber,
+                    amount: parseFloat(formData.amount),
+                    currency: 'USD',
+                    swiftCode: formData.swiftCode,
+                    recipientBank: formData.bankName,
+                    recipientName: formData.recipientName,
+                    purpose: formData.description
+                });
+            }
+
+            setMessage({ type: 'success', text: 'Transfer initiated successfully!' });
+
+            // Reset form
+            setFormData(prev => ({
+                ...prev,
+                toAccountNumber: '',
+                amount: '',
+                description: '',
+                recipientName: '',
+                swiftCode: '',
+                routingNumber: '',
+                bankName: ''
+            }));
+
+            // Reload accounts to update balance
+            loadAccounts();
+
+            // Refresh recent transactions
+            router.refresh();
+
+        } catch (error: any) {
+            setMessage({
+                type: 'error',
+                text: error.response?.data?.message || 'Transfer failed. Check details and try again.'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    if (transferSuccess) {
+    const handleSelectChange = (name: string, value: string) => {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    if (isLoading) {
         return (
-            <div className="max-w-2xl mx-auto">
-                <Card className="text-center shadow-vintage-xl">
-                    <CardContent className="p-12">
-                        <div className="w-20 h-20 mx-auto rounded-full bg-vintage-green/10 flex items-center justify-center mb-6">
-                            <CheckCircle className="w-12 h-12 text-vintage-green" />
-                        </div>
-                        <h2 className="text-3xl font-bold text-charcoal mb-4">Transfer Successful!</h2>
-                        <p className="text-lg text-charcoal-light mb-8">
-                            Your transfer of <strong className="text-vintage-green">${parseFloat(formData.amount).toFixed(2)}</strong> has been completed successfully.
-                        </p>
-                        <div className="bg-parchment rounded-lg p-6 mb-8 text-left">
-                            <h3 className="font-semibold text-charcoal mb-4">Transaction Details</h3>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-charcoal-light">From:</span>
-                                    <span className="font-semibold text-charcoal">{selectedFromAccount?.name}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-charcoal-light">To:</span>
-                                    <span className="font-semibold text-charcoal">
-                                        {transferType === 'own' && selectedToAccount?.name}
-                                        {transferType === 'beneficiary' && selectedBeneficiary?.name}
-                                        {transferType === 'new' && formData.newAccountName}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-charcoal-light">Amount:</span>
-                                    <span className="font-semibold text-vintage-green">${parseFloat(formData.amount).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-charcoal-light">Reference:</span>
-                                    <span className="font-mono text-charcoal">TXN-{Date.now().toString().slice(-8)}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <Button variant="outline" size="large" onClick={handleReset} className="flex-1">
-                                Make Another Transfer
-                            </Button>
-                            <Button variant="primary" size="large" onClick={() => window.location.href = '/e-banking/dashboard'} className="flex-1">
-                                Back to Dashboard
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (showConfirmation) {
-        return (
-            <div className="max-w-2xl mx-auto">
-                <Card className="shadow-vintage-xl">
-                    <CardHeader>
-                        <CardTitle className="text-2xl">Confirm Transfer</CardTitle>
-                        <CardDescription>Please review the details before confirming</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="bg-soft-gold/10 border border-soft-gold/20 rounded-lg p-4 flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-soft-gold-dark flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-charcoal">
-                                Please verify all details are correct. This action cannot be undone.
-                            </p>
-                        </div>
-
-                        <div className="bg-parchment rounded-lg p-6 space-y-4">
-                            <div className="flex justify-between items-center pb-4 border-b border-faded-gray-light">
-                                <span className="text-charcoal-light">From Account</span>
-                                <div className="text-right">
-                                    <p className="font-semibold text-charcoal">{selectedFromAccount?.name}</p>
-                                    <p className="text-sm text-charcoal-light font-mono">{selectedFromAccount?.accountNumber}</p>
-                                    <p className="text-xs text-charcoal-light">Balance: ${selectedFromAccount?.balance.toFixed(2)}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-center py-2">
-                                <ArrowRightLeft className="w-6 h-6 text-vintage-green" />
-                            </div>
-
-                            <div className="flex justify-between items-center pb-4 border-b border-faded-gray-light">
-                                <span className="text-charcoal-light">To Account</span>
-                                <div className="text-right">
-                                    {transferType === 'own' && (
-                                        <>
-                                            <p className="font-semibold text-charcoal">{selectedToAccount?.name}</p>
-                                            <p className="text-sm text-charcoal-light font-mono">{selectedToAccount?.accountNumber}</p>
-                                        </>
-                                    )}
-                                    {transferType === 'beneficiary' && (
-                                        <>
-                                            <p className="font-semibold text-charcoal">{selectedBeneficiary?.name}</p>
-                                            <p className="text-sm text-charcoal-light font-mono">{selectedBeneficiary?.accountNumber}</p>
-                                            <p className="text-xs text-charcoal-light">{selectedBeneficiary?.bank}</p>
-                                        </>
-                                    )}
-                                    {transferType === 'new' && (
-                                        <>
-                                            <p className="font-semibold text-charcoal">{formData.newAccountName}</p>
-                                            <p className="text-sm text-charcoal-light font-mono">****{formData.newAccountNumber.slice(-4)}</p>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                                <span className="text-charcoal-light">Transfer Amount</span>
-                                <p className="text-3xl font-bold text-vintage-green font-mono">${parseFloat(formData.amount).toFixed(2)}</p>
-                            </div>
-
-                            {formData.description && (
-                                <div className="flex justify-between items-start pt-4 border-t border-faded-gray-light">
-                                    <span className="text-charcoal-light">Description</span>
-                                    <p className="text-charcoal max-w-xs text-right">{formData.description}</p>
-                                </div>
-                            )}
-
-                            {formData.scheduleDate && (
-                                <div className="flex justify-between items-center pt-4 border-t border-faded-gray-light">
-                                    <span className="text-charcoal-light">Scheduled For</span>
-                                    <p className="text-charcoal">{new Date(formData.scheduleDate).toLocaleDateString()}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex gap-4">
-                            <Button variant="outline" size="large" onClick={() => setShowConfirmation(false)} className="flex-1">
-                                Back
-                            </Button>
-                            <Button variant="primary" size="large" onClick={handleConfirm} loading={isLoading} className="flex-1">
-                                {isLoading ? 'Processing...' : 'Confirm Transfer'}
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="max-w-4xl mx-auto p-4 space-y-6">
+                <Skeleton className="h-10 w-48" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="col-span-2 h-[500px] rounded-xl" />
+                    <Skeleton className="col-span-1 h-[300px] rounded-xl" />
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
-            <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-charcoal mb-2">Transfer Money</h1>
-                <p className="text-lg text-charcoal-light">Send money between your accounts or to others</p>
+        <div className="max-w-5xl mx-auto p-4 space-y-8 animate-fade-in-up">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-playfair font-bold text-charcoal">Money Transfer</h1>
+                    <p className="text-muted-foreground mt-1">Send money securely to internal or external accounts.</p>
+                </div>
+                <Button variant="outline" icon={<History className="w-4 h-4" />}>
+                    History
+                </Button>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Main Transfer Form */}
-                <div className="lg:col-span-2">
-                    <Card className="shadow-vintage-lg">
-                        <CardHeader>
-                            <CardTitle>Transfer Details</CardTitle>
-                            <CardDescription>Fill in the details to transfer money</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {/* Transfer Type Selection */}
-                            <div>
-                                <label className="block text-sm font-semibold text-charcoal mb-3">Transfer To</label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setTransferType('own')}
-                                        className={`p-4 rounded-lg border-2 transition-all ${transferType === 'own'
-                                            ? 'border-vintage-green bg-vintage-green/5'
-                                            : 'border-faded-gray-light hover:border-vintage-green/50'
-                                            }`}
-                                    >
-                                        <Wallet className={`w-6 h-6 mx-auto mb-2 ${transferType === 'own' ? 'text-vintage-green' : 'text-charcoal-light'}`} />
-                                        <p className={`text-sm font-semibold ${transferType === 'own' ? 'text-vintage-green' : 'text-charcoal'}`}>
-                                            My Accounts
-                                        </p>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTransferType('beneficiary')}
-                                        className={`p-4 rounded-lg border-2 transition-all ${transferType === 'beneficiary'
-                                            ? 'border-vintage-green bg-vintage-green/5'
-                                            : 'border-faded-gray-light hover:border-vintage-green/50'
-                                            }`}
-                                    >
-                                        <CheckCircle className={`w-6 h-6 mx-auto mb-2 ${transferType === 'beneficiary' ? 'text-vintage-green' : 'text-charcoal-light'}`} />
-                                        <p className={`text-sm font-semibold ${transferType === 'beneficiary' ? 'text-vintage-green' : 'text-charcoal'}`}>
-                                            Saved
-                                        </p>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTransferType('new')}
-                                        className={`p-4 rounded-lg border-2 transition-all ${transferType === 'new'
-                                            ? 'border-vintage-green bg-vintage-green/5'
-                                            : 'border-faded-gray-light hover:border-vintage-green/50'
-                                            }`}
-                                    >
-                                        <ArrowRightLeft className={`w-6 h-6 mx-auto mb-2 ${transferType === 'new' ? 'text-vintage-green' : 'text-charcoal-light'}`} />
-                                        <p className={`text-sm font-semibold ${transferType === 'new' ? 'text-vintage-green' : 'text-charcoal'}`}>
-                                            New
-                                        </p>
-                                    </button>
+                <Card className="md:col-span-2 border-none shadow-vintage-md">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <VintageIcon icon={ArrowLeftRight} variant="gold" size="sm" />
+                            Transfer Details
+                        </CardTitle>
+                        <CardDescription>Enter the recipient and amount.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {message && (
+                                <div className={`p-4 rounded-lg text-sm font-medium ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                                    {message.text}
                                 </div>
-                            </div>
+                            )}
 
-                            {/* From Account */}
-                            <div>
-                                <label htmlFor="fromAccount" className="block text-sm font-semibold text-charcoal mb-2">From Account</label>
-                                <select
-                                    id="fromAccount"
-                                    value={formData.fromAccount}
-                                    onChange={(e) => setFormData({ ...formData, fromAccount: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
+                            <div className="space-y-2">
+                                <Label htmlFor="transferType">Payment Type</Label>
+                                <Select
+                                    value={formData.transferType}
+                                    onValueChange={(value) => handleSelectChange('transferType', value)}
                                 >
-                                    <option value="">Select source account</option>
-                                    {userAccounts.map((account) => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.name} ({account.accountNumber}) - ${account.balance.toFixed(2)}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.fromAccount && <p className="text-sm text-red-600 mt-1">{errors.fromAccount}</p>}
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="INTERNAL">Internal Transfer (Instant)</SelectItem>
+                                        <SelectItem value="WIRE">Wire Transfer (Swift)</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
-                            {/* To Account - Own Accounts */}
-                            {transferType === 'own' && (
-                                <div>
-                                    <label htmlFor="toAccount" className="block text-sm font-semibold text-charcoal mb-2">To Account</label>
-                                    <select
-                                        id="toAccount"
-                                        value={formData.toAccount}
-                                        onChange={(e) => setFormData({ ...formData, toAccount: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="fromAccountId">From Account</Label>
+                                    <Select
+                                        value={formData.fromAccountId}
+                                        onValueChange={(value) => handleSelectChange('fromAccountId', value)}
                                     >
-                                        <option value="">Select destination account</option>
-                                        {userAccounts
-                                            .filter(acc => acc.id.toString() !== formData.fromAccount)
-                                            .map((account) => (
-                                                <option key={account.id} value={account.id}>
-                                                    {account.name} ({account.accountNumber})
-                                                </option>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select account" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {accounts.map(acc => (
+                                                <SelectItem key={acc.id} value={acc.id}>
+                                                    {acc.accountType} - ****{acc.accountNumber.slice(-4)} ({new Intl.NumberFormat('en-US', { style: 'currency', currency: acc.currency }).format(acc.balance)})
+                                                </SelectItem>
                                             ))}
-                                    </select>
-                                    {errors.toAccount && <p className="text-sm text-red-600 mt-1">{errors.toAccount}</p>}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            )}
 
-                            {/* To Account - Beneficiary */}
-                            {transferType === 'beneficiary' && (
-                                <div>
-                                    <label htmlFor="beneficiary" className="block text-sm font-semibold text-charcoal mb-2">Select Beneficiary</label>
-                                    <select
-                                        id="beneficiary"
-                                        value={formData.beneficiary}
-                                        onChange={(e) => setFormData({ ...formData, beneficiary: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors"
-                                    >
-                                        <option value="">Select beneficiary</option>
-                                        {savedBeneficiaries.map((ben) => (
-                                            <option key={ben.id} value={ben.id}>
-                                                {ben.name} ({ben.accountNumber}) - {ben.bank}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.beneficiary && <p className="text-sm text-red-600 mt-1">{errors.beneficiary}</p>}
+                                <div className="space-y-2">
+                                    <Label htmlFor="amount">Amount</Label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                                        <Input
+                                            id="amount"
+                                            type="number"
+                                            placeholder="0.00"
+                                            className="pl-7"
+                                            value={formData.amount}
+                                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                            required
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    </div>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* To Account - New */}
-                            {transferType === 'new' && (
-                                <>
-                                    <Input
-                                        label="Account Number"
-                                        type="text"
-                                        placeholder="Enter 10-12 digit account number"
-                                        value={formData.newAccountNumber}
-                                        onChange={(e) => setFormData({ ...formData, newAccountNumber: e.target.value.replace(/\D/g, '') })}
-                                        error={errors.newAccountNumber}
-                                        maxLength={12}
-                                    />
-                                    <Input
-                                        label="Account Holder Name"
-                                        type="text"
-                                        placeholder="Enter account holder name"
-                                        value={formData.newAccountName}
-                                        onChange={(e) => setFormData({ ...formData, newAccountName: e.target.value })}
-                                        error={errors.newAccountName}
-                                    />
-                                </>
-                            )}
-
-                            {/* Amount */}
-                            <Input
-                                label="Amount"
-                                type="number"
-                                placeholder="0.00"
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                error={errors.amount}
-                                icon={<span className="text-charcoal-light">$</span>}
-                            />
-
-                            {/* Description */}
-                            <div>
-                                <label className="block text-sm font-semibold text-charcoal mb-2">Description (Optional)</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Add a note for this transfer"
-                                    className="w-full px-4 py-3 rounded-lg border-2 border-faded-gray-light focus:border-vintage-green focus:outline-none transition-colors resize-none"
-                                    rows={3}
+                            <div className="space-y-2">
+                                <Label htmlFor="toAccountNumber">Recipient Account Number</Label>
+                                <Input
+                                    id="toAccountNumber"
+                                    placeholder="Enter account number"
+                                    value={formData.toAccountNumber}
+                                    onChange={(e) => setFormData({ ...formData, toAccountNumber: e.target.value })}
+                                    required
                                 />
                             </div>
 
-                            {/* Schedule Date */}
-                            <Input
-                                label="Schedule Transfer (Optional)"
-                                type="date"
-                                value={formData.scheduleDate}
-                                onChange={(e) => setFormData({ ...formData, scheduleDate: e.target.value })}
-                                min={new Date().toISOString().split('T')[0]}
-                            />
-
-                            <Button variant="primary" size="large" onClick={handleContinue} className="w-full">
-                                Continue
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Quick Summary Sidebar */}
-                <div className="lg:col-span-1">
-                    <Card className="sticky top-24">
-                        <CardHeader>
-                            <CardTitle className="text-lg">Transfer Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <p className="text-sm text-charcoal-light mb-1">From</p>
-                                <p className="font-semibold text-charcoal">
-                                    {selectedFromAccount ? selectedFromAccount.name : 'Not selected'}
-                                </p>
-                                {selectedFromAccount && (
-                                    <p className="text-xs text-charcoal-light">Balance: ${selectedFromAccount.balance.toFixed(2)}</p>
-                                )}
-                            </div>
-
-                            <div className="flex justify-center">
-                                <ArrowRightLeft className="w-5 h-5 text-vintage-green" />
-                            </div>
-
-                            <div>
-                                <p className="text-sm text-charcoal-light mb-1">To</p>
-                                <p className="font-semibold text-charcoal">
-                                    {transferType === 'own' && selectedToAccount ? selectedToAccount.name : ''}
-                                    {transferType === 'beneficiary' && selectedBeneficiary ? selectedBeneficiary.name : ''}
-                                    {transferType === 'new' && formData.newAccountName ? formData.newAccountName : ''}
-                                    {!selectedToAccount && !selectedBeneficiary && !formData.newAccountName && 'Not selected'}
-                                </p>
-                            </div>
-
-                            <div className="pt-4 border-t border-faded-gray-light">
-                                <p className="text-sm text-charcoal-light mb-1">Amount</p>
-                                <p className="text-2xl font-bold text-vintage-green font-mono">
-                                    ${formData.amount ? parseFloat(formData.amount).toFixed(2) : '0.00'}
-                                </p>
-                            </div>
-
-                            {selectedFromAccount && formData.amount && parseFloat(formData.amount) > 0 && (
-                                <div className="pt-4 border-t border-faded-gray-light">
-                                    <p className="text-sm text-charcoal-light mb-1">Remaining Balance</p>
-                                    <p className="text-lg font-semibold text-charcoal">
-                                        ${(selectedFromAccount.balance - parseFloat(formData.amount)).toFixed(2)}
-                                    </p>
+                            {formData.transferType === 'WIRE' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-l-2 border-vintage-green/20 pl-4 animate-in fade-in slide-in-from-left-4">
+                                    <div className="space-y-2 md:col-span-2">
+                                        <Label htmlFor="recipientName">Recipient Name</Label>
+                                        <Input
+                                            id="recipientName"
+                                            placeholder="Enter recipient's full name"
+                                            value={formData.recipientName}
+                                            onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="swiftCode">SWIFT / BIC Code</Label>
+                                        <Input
+                                            id="swiftCode"
+                                            placeholder="e.g. BOFAUS3N"
+                                            value={formData.swiftCode}
+                                            onChange={(e) => setFormData({ ...formData, swiftCode: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="bankName">Bank Name</Label>
+                                        <Input
+                                            id="bankName"
+                                            placeholder="Recipient Bank Name"
+                                            value={formData.bankName}
+                                            onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="routingNumber">Routing Number (Optional)</Label>
+                                        <Input
+                                            id="routingNumber"
+                                            placeholder="e.g. 021000021"
+                                            value={formData.routingNumber}
+                                            onChange={(e) => setFormData({ ...formData, routingNumber: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                             )}
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Reference / Description</Label>
+                                <Input
+                                    id="description"
+                                    placeholder="e.g. Rent payment"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div className="pt-4">
+                                <Button
+                                    type="submit"
+                                    className="w-full h-12 text-lg bg-vintage-green hover:bg-vintage-green-dark"
+                                    loading={isSubmitting}
+                                >
+                                    {isSubmitting ? 'Processing...' : `Send ${formData.amount ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(formData.amount)) : 'Money'}`}
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* Info Sidebar */}
+                <div className="space-y-6">
+                    <Card className="bg-gradient-to-br from-soft-gold/10 to-transparent border-soft-gold/20">
+                        <CardHeader>
+                            <CardTitle className="text-lg">Transfer Limits</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Daily Limit</span>
+                                <span className="font-semibold">$50,000.00</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Used Today</span>
+                                <span className="font-semibold text-vintage-green">$0.00</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2">
+                                <div className="bg-vintage-green h-1.5 rounded-full w-[0%]"></div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <VintageIcon icon={ShieldCheck} size="sm" variant="green" />
+                                Security Info
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm text-muted-foreground space-y-3">
+                            <p>Transfers are encrypted and secure.</p>
+                            <p>Internal transfers are processed instantly.</p>
+                            <p>Wire transfers may take 1-3 business days.</p>
                         </CardContent>
                     </Card>
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function TransferPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Skeleton className="h-12 w-12 rounded-full" />
+            </div>
+        }>
+            <TransferContent />
+        </Suspense>
     );
 }
