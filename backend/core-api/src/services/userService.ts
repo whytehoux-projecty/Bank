@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { AUTH_CONFIG, BUSINESS_RULES, ERROR_CODES } from '@shared/index';
+import { AUTH_CONFIG, BUSINESS_RULES, ERROR_CODES } from '../../shared/index';
 
 const prisma = new PrismaClient();
 
@@ -43,7 +43,7 @@ export class UserService {
 
     // Create user with properly structured address data
     const { address, ...userDataWithoutAddress } = userData;
-    
+
     const user = await prisma.user.create({
       data: {
         ...userDataWithoutAddress,
@@ -113,7 +113,7 @@ export class UserService {
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
-    
+
     if (!isValidPassword) {
       await this.handleFailedLogin(user.id);
       throw new Error(ERROR_CODES.INVALID_CREDENTIALS);
@@ -174,7 +174,7 @@ export class UserService {
   }) {
     // Extract address from update data to handle separately
     const { address, ...userDataWithoutAddress } = updateData;
-    
+
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -281,7 +281,7 @@ export class UserService {
   static async updateKYCStatus(userId: string, status: 'PENDING' | 'VERIFIED' | 'REJECTED', notes?: string) {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         kycStatus: status,
         ...(notes && { kycNotes: notes })
       },
@@ -304,7 +304,7 @@ export class UserService {
   static async suspendUser(userId: string, reason?: string) {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         status: 'SUSPENDED',
         ...(reason && { suspensionReason: reason })
       },
@@ -327,7 +327,7 @@ export class UserService {
   static async reactivateUser(userId: string) {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         status: 'ACTIVE',
         suspensionReason: null
       },
@@ -352,11 +352,11 @@ export class UserService {
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return age;
   }
 
@@ -421,6 +421,41 @@ export class UserService {
         total,
         pages: Math.ceil(total / limit)
       }
+    };
+  }
+
+  /**
+   * Get overall user statistics
+   */
+  static async getUserStatistics(filters: {
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    const { startDate, endDate } = filters;
+    const dateFilter: any = {};
+
+    if (startDate) dateFilter.gte = startDate;
+    if (endDate) dateFilter.lte = endDate;
+
+    const [totalUsers, activeUsers, suspendedUsers, pendingVerification, newUsersCount] =
+      await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { status: 'ACTIVE' } }),
+        prisma.user.count({ where: { status: 'SUSPENDED' } }),
+        prisma.user.count({ where: { status: 'PENDING_VERIFICATION' } }),
+        prisma.user.count({
+          where: {
+            createdAt: Object.keys(dateFilter).length > 0 ? dateFilter : undefined,
+          },
+        }),
+      ]);
+
+    return {
+      totalUsers,
+      activeUsers,
+      suspendedUsers,
+      pendingVerification,
+      newUsers: newUsersCount,
     };
   }
 }

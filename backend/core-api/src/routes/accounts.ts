@@ -1,5 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
+import { AccountService } from '../services/accountService';
+import { ERROR_CODES, HTTP_STATUS } from '../../shared/index';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -55,27 +57,10 @@ export default async function accountRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const user = request.user as any;
-
-        const accounts = await prisma.account.findMany({
-          where: { userId: user.userId },
-          select: {
-            id: true,
-            accountNumber: true,
-            accountType: true,
-            balance: true,
-            currency: true,
-            status: true,
-            dailyLimit: true,
-            monthlyLimit: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-          orderBy: { createdAt: 'desc' },
-        });
-
+        const accounts = await AccountService.getUserAccounts(user.userId);
         reply.send({ accounts });
       } catch (error) {
-        fastify.log.error('Get accounts error:', error);
+        request.log.error('Get accounts error:', error);
         reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to fetch accounts',
@@ -128,36 +113,16 @@ export default async function accountRoutes(fastify: FastifyInstance) {
       try {
         const user = request.user as any;
         const { accountId } = request.params as { accountId: string };
-
-        const account = await prisma.account.findFirst({
-          where: {
-            id: accountId,
-            userId: user.userId,
-          },
-          select: {
-            id: true,
-            accountNumber: true,
-            accountType: true,
-            balance: true,
-            currency: true,
-            status: true,
-            dailyLimit: true,
-            monthlyLimit: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        });
-
-        if (!account) {
-          return reply.status(404).send({
+        const account = await AccountService.getAccountById(accountId, user.userId);
+        reply.send({ account });
+      } catch (error: any) {
+        if (error.message === ERROR_CODES.ACCOUNT_NOT_FOUND) {
+          return reply.status(HTTP_STATUS.NOT_FOUND).send({
             error: 'Account Not Found',
             message: 'Account not found or access denied',
           });
         }
-
-        reply.send({ account });
-      } catch (error) {
-        fastify.log.error('Get account error:', error);
+        request.log.error('Get account error:', error);
         reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to fetch account',
@@ -213,63 +178,20 @@ export default async function accountRoutes(fastify: FastifyInstance) {
         const user = request.user as any;
         const validatedData = createAccountSchema.parse(request.body);
 
-        // Generate unique account number
-        const accountNumber = `AV${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-
-        // Set default limits based on account type
-        let dailyLimit = 10000;
-        let monthlyLimit = 100000;
-
-        if (validatedData.accountType === 'SAVINGS') {
-          dailyLimit = 5000;
-          monthlyLimit = 50000;
-        } else if (validatedData.accountType === 'INVESTMENT') {
-          dailyLimit = 50000;
-          monthlyLimit = 500000;
+        const createOptions: any = {
+          accountType: validatedData.accountType as any
+        };
+        if (validatedData.initialDeposit !== undefined) {
+          createOptions.initialDeposit = validatedData.initialDeposit;
         }
 
-        const account = await prisma.account.create({
-          data: {
-            userId: user.userId,
-            accountNumber,
-            accountType: validatedData.accountType,
-            balance: validatedData.initialDeposit || 0,
-            currency: validatedData.currency,
-            status: 'ACTIVE',
-            dailyLimit,
-            monthlyLimit,
-          },
-          select: {
-            id: true,
-            accountNumber: true,
-            accountType: true,
-            balance: true,
-            currency: true,
-            status: true,
-            createdAt: true,
-          },
-        });
-
-        // Create initial transaction if there's a deposit
-        if (validatedData.initialDeposit && validatedData.initialDeposit > 0) {
-          await prisma.transaction.create({
-            data: {
-              accountId: account.id,
-              type: 'DEPOSIT',
-              amount: validatedData.initialDeposit,
-              currency: validatedData.currency,
-              status: 'COMPLETED',
-              description: 'Initial deposit',
-              reference: `INIT-${account.accountNumber}`,
-            },
-          });
-        }
+        const account = await AccountService.createAccount(user.userId, createOptions);
 
         reply.status(201).send({
           message: 'Account created successfully',
           account,
         });
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof z.ZodError) {
           return reply.status(400).send({
             error: 'Validation Error',
@@ -277,10 +199,17 @@ export default async function accountRoutes(fastify: FastifyInstance) {
           });
         }
 
-        fastify.log.error('Create account error:', error);
+        if (error.message === ERROR_CODES.USER_NOT_FOUND) {
+          return reply.status(HTTP_STATUS.NOT_FOUND).send({
+            error: 'User Not Found',
+            message: 'User does not exist'
+          });
+        }
+
+        request.log.error('Create account error:', error);
         reply.status(500).send({
           error: 'Internal Server Error',
-          message: 'Failed to create account',
+          message: error.message || 'Failed to create account',
         });
       }
     }
@@ -338,49 +267,17 @@ export default async function accountRoutes(fastify: FastifyInstance) {
         const { accountId } = request.params as { accountId: string };
         const validatedData = updateAccountSchema.parse(request.body);
 
-        // Verify account ownership
-        const existingAccount = await prisma.account.findFirst({
-          where: {
-            id: accountId,
-            userId: user.userId,
-          },
-        });
-
-        if (!existingAccount) {
-          return reply.status(404).send({
-            error: 'Account Not Found',
-            message: 'Account not found or access denied',
-          });
-        }
-
-        const updatedAccount = await prisma.account.update({
-          where: { id: accountId },
-          // Avoid passing undefined properties to Prisma
-          data: (() => {
-            const data: any = {};
-            if (validatedData.status !== undefined) data.status = validatedData.status;
-            if (validatedData.dailyLimit !== undefined) data.dailyLimit = validatedData.dailyLimit;
-            if (validatedData.monthlyLimit !== undefined) data.monthlyLimit = validatedData.monthlyLimit;
-            return data;
-          })(),
-          select: {
-            id: true,
-            accountNumber: true,
-            accountType: true,
-            balance: true,
-            currency: true,
-            status: true,
-            dailyLimit: true,
-            monthlyLimit: true,
-            updatedAt: true,
-          },
-        });
+        const updatedAccount = await AccountService.updateAccount(
+          accountId,
+          user.userId,
+          validatedData as any
+        );
 
         reply.send({
           message: 'Account updated successfully',
           account: updatedAccount,
         });
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof z.ZodError) {
           return reply.status(400).send({
             error: 'Validation Error',
@@ -388,7 +285,14 @@ export default async function accountRoutes(fastify: FastifyInstance) {
           });
         }
 
-        fastify.log.error('Update account error:', error);
+        if (error.message === ERROR_CODES.ACCOUNT_NOT_FOUND) {
+          return reply.status(HTTP_STATUS.NOT_FOUND).send({
+            error: 'Account Not Found',
+            message: 'Account not found or access denied',
+          });
+        }
+
+        request.log.error('Update account error:', error);
         reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to update account',
@@ -431,46 +335,18 @@ export default async function accountRoutes(fastify: FastifyInstance) {
         const user = request.user as any;
         const { accountId } = request.params as { accountId: string };
 
-        const account = await prisma.account.findFirst({
-          where: {
-            id: accountId,
-            userId: user.userId,
-          },
-          select: {
-            balance: true,
-            currency: true,
-          },
-        });
+        const balanceData = await AccountService.getAccountBalance(accountId, user.userId);
 
-        if (!account) {
-          return reply.status(404).send({
+        reply.send(balanceData);
+      } catch (error: any) {
+        if (error.message === ERROR_CODES.ACCOUNT_NOT_FOUND) {
+          return reply.status(HTTP_STATUS.NOT_FOUND).send({
             error: 'Account Not Found',
             message: 'Account not found or access denied',
           });
         }
 
-        // Calculate pending transactions
-        const pendingTransactions = await prisma.transaction.aggregate({
-          where: {
-            accountId,
-            status: 'PENDING',
-          },
-          _sum: {
-            amount: true,
-          },
-        });
-
-        const pendingAmount = pendingTransactions._sum.amount ? Number(pendingTransactions._sum.amount) : 0;
-        const availableBalance = Number(account.balance) - pendingAmount;
-
-        reply.send({
-          balance: Number(account.balance),
-          currency: account.currency,
-          availableBalance,
-          pendingTransactions: pendingAmount,
-        });
-      } catch (error) {
-        fastify.log.error('Get balance error:', error);
+        request.log.error('Get balance error:', error);
         reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to fetch balance',
@@ -544,58 +420,23 @@ export default async function accountRoutes(fastify: FastifyInstance) {
         const { accountId } = request.params as { accountId: string };
         const { page = 1, limit = 20, type, status } = request.query as any;
 
-        // Verify account ownership
-        const account = await prisma.account.findFirst({
-          where: {
-            id: accountId,
-            userId: user.userId,
-          },
+        const result = await AccountService.getAccountTransactions(accountId, user.userId, {
+          page: Number(page),
+          limit: Number(limit),
+          type: type || undefined,
+          status: status || undefined
         });
 
-        if (!account) {
-          return reply.status(404).send({
+        reply.send(result);
+      } catch (error: any) {
+        if (error.message === ERROR_CODES.ACCOUNT_NOT_FOUND) {
+          return reply.status(HTTP_STATUS.NOT_FOUND).send({
             error: 'Account Not Found',
             message: 'Account not found or access denied',
           });
         }
 
-        const where: any = { accountId };
-        if (type) where.type = type;
-        if (status) where.status = status;
-
-        const [transactions, total] = await Promise.all([
-          prisma.transaction.findMany({
-            where,
-            select: {
-              id: true,
-              type: true,
-              amount: true,
-              currency: true,
-              status: true,
-              description: true,
-              reference: true,
-              createdAt: true,
-            },
-            orderBy: { createdAt: 'desc' },
-            skip: (page - 1) * limit,
-            take: limit,
-          }),
-          prisma.transaction.count({ where }),
-        ]);
-
-        const pages = Math.ceil(total / limit);
-
-        reply.send({
-          transactions,
-          pagination: {
-            page,
-            limit,
-            total,
-            pages,
-          },
-        });
-      } catch (error) {
-        fastify.log.error('Get transactions error:', error);
+        request.log.error('Get transactions error:', error);
         reply.status(500).send({
           error: 'Internal Server Error',
           message: 'Failed to fetch transactions',

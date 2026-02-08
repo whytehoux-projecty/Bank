@@ -22,7 +22,35 @@ const payBillSchema = z.object({
   reference: z.string().optional(), // Invoice number or reference
 });
 
+import { getTransactions } from './transactions';
+
 export default async function billRoutes(fastify: FastifyInstance) {
+  // Get Bill Payments History
+  fastify.get(
+    '/',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        description: 'Get bill payment history',
+        tags: ['Bills'],
+        querystring: {
+          type: 'object',
+          properties: {
+            page: { type: 'integer', minimum: 1, default: 1 },
+            limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+            startDate: { type: 'string', format: 'date' },
+            endDate: { type: 'string', format: 'date' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      // Force type parameter to PAYMENT
+      (request.query as any).type = 'PAYMENT';
+      return getTransactions(request, reply);
+    }
+  );
+
   // Get Payees
   fastify.get(
     '/payees',
@@ -169,7 +197,7 @@ const payBill = async (request: FastifyRequest, reply: FastifyReply) => {
 const payBillVerified = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const parts = request.parts();
-    let body: any = {};
+    const body: Record<string, string> = {};
     let filePath = '';
 
     for await (const part of parts) {
@@ -180,13 +208,13 @@ const payBillVerified = async (request: FastifyRequest, reply: FastifyReply) => 
         // Since I can't write to random dirs easily without setup, I'll mock the path.
         filePath = `/uploads/verifications/${Date.now()}_${part.filename}`;
       } else {
-        body[part.fieldname] = part.value;
+        body[part.fieldname] = String(part.value);
       }
     }
 
     const { payeeId, amount, accountId } = payBillSchema.parse({
       ...body,
-      amount: Number(body.amount), // Ensure amount is a number
+      amount: Number(body['amount']), // Ensure amount is a number
     });
 
     const user = request.user as any;
