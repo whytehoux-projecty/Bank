@@ -27,7 +27,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "type-check": "tsc --noEmit",
-    "vercel-build": "bash scripts/vercel-build.sh"
+    "vercel-build": "prisma generate && bash scripts/vercel-build.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
