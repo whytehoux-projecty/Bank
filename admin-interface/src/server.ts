@@ -1,3 +1,4 @@
+import "dotenv/config";
 import Fastify from "fastify";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
@@ -5,13 +6,13 @@ import cookie from "@fastify/cookie";
 import compress from "@fastify/compress";
 import view from "@fastify/view";
 import formbody from "@fastify/formbody";
+import fastifyStatic from "@fastify/static";
 import path from "path";
 import ejs from "ejs";
 import { ZodError } from "zod";
 import rateLimit from "@fastify/rate-limit";
 import {
   PORT,
-  CORS_ORIGIN,
   RATE_LIMIT_MAX,
   RATE_LIMIT_WINDOW,
 } from "./config/constants";
@@ -56,22 +57,29 @@ export async function build() {
   });
 
   // Security plugins
+  // Security plugins
   await fastify.register(helmet, {
+    global: true,
+    hsts: false, // Disable HSTS to prevent auto-upgrade to HTTPS on localhost
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
+      useDefaults: false,
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-        scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
-        imgSrc: ["'self'", "data:", "https:"],
-        fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
-        connectSrc: ["'self'"],
+        baseUri: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+        scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'unsafe-eval'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:", "http:"],
+        fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'", "http://localhost:*", "ws://localhost:*"],
+        upgradeInsecureRequests: null,
       },
     },
   });
 
   // CORS
   await fastify.register(cors, {
-    origin: CORS_ORIGIN,
+    origin: true, // Allow all origins in development
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -83,13 +91,19 @@ export async function build() {
       process.env["COOKIE_SECRET"] || "your-cookie-secret-change-in-production",
     parseOptions: {
       httpOnly: true,
-      secure: process.env["NODE_ENV"] === "production",
-      sameSite: "strict",
+      secure: false, // Force false for development
+      sameSite: "lax", // Lax for easier dev navigation
     },
   });
 
   // Form body parser
   await fastify.register(formbody);
+
+  // Static file serving
+  await fastify.register(fastifyStatic, {
+    root: path.join(__dirname, "..", "public"),
+    prefix: "/", // optional: default '/'
+  });
 
   // View engine setup
   await fastify.register(view, {
@@ -198,7 +212,7 @@ async function start() {
     // Start server
     await fastify.listen({
       port: PORT,
-      host: process.env["NODE_ENV"] === "production" ? "0.0.0.0" : "localhost",
+      host: "0.0.0.0",
     });
 
     fastify.log.info(

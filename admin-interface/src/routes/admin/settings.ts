@@ -5,9 +5,9 @@ import { z } from 'zod';
 
 const updateSettingsSchema = z.object({
     verificationEnabled: z.boolean(),
-    globalThreshold: z.number().positive(),
+    globalThreshold: z.number().min(0),
     documentTypes: z.array(z.string()),
-    categoryThresholds: z.record(z.string(), z.number().positive()).optional(),
+    categoryThresholds: z.record(z.string(), z.number().min(0)).optional(),
     notificationEmail: z.string().email().optional().or(z.literal('')),
     notificationSms: z.string().optional()
 });

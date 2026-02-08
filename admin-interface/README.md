@@ -1,6 +1,6 @@
-# NovaBank Admin Interface
+# AURUM VAULT Admin Interface
 
-A secure, feature-rich administrative interface for managing the NovaBank platform. Built with Fastify, TypeScript, and Prisma.
+A secure, feature-rich administrative interface for managing the AURUM VAULT platform. Built with Fastify, TypeScript, and Prisma.
 
 ## 🚀 Features
 
@@ -24,7 +24,7 @@ A secure, feature-rich administrative interface for managing the NovaBank platfo
 1. **Install dependencies**:
 
    ```bash
-   cd backend/admin-interface
+   cd admin-interface
    npm install
    ```
 
@@ -38,18 +38,18 @@ A secure, feature-rich administrative interface for managing the NovaBank platfo
 
    ```env
    # Database
-   DATABASE_URL="postgresql://username:password@localhost:5432/novabank"
+   DATABASE_URL="postgresql://username:password@localhost:5432/aurumvault"
    
    # JWT Configuration
    JWT_SECRET="your-super-secret-jwt-key-change-in-production"
    JWT_EXPIRES_IN="24h"
    
    # Server Configuration
-   PORT=3001
+   PORT=3003
    NODE_ENV=development
    
    # CORS
-   CORS_ORIGIN="http://localhost:3000"
+   CORS_ORIGIN="http://localhost:4000"
    
    # Cookies
    COOKIE_SECRET="your-cookie-secret-change-in-production"
@@ -162,9 +162,9 @@ npm run format
 | `DATABASE_URL` | PostgreSQL connection string | Required |
 | `JWT_SECRET` | Secret key for JWT signing | Required |
 | `JWT_EXPIRES_IN` | JWT token expiration time | `24h` |
-| `PORT` | Server port | `3001` |
+| `PORT` | Server port | `3003` |
 | `NODE_ENV` | Environment mode | `development` |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:3000` |
+| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:4000` |
 | `COOKIE_SECRET` | Secret for cookie signing | Required |
 | `RATE_LIMIT_MAX` | Max requests per window | `100` |
 | `RATE_LIMIT_WINDOW` | Rate limit window (ms) | `900000` |

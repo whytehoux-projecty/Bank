@@ -34,7 +34,8 @@ export default async function webRoutes(fastify: FastifyInstance) {
 
     return reply.view('login', {
       title: 'Admin Login',
-      error: error
+      error: error,
+      email: (request.query as any).email || ''
     });
   });
 
@@ -169,6 +170,38 @@ export default async function webRoutes(fastify: FastifyInstance) {
   fastify.get('/bills', { preHandler: authenticateWeb }, async (request: FastifyRequest, reply: FastifyReply) => {
     return reply.view('bills', {
       title: 'Bill Payment Management',
+      user: request.user
+    });
+  });
+
+  // Reports page (protected)
+  fastify.get('/reports', { preHandler: authenticateWeb }, async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.view('reports', {
+      title: 'Reports & Analytics',
+      user: request.user
+    });
+  });
+
+  // Activity Timeline page (protected)
+  fastify.get('/timeline', { preHandler: authenticateWeb }, async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.view('timeline', {
+      title: 'Activity Timeline',
+      user: request.user
+    });
+  });
+
+  // Notifications page (protected)
+  fastify.get('/notifications', { preHandler: authenticateWeb }, async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.view('notifications', {
+      title: 'Notifications',
+      user: request.user
+    });
+  });
+
+  // Security Settings (2FA) page (protected)
+  fastify.get('/security', { preHandler: authenticateWeb }, async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.view('security', {
+      title: 'Security Settings',
       user: request.user
     });
   });

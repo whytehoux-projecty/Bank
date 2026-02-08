@@ -54,7 +54,8 @@ export class AuthController {
         });
         return reply.view("login.ejs", {
           error: "Invalid credentials",
-          email: email
+          email: email,
+          title: "Admin Login"
         });
       }
 
@@ -72,7 +73,8 @@ export class AuthController {
         });
         return reply.view("login.ejs", {
           error: "Admin account is deactivated",
-          email: email
+          email: email,
+          title: "Admin Login"
         });
       }
 
@@ -80,7 +82,8 @@ export class AuthController {
       if (adminUser.lockedUntil && adminUser.lockedUntil > new Date()) {
         return reply.view("login.ejs", {
           error: "Account is temporarily locked due to multiple failed login attempts",
-          email: email
+          email: email,
+          title: "Admin Login"
         });
       }
 
@@ -116,7 +119,8 @@ export class AuthController {
 
         return reply.view("login.ejs", {
           error: "Invalid credentials",
-          email: email
+          email: email,
+          title: "Admin Login"
         });
       }
 
@@ -187,7 +191,8 @@ export class AuthController {
       request.log.error(error, "Form login error:");
       return reply.view("login.ejs", {
         error: "An error occurred during login. Please try again.",
-        email: ""
+        email: "",
+        title: "Admin Login"
       });
     }
   }

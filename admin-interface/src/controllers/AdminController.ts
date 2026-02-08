@@ -1,18 +1,12 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
+import bcrypt from 'bcrypt';
 import { prisma } from '../lib/prisma';
 import { AuditService } from '../services/AuditService';
+import { userQuerySchema, transactionQuerySchema, wireTransferQuerySchema } from '@shared/validation';
 
 // Validation schemas
-const GetUsersQuerySchema = z.object({
-  page: z.string().optional().default('1').transform(Number),
-  limit: z.string().optional().default('20').transform(Number),
-  search: z.string().optional(),
-  status: z.enum(['ACTIVE', 'SUSPENDED', 'PENDING']).optional(),
-  kycStatus: z.enum(['PENDING', 'UNDER_REVIEW', 'VERIFIED', 'REJECTED']).optional(),
-  sortBy: z.enum(['createdAt', 'firstName', 'lastName', 'email']).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
-});
+
 
 const UpdateUserStatusSchema = z.object({
   status: z.enum(['ACTIVE', 'SUSPENDED']),
@@ -24,34 +18,7 @@ const UpdateKYCStatusSchema = z.object({
   reviewNotes: z.string().optional(),
 });
 
-const GetTransactionsQuerySchema = z.object({
-  page: z.string().optional().default('1').transform(Number),
-  limit: z.string().optional().default('50').transform(Number),
-  userId: z.string().optional(),
-  accountId: z.string().optional(),
-  type: z.enum(['DEPOSIT', 'WITHDRAWAL', 'TRANSFER', 'PAYMENT']).optional(),
-  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  minAmount: z.string().optional().transform(Number),
-  maxAmount: z.string().optional().transform(Number),
-  sortBy: z.enum(['createdAt', 'amount', 'status']).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
-});
 
-const GetWireTransfersQuerySchema = z.object({
-  page: z.string().optional().default('1').transform(Number),
-  limit: z.string().optional().default('50').transform(Number),
-  userId: z.string().optional(),
-  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).optional(),
-  type: z.enum(['DOMESTIC', 'INTERNATIONAL']).optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  minAmount: z.string().optional().transform(Number),
-  maxAmount: z.string().optional().transform(Number),
-  sortBy: z.enum(['createdAt', 'amount', 'status']).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
-});
 
 const UpdateWireTransferStatusSchema = z.object({
   status: z.enum(['APPROVED', 'REJECTED', 'CANCELLED']),
@@ -75,6 +42,22 @@ const GetBillPayeesQuerySchema = z.object({
   category: z.string().optional(),
   sortBy: z.enum(['createdAt', 'name']).optional().default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+const CreateUserSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  email: z.string().email(),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).default('ACTIVE'),
+  password: z.string().min(8).optional(),
+  dateOfBirth: z.string().optional().default('1970-01-01'),
+});
+
+const UpdateUserSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).optional(),
 });
 
 export class AdminController {
@@ -154,8 +137,8 @@ export class AdminController {
    */
   static async getUsers(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const query = GetUsersQuerySchema.parse(request.query);
-      const { page, limit, search, status, kycStatus, sortBy, sortOrder } = query;
+      const query = userQuerySchema.parse(request.query);
+      const { page, limit, search, status, kycStatus, sortBy = 'createdAt', sortOrder } = query;
       const skip = (page - 1) * limit;
 
       const where: any = {};
@@ -176,7 +159,7 @@ export class AdminController {
           where,
           skip,
           take: limit,
-          orderBy: { [sortBy]: sortOrder },
+          orderBy: { [sortBy]: sortOrder } as any,
           include: {
             accounts: {
               select: {
@@ -322,8 +305,8 @@ export class AdminController {
    */
   static async getTransactions(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const query = GetTransactionsQuerySchema.parse(request.query);
-      const { page, limit, userId, accountId, type, status, startDate, endDate, minAmount, maxAmount, sortBy, sortOrder } = query;
+      const query = transactionQuerySchema.parse(request.query);
+      const { page, limit, userId, accountId, type, status, startDate, endDate, minAmount, maxAmount, sortBy = 'createdAt', sortOrder } = query;
       const skip = (page - 1) * limit;
 
       const where: any = {};
@@ -342,7 +325,7 @@ export class AdminController {
           where,
           skip,
           take: limit,
-          orderBy: { [sortBy]: sortOrder },
+          orderBy: { [sortBy]: sortOrder } as any,
           include: {
             account: {
               include: {
@@ -381,8 +364,8 @@ export class AdminController {
    */
   static async getWireTransfers(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const query = GetWireTransfersQuerySchema.parse(request.query);
-      const { page, limit, userId, status, startDate, endDate, minAmount, maxAmount, sortBy, sortOrder } = query;
+      const query = wireTransferQuerySchema.parse(request.query);
+      const { page, limit, userId, status, startDate, endDate, minAmount, maxAmount, sortBy = 'createdAt', sortOrder } = query;
       const skip = (page - 1) * limit;
 
       const where: any = {};
@@ -399,7 +382,7 @@ export class AdminController {
           where,
           skip,
           take: limit,
-          orderBy: { [sortBy]: sortOrder },
+          orderBy: { [sortBy]: sortOrder } as any,
           include: {
             transaction: true,
             senderAccount: {
@@ -656,6 +639,139 @@ export class AdminController {
       });
     } catch (error) {
       request.log.error(error, 'Error fetching bill payees');
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  }
+
+
+  /**
+   * Create a new user
+   */
+  static async createUser(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const data = CreateUserSchema.parse(request.body);
+      const adminUserId = (request as any).user.id;
+
+      // Check if email exists
+      const existing = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existing) {
+        return reply.status(409).send({ error: 'Email already exists' });
+      }
+
+      // Hash password (or default)
+      const password = data.password || 'AurumVault2026!';
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          status: data.status,
+          password: hashedPassword,
+          dateOfBirth: new Date(data.dateOfBirth),
+        },
+      });
+
+      // Audit log
+      await AuditService.log({
+        adminUserId,
+        userId: user.id,
+        action: 'USER_CREATE',
+        entityType: 'USER',
+        entityId: user.id,
+        details: `User created: ${user.email}`,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] || '',
+        severity: 'INFO',
+        category: 'ADMIN',
+      });
+
+      return reply.status(201).send({ user });
+    } catch (error) {
+      // Check for Zod error
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ error: error.errors });
+      }
+      request.log.error(error, 'Error creating user:');
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  }
+
+  /**
+   * Update user details
+   */
+  static async updateUser(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { userId } = request.params as { userId: string };
+      const data = UpdateUserSchema.parse(request.body);
+      const adminUserId = (request as any).user.id;
+
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(data.firstName && { firstName: data.firstName }),
+          ...(data.lastName && { lastName: data.lastName }),
+          ...(data.email && { email: data.email }),
+          ...(data.status && { status: data.status }),
+        },
+      });
+
+      // Audit log
+      await AuditService.log({
+        adminUserId,
+        userId: user.id,
+        action: 'USER_UPDATE',
+        entityType: 'USER',
+        entityId: user.id,
+        details: `User updated: ${JSON.stringify(data)}`,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] || '',
+        severity: 'INFO',
+        category: 'ADMIN',
+      });
+
+      return reply.send({ user });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return reply.status(400).send({ error: error.errors });
+      }
+      request.log.error(error, 'Error updating user:');
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  }
+
+  /**
+   * Delete user
+   */
+  static async deleteUser(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { userId } = request.params as { userId: string };
+      const adminUserId = (request as any).user.id;
+
+      // Check if user has active accounts or transactions?
+      // For now, simple delete
+      await prisma.user.delete({
+        where: { id: userId },
+      });
+
+      // Audit log
+      await AuditService.log({
+        adminUserId,
+        userId: null, // User is gone
+        action: 'USER_DELETE',
+        entityType: 'USER',
+        entityId: userId,
+        details: `User deleted: ${userId}`,
+        ipAddress: request.ip,
+        userAgent: request.headers['user-agent'] || '',
+        severity: 'WARNING',
+        category: 'ADMIN',
+      });
+
+      return reply.send({ success: true });
+    } catch (error) {
+      request.log.error(error, 'Error deleting user:');
       return reply.status(500).send({ error: 'Internal server error' });
     }
   }

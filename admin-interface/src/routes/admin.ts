@@ -15,6 +15,9 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   // User management
   fastify.get('/users', AdminController.getUsers);
   fastify.get('/users/:userId', AdminController.getUserById);
+  fastify.post('/users', AdminController.createUser);
+  fastify.put('/users/:userId', AdminController.updateUser);
+  fastify.delete('/users/:userId', AdminController.deleteUser);
   fastify.put('/users/:userId/status', AdminController.updateUserStatus);
   fastify.put('/users/:userId/kyc-status', AdminController.updateKYCStatus);
 

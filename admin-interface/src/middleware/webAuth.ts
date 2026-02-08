@@ -16,7 +16,7 @@ export async function authenticateWeb(request: FastifyRequest, reply: FastifyRep
 
     // Get user from database
     const user = await prisma.adminUser.findUnique({
-      where: { id: decoded.userId }
+      where: { id: decoded.id }
     });
 
     if (!user || user.status !== 'ACTIVE') {
@@ -49,7 +49,7 @@ export async function redirectIfAuthenticated(request: FastifyRequest, reply: Fa
 
       // Check if user exists and is active
       const user = await prisma.adminUser.findUnique({
-        where: { id: decoded.userId }
+        where: { id: decoded.id }
       });
 
       if (user && user.status === 'ACTIVE') {
