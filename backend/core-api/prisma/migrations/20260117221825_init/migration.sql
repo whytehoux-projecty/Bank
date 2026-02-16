@@ -1,3 +1,10 @@
+-- Drop tables if they exist (cleanup from failed previous migration attempt)
+DROP TABLE IF EXISTS "contact_submissions";
+DROP TABLE IF EXISTS "account_applications";
+DROP TABLE IF EXISTS "beneficiaries";
+DROP TABLE IF EXISTS "statements";
+DROP TABLE IF EXISTS "cards";
+DROP TABLE IF EXISTS "bill_payees";
 -- CreateTable
 CREATE TABLE "contact_submissions" (
     "id" TEXT NOT NULL,
