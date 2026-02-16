@@ -354,26 +354,26 @@ export class AccountService {
           (typeof account.dailyLimit === 'object' && 'toNumber' in account.dailyLimit
             ? account.dailyLimit.toNumber()
             : Number(account.dailyLimit)) -
-            Math.abs(
-              todaySpending._sum.amount &&
-                typeof todaySpending._sum.amount === 'object' &&
-                'toNumber' in todaySpending._sum.amount
-                ? todaySpending._sum.amount.toNumber()
-                : Number(todaySpending._sum.amount || 0)
-            )
+          Math.abs(
+            todaySpending._sum.amount &&
+              typeof todaySpending._sum.amount === 'object' &&
+              'toNumber' in todaySpending._sum.amount
+              ? todaySpending._sum.amount.toNumber()
+              : Number(todaySpending._sum.amount || 0)
+          )
         ),
         monthlyRemaining: Math.max(
           0,
           (typeof account.monthlyLimit === 'object' && 'toNumber' in account.monthlyLimit
             ? account.monthlyLimit.toNumber()
             : Number(account.monthlyLimit)) -
-            Math.abs(
-              monthlySpending._sum.amount &&
-                typeof monthlySpending._sum.amount === 'object' &&
-                'toNumber' in monthlySpending._sum.amount
-                ? monthlySpending._sum.amount.toNumber()
-                : Number(monthlySpending._sum.amount || 0)
-            )
+          Math.abs(
+            monthlySpending._sum.amount &&
+              typeof monthlySpending._sum.amount === 'object' &&
+              'toNumber' in monthlySpending._sum.amount
+              ? monthlySpending._sum.amount.toNumber()
+              : Number(monthlySpending._sum.amount || 0)
+          )
         ),
       },
     };
@@ -576,5 +576,85 @@ export class AccountService {
     }
 
     return results;
+  }
+
+  /**
+   * Get account balance with available and pending amounts
+   */
+  static async getAccountBalance(accountId: string, userId: string) {
+    const account = await prisma.account.findFirst({
+      where: { id: accountId, userId },
+      select: { balance: true, currency: true },
+    });
+
+    if (!account) {
+      throw new Error(ERROR_CODES.ACCOUNT_NOT_FOUND);
+    }
+
+    const pendingTransactions = await prisma.transaction.aggregate({
+      where: { accountId, status: 'PENDING' },
+      _sum: { amount: true },
+    });
+
+    const pendingAmount = pendingTransactions._sum.amount ? Number(pendingTransactions._sum.amount) : 0;
+    const availableBalance = Number(account.balance) - pendingAmount;
+
+    return {
+      balance: Number(account.balance),
+      currency: account.currency,
+      availableBalance,
+      pendingTransactions: pendingAmount,
+    };
+  }
+
+  /**
+   * Get account transactions with pagination
+   */
+  static async getAccountTransactions(
+    accountId: string,
+    userId: string,
+    options: { page: number; limit: number; type?: string; status?: string }
+  ) {
+    const account = await prisma.account.findFirst({
+      where: { id: accountId, userId },
+    });
+
+    if (!account) {
+      throw new Error(ERROR_CODES.ACCOUNT_NOT_FOUND);
+    }
+
+    const where: any = { accountId };
+    if (options.type) where.type = options.type;
+    if (options.status) where.status = options.status;
+
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({
+        where,
+        select: {
+          id: true,
+          type: true,
+          amount: true,
+          currency: true,
+          status: true,
+          description: true,
+          reference: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (options.page - 1) * options.limit,
+        take: options.limit,
+      }),
+      prisma.transaction.count({ where }),
+    ]);
+
+    return {
+      transactions,
+      pagination: {
+        page: options.page,
+        limit: options.limit,
+        total,
+        pages: Math.ceil(total / options.limit),
+      },
+    };
   }
 }

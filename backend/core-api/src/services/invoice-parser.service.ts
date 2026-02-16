@@ -1,4 +1,4 @@
-import pdf = require('pdf-parse');
+import pdf from 'pdf-parse';
 
 export interface ParsedInvoice {
   invoiceNumber: string | null;

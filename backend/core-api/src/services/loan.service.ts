@@ -1,7 +1,6 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import PDFDocument from 'pdfkit';
-import fs from 'fs';
 
 interface CreateLoanParams {
     userId: string;
@@ -157,7 +156,7 @@ export class LoanService {
 
         if (!loan) throw new Error('Loan not found');
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             const doc = new PDFDocument();
             const buffers: Buffer[] = [];
 
