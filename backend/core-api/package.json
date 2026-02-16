@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "dev:debug": "tsx watch --inspect src/server.ts",
     "prebuild": "prisma generate",
-    "build": "tsc && prisma migrate deploy",
+    "build": "npx prisma migrate resolve --applied 20260117221825_init || true && tsc && prisma migrate deploy",
     "build:clean": "rm -rf dist && npm run build",
     "start": "node dist/core-api/src/server.js",
     "start:prod": "NODE_ENV=production node dist/core-api/src/server.js",
