@@ -1,4 +1,5 @@
-import pdf from 'pdf-parse';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>;
 
 export interface ParsedInvoice {
   invoiceNumber: string | null;
@@ -54,7 +55,7 @@ export class InvoiceParserService {
   }
 
   private async parsePdf(buffer: Buffer): Promise<string> {
-    const data = await pdf(buffer);
+    const data = await pdfParse(buffer);
     return data.text;
   }
 
