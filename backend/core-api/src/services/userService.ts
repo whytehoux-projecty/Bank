@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { AUTH_CONFIG, BUSINESS_RULES, ERROR_CODES } from '../../shared/index';
+import { AUTH_CONFIG, BUSINESS_RULES, ERROR_CODES } from '@shared/index';
 
 const prisma = new PrismaClient();
 
