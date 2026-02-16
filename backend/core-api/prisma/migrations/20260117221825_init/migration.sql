@@ -99,9 +99,9 @@ CREATE TABLE "bill_payees" (
 );
 -- AlterTable - Add category column to transactions
 ALTER TABLE "transactions"
-ADD COLUMN "category" TEXT NOT NULL DEFAULT 'UNCATEGORIZED';
+ADD COLUMN IF NOT EXISTS "category" TEXT NOT NULL DEFAULT 'UNCATEGORIZED';
 -- CreateIndex
-CREATE UNIQUE INDEX "cards_card_number_key" ON "cards"("card_number");
+CREATE UNIQUE INDEX IF NOT EXISTS "cards_card_number_key" ON "cards"("card_number");
 -- AddForeignKey
 ALTER TABLE "beneficiaries"
 ADD CONSTRAINT "beneficiaries_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
