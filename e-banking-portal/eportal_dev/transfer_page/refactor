@@ -1,0 +1,855 @@
+Below is a complete upgrade specification for the Money Transfer page, specifically focused on **features, workflow and UX** while **keeping your existing color direction and visual style**. The color system and typography below are framed as a *formalization* of what you already have, not a rebrand.
+
+---
+
+**REDESIGN VISION**
+
+- The Money Transfer page should feel like a **concierge desk for high‑value payments**: calm, precise, and highly trustworthy, with zero ambiguity about what will be sent, when, and to whom.  
+- The experience should guide high‑net‑worth users through complex transfers (internal, domestic, cross‑border, scheduled) with the clarity of a private banker: **one clear path**, contextual guidance, and guardrails that prevent mistakes.  
+- Every interaction—selecting an account, typing an amount, choosing a recipient—should respond with **immediate feedback**: available balance, limit impact, FX rate, and security reassurance.  
+- The interface should scale from a simple “send to saved recipient” flow to more advanced scenarios (templates, approvals, bulk payments) without feeling cluttered, using progressive disclosure and a clear hierarchy.
+
+---
+
+## LAYOUT RECONSTRUCTION
+
+**High-level structure**
+
+- Keep overall page composition (hero background, centered main card, right‑hand side panels, left sidebar, top nav), but **restructure the center into a 2‑step flow**:
+  - Step 1: “Transfer setup” (type, source, recipient, amount).
+  - Step 2: “Review & confirm” with a summary, fee/FX breakdown, and 2‑factor confirmation.
+- Right column evolves to a **context panel** with tabs:
+  - “Limits & Usage”
+  - “Security & Tips”
+  - “Recent Recipients”
+
+**Grid system**
+
+- Use a **12‑column grid** with a max content width of 1200–1280px:
+  - Left navigation and top header remain full‑width.
+  - Main content container (cards) centered with `max-w-6xl mx-auto px-6`.
+  - Transfer card: spans 7 columns on desktop.
+  - Context panel: spans 5 columns on desktop.
+- Responsive behavior:
+  - ≥1280px: 7/5 split.
+  - 1024–1279px: 8/4 split with slightly reduced right panel.
+  - <1024px: stack vertically (Transfer card first, context panel below).
+
+**Spacing scale**
+
+- Base unit: **4px**. Use:
+  - XS: 4, 8
+  - S: 12, 16
+  - M: 20, 24
+  - L: 32, 40
+  - XL: 48, 64
+- Apply consistently:
+  - Card padding: 24–32px.
+  - Vertical rhythm between form groups: 16–20px.
+  - Gap between primary and context columns: 24px.
+
+**Above-the-fold composition**
+
+- Above the fold (no scroll on typical laptop height):
+  - Page title and subtitle (“Money Transfer” + copy).
+  - Transfer card with all key fields and **“Next: Review”** button in view.
+  - Context panel with Limits and Security block visible (no scroll or minimal).
+- Below the fold:
+  - Transfer history snippet, saved templates, and advanced options (recurring, future‑dated, SWIFT details).
+  - Any regulatory disclosures, fee explanations.
+
+**Scroll experience**
+
+- Page scrolls as a single column (no nested scroll areas).
+- Context panel can have its own `max-h` with internal scroll *only* for history and saved recipients lists to avoid page jumpiness.
+
+---
+
+## TYPOGRAPHY SYSTEM
+
+Retain a classic, premium feel while aligning with modern app legibility. Fonts:
+
+- **Display / headings**: `DM Serif Display` (Google Fonts)  
+  Use for page titles and key section headings to reinforce the private‑bank aesthetic.
+- **Body / UI**: `Inter` (Google Fonts)  
+  Highly legible and widely used in financial UIs.
+- **Monospace (if needed)**: `JetBrains Mono`  
+  For account numbers, IBAN, SWIFT codes, and transaction IDs.
+
+**Type scale (desktop)**
+
+- H1 (page title): 32px / 40px, weight 500, letter-spacing 0  
+- H2 (card titles): 24px / 32px, weight 500  
+- H3 (section headings within cards): 20px / 28px, weight 500  
+- H4: 18px / 26px, weight 500  
+- Body / form labels: 14px / 20px, weight 500 (labels), 400 (body text)  
+- Helper / secondary text: 13px / 18px, weight 400  
+- Caption / meta: 12px / 16px, weight 400  
+- All‑caps labels (e.g. “DAILY LIMIT”): 11px / 16px, letter-spacing 0.08em
+
+**Line heights & letter spacing**
+
+- Headings (H1–H4): 1.25–1.35, letter‑spacing 0–0.01em  
+- Body: 1.45–1.6, letter‑spacing 0  
+- Captions: 1.4–1.5, letter‑spacing 0.02em for all‑caps.
+
+(Implementation can be purely token‑based; no visual overhaul needed—just align existing sizes to these tokens.)
+
+---
+
+## COLOR SYSTEM (FORMALIZING EXISTING PALETTE)
+
+You asked not to refactor the color design. The following palette **codifies and extends your existing navy + soft gold + light surface** scheme into a WCAG‑compliant system. Hex values mirror your current variables (adapt as needed).
+
+**Primary brand (Heritage Navy)**
+
+- `heritage-navy-50`: `#E6ECF5`
+- `heritage-navy-100`: `#CCD8EB`
+- `heritage-navy-200`: `#99B1D6`
+- `heritage-navy-300`: `#6689C2`
+- `heritage-navy-400`: `#3362AD`
+- `heritage-navy-500`: `#0B1B30` (header background)
+- `heritage-navy-600`: `#081527`
+- `heritage-navy-700`: `#050F1D`
+- `heritage-navy-800`: `#030A14`
+- `heritage-navy-900`: `#02060C`
+
+**Accent / Soft Gold**
+
+- `soft-gold-50`: `#FFF9E8`
+- `soft-gold-100`: `#FFEFC2`
+- `soft-gold-200`: `#FFE39A`
+- `soft-gold-300`: `#FFD66E`
+- `soft-gold-400`: `#FBC94A`
+- `soft-gold-500`: `#E8B437`
+- `soft-gold-600`: `#C09328`
+- `soft-gold-700`: `#97731D`
+- `soft-gold-800`: `#6F5314`
+- `soft-gold-900`: `#47350C`
+
+**Neutrals / Gray scale**
+
+- `gray-50`: `#F8FAFC`
+- `gray-100`: `#F1F5F9`
+- `gray-200`: `#E2E8F0`
+- `gray-300`: `#CBD5F5`
+- `gray-400`: `#94A3B8`
+- `gray-500`: `#64748B`
+- `gray-600`: `#475569`
+- `gray-700`: `#334155`
+- `gray-800`: `#1E293B`
+- `gray-900`: `#0F172A`
+- `gray-950`: `#020617`
+
+**Semantic colors**
+
+- Success: base `#1B9C63`, light `#E5F7F0`, dark `#0E5C3A`
+- Warning: base `#E0951A`, light `#FFF7E6`, dark `#8A5A0A`
+- Error: base `#C53030`, light `#FEE2E2`, dark `#7F1D1D`
+- Info: base `#2563EB`, light `#DBEAFE`, dark `#1D4ED8`
+
+All text over backgrounds:
+
+- Normal text: contrast ≥ 4.5:1
+- Large text (≥18px/14px bold): contrast ≥ 3:1
+
+**Surface colors**
+
+- Page background: very light blue `#ECF2F8` (matches current hero wash).
+- Card surface: warm white `#FBFBF7` at 0.95 opacity over background.
+- Elevated card: same with subtle shadow `rgba(0, 0, 0, 0.08)`.
+- Overlay (modals): `rgba(4, 9, 20, 0.65)`.
+- Borders: `heritage-navy-100` for subtle, `heritage-navy-300` for focus/active.
+
+---
+
+## COMPONENT REDESIGN SPECIFICATIONS
+
+I’ll focus on the components visible in the screenshot and their upgraded behaviors, **preserving existing color styles**.
+
+### 1. Page Header (“Money Transfer”)
+
+- **Current:** Title + subtitle, somewhat disconnected from the form.
+- **Upgraded:**
+  - H1: “Money transfer”
+  - Subcopy: “Send money securely in your preferred currency to internal or external accounts.”
+  - Add inline pill showing current mode: “Single transfer” with future support for “Bulk transfer”.
+- **Micro-interactions:**
+  - Subtle fade‑in/stagger on load (150–200ms).
+- **States:** No complex states; responsive resizing on smaller viewports.
+
+### 2. Transfer Details Card
+
+Fields: Payment Type, From Account, Amount, Recipient Account Number, Reference/Description, Send Money button, inline error banner.
+
+- **Current issues:**
+  - Linear form with limited guidance.
+  - Errors appear only as a generic banner (“Failed to load accounts”) and a bottom “1 error” toast.
+  - No clear step separation or confirmation stage.
+- **Upgraded design:**
+  - **Two sections within the card:**
+    - “Transfer setup” (top): structured into logical groups:
+      - Transfer type: Internal / Domestic / International (segmented control).
+      - From: account selector with balance, currency, and quick‑filter (e.g., show only accounts with sufficient funds).
+      - To: “Saved recipient” dropdown + “Add new recipient” link (opens side drawer).
+      - Amount: numeric input with currency selector, live display of “You will send” and “Recipient will receive” if FX.
+      - Schedule: “Send now” / “Schedule for later” toggle with date & time picker.
+      - Reference: optional, with character count and examples (“e.g., Rent payment”).
+    - “Review & confirm” (bottom section or second step):
+      - Summary of From, To, Amount, Fees, Delivery estimate, Reference.
+      - Confirmation method indicator (one‑time passcode, in‑app approval).
+      - “Confirm transfer” primary CTA.
+  - Error banner:
+    - Upgraded copy: “We couldn’t load your accounts. Please refresh or try again later.”
+    - Include “Retry” inline button.
+- **Micro-interactions:**
+  - When user selects an account, update `Transfer Limits` and `Used Today` in the side panel with animated count‑up (200–300ms).
+  - When changing amount, show live validation: fade in red helper text if exceeding limits, or green when within limit.
+  - On click of “Next: Review”, card transitions with a slide‑up or cross‑fade to show summary.
+- **States:**
+  - Default: neutral, with lightly outlined fields.
+  - Hover: background stays, but inputs get slightly stronger border; primary button gains light elevation.
+  - Focus: strong navy border, 2px, with box‑shadow using soft gold for accessibility.
+  - Active (button): pressed state reduces elevation and darkens navy slightly.
+  - Disabled: inputs and button use reduced opacity; maintain contrast for labels.
+  - Loading: CTA shows spinner and “Processing…” label; form fields read‑only.
+  - Error: fields with errors show red border + inline message; error banner at top card; toast anchored bottom‑left.
+  - Success: after confirmation, card shows success state with check icon and “Transfer scheduled” message, plus link “View details”.
+
+### 3. Payment Type Control
+
+- **Current:** Dropdown selecting “Internal Transfer (Instant)”.
+- **Upgraded:**
+  - Segmented control with 3–4 options:
+    - Internal (instant)
+    - Domestic
+    - International (SWIFT)
+    - Own accounts
+  - Selecting a mode reconfigures the form (progressive disclosure of SWIFT fields, recipient address, etc.).
+- **States:** Keyboard focus ring, clear selection highlight, ARIA `role="tablist"` semantics.
+
+### 4. From Account Selector
+
+- **Current:** Simple dropdown “Select account”.
+- **Upgraded:**
+  - Combobox showing:
+    - Account nickname
+    - Masked account number
+    - Current balance
+    - Currency
+  - Smart default: pre-select the primary account with sufficient balance.
+  - Filter chip “Show only accounts with sufficient balance” (enabled by default).
+- **Micro-interactions:** On opening, list animates in (scale+fade 120ms).
+
+### 5. Amount Input
+
+- **Current:** Text input with `$0.00`.
+- **Upgraded:**
+  - Split control:
+    - Numeric input with thousands separator while typing.
+    - Currency dropdown (locked to base currency for internal, dynamic for international).
+  - Live guidance text:
+    - “Available to send: $X,XXX.XX”
+    - “Daily limit remaining after this transfer: $Y,YYY.YY”
+  - Quick chips below input: “+ $1,000”, “+ $5,000”, “Max”.
+- **States:** Error if > available balance or > daily limit; show clear, concise message.
+
+### 6. Recipient Section
+
+- **Current:** Single text field “Recipient Account Number”.
+- **Upgraded:**
+  - “Recipient” combobox:
+    - Search by name, nickname, or account number.
+    - Items show avatar + bank + last used date.
+  - “Add new recipient” link opens drawer with full details (bank, routing, SWIFT).
+  - Option “Save this recipient” (checked by default).
+- **Micro-interactions:** Selected recipient summary chip appears below field with minimal details and “Change” link.
+
+### 7. Reference / Description
+
+- **Current:** Simple free text input with placeholder.
+- **Upgraded:**
+  - Label: “Reference for your statement”.
+  - Helper: “Visible on both your statement and, where supported, the recipient’s statement.”
+  - Character counter (e.g., “0 / 35”).
+
+### 8. Send / Confirm Button
+
+- **Current:** “Send Money” solid navy button.
+- **Upgraded:**
+  - Primary CTA text depends on stage:
+    - Setup stage: “Next: Review details”
+    - Review stage: “Confirm transfer”
+  - Supporting text below: “You’ll be asked to confirm with a security code.”
+- **States:** As described earlier; add small arrow icon that animates slightly to the right on hover.
+
+### 9. Transfer Limits Card
+
+- **Current:** Simple card with “Daily Limit” and “Used Today”.
+- **Upgraded:**
+  - Title: “Transfer limits”.
+  - Show:
+    - Daily limit (value)
+    - Used today (value)
+    - Remaining today (computed).
+    - If relevant, per‑transaction limit.
+  - Visual: simple horizontal meter representing remaining daily capacity.
+- **Micro-interactions:** When user edits amount, meter updates with smooth width animation (150ms).
+
+### 10. Security Info Card
+
+- **Current:** Short, generic security text.
+- **Upgraded:**
+  - Title: “Security & processing”.
+  - Bullet points:
+    - “Transfers are encrypted end‑to‑end.”
+    - “Internal transfers post instantly.”
+    - “External transfers may take 1–3 business days.”
+    - “We may call to verify unusual activity.”
+  - Optional: link “Learn more about transfer security”.
+- **Micro-interactions:** Icon subtle pulse when a high‑risk condition is detected.
+
+### 11. History Button
+
+- **Current:** “History” button top right of card.
+- **Upgraded:**
+  - Converts to a **right‑side drawer** trigger “Recent transfers”.
+  - Drawer includes last 10 transfers with quick re‑use action “Repeat this transfer”.
+- **States:** Drawer uses springy but subtle animation from the right; ESC closes; ARIA dialog semantics.
+
+### 12. Global Error Toast
+
+- **Current:** “1 error” toast bottom left.
+- **Upgraded:**
+  - Toast shows actionable message:
+    - “1 field requires your attention.” with “View” anchor scrolling/focusing the field.
+  - Timeout 6–8 seconds; persists longer for critical errors.
+
+---
+
+## CONTENT & COPY IMPROVEMENTS
+
+**Key labels & headings**
+
+- “Money Transfer” → “Money transfer”
+- Subtitle → “Send money securely in your preferred currency to internal or external accounts.”
+- “Transfer Details” → “Transfer details”
+- “Payment Type” → “Transfer type”
+- “From Account” → “From account”
+- “Recipient Account Number” → “Recipient account”
+- “Reference / Description” → “Reference for your statement”
+- “Send Money” → “Next: Review details” then “Confirm transfer”
+
+**Error copy**
+
+- Generic load error:
+  - Current: “Failed to load accounts. Please try again.”
+  - New: “We couldn’t load your accounts right now. Check your connection and select ‘Retry’. If this continues, please contact us.”
+- Validation errors:
+  - “Please enter a valid account number or email address” style:  
+    - “Enter a valid account number.”  
+    - “Enter an amount greater than 0.”  
+    - “This transfer exceeds your daily limit. Reduce the amount or try again tomorrow.”
+
+**Empty state messaging**
+
+- No saved recipients:
+  - “You don’t have any saved recipients yet. Create a new recipient to send your first transfer.”
+- No recent transfers:
+  - “You haven’t made any transfers in the last 30 days. Recent transfers will appear here for quick reuse.”
+
+**Onboarding/tooltip content**
+
+- Tooltips on:
+  - “Daily limit” – explain how limits are calculated.
+  - “Processing time” – differentiate internal vs external.
+  - “Reference” – clarify where it appears.
+
+---
+
+## IMAGERY & GRAPHIC ELEMENTS
+
+- **Hero imagery:** Keep current global network background but slightly reduce contrast and maintain existing blur to ensure the form remains primary.
+- **Icon library:** Continue using **Lucide** for consistency.  
+  Use outlined icons for secondary actions and filled/stronger icons for primary indicators (limits, security).
+- **Background treatments:** Maintain soft gradient + abstract network lines.  
+  Add a very light vignette around the edges to bring focus to the central card.
+- **Data visualization (limits):**
+  - Replace pure text with a simple progress meter in the Limits card.
+  - Optionally, small sparkline showing transfer volume last 7 days in the History drawer.
+
+---
+
+## ANIMATION & MOTION DESIGN
+
+**Guidelines**
+
+- Duration: 150–250ms for most UI transitions.
+- Easing: `cubic-bezier(0.16, 1, 0.3, 1)` (ease‑out) for entrances; `ease-in-out` for toggles.
+- Motion should be subtle; priority is clarity and perceived responsiveness.
+
+**Specific motions**
+
+- Page load:
+  - Header fades in (150ms).
+  - Transfer card slides up with fade (200ms).
+  - Context cards stagger (50ms delay each).
+- Hover states:
+  - Buttons: background color shift, slight scale up to 1.02, shadow increase.
+  - Cards: shadow deepen on hover; no large movement.
+- State transitions:
+  - Loading: “Confirm transfer” button morphs into loader with content fade; card fields dim.
+  - Empty → populated (recent transfers, recipients): items fade & slide in from bottom (120ms).
+- Navigation transitions:
+  - Changing transfer type: contents within form crossfade; layout stable.
+- Micro-interactions:
+  - Amount field: subtle highlight pulse when user hits quick chip (e.g. “+ $5,000”).
+  - Limits meter: animated width update.
+
+---
+
+## BANNER & PROMOTIONAL ELEMENTS
+
+- **In-app notification banners:**
+  - Style: narrow bar below header; left icon, message, right close icon.
+  - Variants: info, warning, error, success (colors from semantic palette).
+  - Behavior: dismissible; some high‑priority messages “sticky” until resolved.
+- **Promotional / upsell (optional):**
+  - Small, subtle upsell in History drawer, e.g. “Send regular payments? Create a standing order.”
+- **Alert/status banners:**
+  - Example: “We’ve noticed an unusual transfer pattern. We may call to verify this transfer.”
+  - Use error or warning style, always with explicit instructions.
+
+---
+
+## USER WORKFLOW OPTIMIZATION
+
+**Primary task: send a transfer (internal or external)**
+
+1. Land on Money transfer page.
+2. Select transfer type (internal / domestic / international).
+3. Choose “From account” (default suggested).
+4. Select a saved recipient or add a new one.
+5. Enter amount and currency.
+6. Optionally schedule (now or later).
+7. Add reference (optional).
+8. Review summary (From, To, Amount, Fee, Delivery, Limits impact).
+9. Confirm with security step (e.g., OTP, app confirmation).
+10. See success state and optionally “Repeat this transfer” or “Save as template”.
+
+**Friction points & fixes**
+
+- **Friction:** Users must repeatedly type recipient details.  
+  - **Fix:** Saved recipients + quick reuse.
+- **Friction:** Limits and available balance are not contextual.  
+  - **Fix:** Live limit remaining and available balance under Amount / Limits card.
+- **Friction:** No preview of fees or delivery time.  
+  - **Fix:** On amount + type selection, show inline “Estimated fee” and “Expected delivery”.
+- **Progressive disclosure:**
+  - Only show advanced fields (SWIFT, intermediary bank) when type = International.
+  - Only show schedule controls when user toggles “Schedule for later”.
+- **Smart defaults & shortcuts:**
+  - Default From account = most used funding account with sufficient balance.
+  - Prefill amount from commonly used patterns (e.g., last amount to this recipient) with a “Use last amount: $X” chip.
+  - Keyboard shortcuts (optional desktop enhancement): `Alt+N` for new recipient, `Alt+H` for history, etc.
+
+---
+
+## ACCESSIBILITY UPGRADES
+
+- **ARIA labels:**
+  - “Transfer type” segmented control: `role="tablist"` with `aria-selected` for active type.
+  - From account and recipient dropdowns as `role="combobox"` with proper `aria-expanded` and `aria-controls`.
+  - Amount input: `aria-describedby` linking to helper text for available balance and limit warnings.
+  - Error banner uses `role="alert"`.
+- **Focus management:**
+  - Logical tab order: header → form fields top to bottom → context panel → footer.
+  - After pressing “Next: Review”, set focus on the review card heading.
+  - If validation fails, focus moves to first invalid field, and a toast describes the issue.
+- **Screen reader announcements:**
+  - When limits or fees change (after user changes amount), use ARIA live region to announce: “Fee updated: $X. Remaining daily limit: $Y.”
+  - On success: “Transfer submitted. Reference ID XXXX.”
+- **Color-blind safety:**
+  - Do not rely on color alone:
+    - Limit bar uses both color and text labels for used/remaining.
+    - Validation errors show icon + message + border, not just red color.
+
+---
+
+## IMPLEMENTATION ROADMAP
+
+**Phase 1 — Quick wins (1–3 days)**
+
+- Add improved copy for headers, errors, and helper text.
+- Add “Retry” action to account load error banner.
+- Introduce saved recipients dropdown backed by existing data model (simple version).
+- Improve limits card with “Remaining today” and textual guidance.
+
+**Phase 2 — Core rebuild (1–2 weeks)**
+
+- Implement unified 2‑step flow (Setup → Review & confirm).
+- Add segmented transfer type control with progressive disclosure fields.
+- Implement new From account and Recipient comboboxes with search and avatars.
+- Add scheduling controls and smart defaults.
+- Replace History button with Recent transfers drawer with “Repeat transfer”.
+- Integrate ARIA, focus, and live regions per spec.
+
+**Phase 3 — Polish & delight (ongoing)**
+
+- Add subtle animations for load, hover, and metrics updates.
+- Extend History drawer with filters, export, and more advanced status indicators.
+- Add personalization: “Suggested amount” based on patterns (if allowed by compliance).
+- Performance tuning, skeleton loaders, and error resiliency improvements.
+
+---
+
+## CODE SNIPPET (React + Tailwind, aligned with current design)
+
+Below is a simplified React + Tailwind example that demonstrates:
+
+- The new **layout structure** (transfer card + context panel).
+- Upgraded **TransferForm** and **LimitsPanel** components with core interactions.
+
+```tsx
+import { useState } from "react";
+
+type TransferType = "internal" | "domestic" | "international";
+
+const transferTypes: { id: TransferType; label: string; description: string }[] = [
+  { id: "internal", label: "Internal", description: "Between your JP Heritage accounts" },
+  { id: "domestic", label: "Domestic", description: "Same-country accounts" },
+  { id: "international", label: "International", description: "Cross-border transfer" },
+];
+
+const mockAccounts = [
+  { id: "1", name: "Private Checking", number: "••• 7890", balance: 52000, currency: "USD" },
+  { id: "2", name: "Investment Account", number: "••• 4321", balance: 180000, currency: "USD" },
+];
+
+const mockRecipients = [
+  { id: "r1", name: "St. James Property Ltd", account: "••• 2245", bank: "Heritage Bank" },
+  { id: "r2", name: "Alex Morgan", account: "••• 9981", bank: "Global Trust" },
+];
+
+export function MoneyTransferPage() {
+  const [transferType, setTransferType] = useState<TransferType>("internal");
+  const [fromAccountId, setFromAccountId] = useState<string>(mockAccounts[0]?.id ?? "");
+  const [recipientId, setRecipientId] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [isReview, setIsReview] = useState(false);
+
+  const fromAccount = mockAccounts.find(a => a.id === fromAccountId) ?? null;
+  const dailyLimit = 50000;
+  const usedToday = 0;
+  const numericAmount = Number(amount.replace(/,/g, "")) || 0;
+  const remainingAfter = dailyLimit - usedToday - numericAmount;
+  const limitExceeded = numericAmount > 0 && numericAmount + usedToday > dailyLimit;
+
+  return (
+    <div className="min-h-screen bg-[color:var(--heritage-page-bg)]">
+      <div className="max-w-6xl mx-auto px-6 py-10 space-y-6">
+        <header className="space-y-2">
+          <h1 className="text-3xl font-serif text-[color:var(--heritage-navy)]">
+            Money transfer
+          </h1>
+          <p className="text-sm text-gray-600 max-w-xl">
+            Send money securely in your preferred currency to internal or external accounts.
+          </p>
+        </header>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(260px,2fr)]">
+          <TransferFormCard
+            transferType={transferType}
+            setTransferType={setTransferType}
+            fromAccount={fromAccount}
+            setFromAccountId={setFromAccountId}
+            recipientId={recipientId}
+            setRecipientId={setRecipientId}
+            amount={amount}
+            setAmount={setAmount}
+            isReview={isReview}
+            setIsReview={setIsReview}
+            limitExceeded={limitExceeded}
+            remainingAfter={remainingAfter}
+          />
+          <div className="space-y-4">
+            <LimitsPanel dailyLimit={dailyLimit} usedToday={usedToday} amount={numericAmount} />
+            <SecurityPanel />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type TransferFormCardProps = {
+  transferType: TransferType;
+  setTransferType: (t: TransferType) => void;
+  fromAccount: typeof mockAccounts[number] | null;
+  setFromAccountId: (id: string) => void;
+  recipientId: string;
+  setRecipientId: (id: string) => void;
+  amount: string;
+  setAmount: (v: string) => void;
+  isReview: boolean;
+  setIsReview: (v: boolean) => void;
+  limitExceeded: boolean;
+  remainingAfter: number;
+};
+
+function TransferFormCard(props: TransferFormCardProps) {
+  const {
+    transferType,
+    setTransferType,
+    fromAccount,
+    setFromAccountId,
+    recipientId,
+    setRecipientId,
+    amount,
+    setAmount,
+    isReview,
+    setIsReview,
+    limitExceeded,
+    remainingAfter,
+  } = props;
+
+  const reviewDisabled = !fromAccount || !recipientId || !amount || Number(amount.replace(/,/g, "")) <= 0;
+
+  return (
+    <div className="bg-[color:var(--heritage-surface)]/95 backdrop-blur-md border border-[color:var(--heritage-navy)]/10 shadow-xl rounded-sm p-6 space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-serif text-[color:var(--heritage-navy)]">
+          Transfer details
+        </h2>
+        <span className="inline-flex items-center rounded-full border border-[color:var(--heritage-navy)]/15 px-3 py-1 text-xs text-gray-600">
+          Single transfer
+        </span>
+      </div>
+
+      {!isReview && (
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">Transfer type</label>
+            <div className="inline-flex rounded-full bg-gray-100 p-1">
+              {transferTypes.map(t => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTransferType(t.id)}
+                  className={[
+                    "px-3 py-1.5 rounded-full text-xs transition",
+                    transferType === t.id
+                      ? "bg-[color:var(--heritage-navy)] text-white"
+                      : "text-gray-600 hover:bg-white",
+                  ].join(" ")}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-700">From account</label>
+              <select
+                className="w-full h-10 rounded-sm border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[color:var(--heritage-navy)] focus:ring-2 focus:ring-[color:var(--heritage-navy)]/30"
+                value={fromAccount?.id ?? ""}
+                onChange={e => setFromAccountId(e.target.value)}
+              >
+                <option value="">Select account</option>
+                {mockAccounts.map(acc => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} ({acc.number}) · {acc.currency} {acc.balance.toLocaleString()}
+                  </option>
+                ))}
+              </select>
+              {fromAccount && (
+                <p className="text-xs text-gray-500">
+                  Available balance: {fromAccount.currency} {fromAccount.balance.toLocaleString()}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-700">Amount</label>
+              <div className="flex rounded-sm border border-gray-300 bg-white focus-within:border-[color:var(--heritage-navy)] focus-within:ring-2 focus-within:ring-[color:var(--heritage-navy)]/30">
+                <input
+                  className="flex-1 h-10 px-3 text-sm text-gray-900 bg-transparent outline-none"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                />
+                <div className="flex items-center px-3 text-xs text-gray-600 border-l border-gray-200">
+                  USD
+                </div>
+              </div>
+              {limitExceeded ? (
+                <p className="text-xs text-red-600">
+                  This exceeds your daily limit. Reduce the amount.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Remaining after this transfer: USD {Math.max(remainingAfter, 0).toLocaleString()}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">Recipient</label>
+            <select
+              className="w-full h-10 rounded-sm border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-[color:var(--heritage-navy)] focus:ring-2 focus:ring-[color:var(--heritage-navy)]/30"
+              value={recipientId}
+              onChange={e => setRecipientId(e.target.value)}
+            >
+              <option value="">Select saved recipient</option>
+              {mockRecipients.map(r => (
+                <option key={r.id} value={r.id}>
+                  {r.name} ({r.account}) · {r.bank}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="text-xs text-[color:var(--heritage-navy)] hover:text-[color:var(--heritage-navy-mid)]"
+            >
+              Add new recipient
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-700">Reference for your statement</label>
+            <input
+              className="w-full h-10 rounded-sm border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[color:var(--heritage-navy)] focus:ring-2 focus:ring-[color:var(--heritage-navy)]/30"
+              placeholder="e.g. Rent payment"
+            />
+            <p className="text-xs text-gray-500">Shown on your statement and, where supported, the recipient’s.</p>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="button"
+              disabled={reviewDisabled || limitExceeded}
+              onClick={() => setIsReview(true)}
+              className={[
+                "w-full h-11 inline-flex items-center justify-center text-sm font-medium rounded-sm transition",
+                reviewDisabled || limitExceeded
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-[color:var(--heritage-navy)] text-white hover:bg-[color:var(--heritage-navy-mid)]",
+              ].join(" ")}
+            >
+              Next: Review details
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isReview && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-gray-800">Review transfer</h3>
+          <div className="rounded-sm border border-[color:var(--heritage-navy)]/10 bg-white/80 p-4 space-y-2 text-sm text-gray-700">
+            <div className="flex justify-between">
+              <span>From</span>
+              <span>{fromAccount ? `${fromAccount.name} (${fromAccount.number})` : "Not selected"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>To</span>
+              <span>
+                {recipientId
+                  ? mockRecipients.find(r => r.id === recipientId)?.name
+                  : "Not selected"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Amount</span>
+              <span>USD {amount || "0.00"}</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 pt-1">
+              <span>Estimated fee</span>
+              <span>USD 0.00</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              className="text-xs text-[color:var(--heritage-navy)] hover:text-[color:var(--heritage-navy-mid)]"
+              onClick={() => setIsReview(false)}
+            >
+              Back to edit
+            </button>
+            <button
+              type="button"
+              className="h-11 px-6 inline-flex items-center justify-center text-sm font-medium rounded-sm bg-[color:var(--heritage-navy)] text-white hover:bg-[color:var(--heritage-navy-mid)]"
+            >
+              Confirm transfer
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type LimitsPanelProps = {
+  dailyLimit: number;
+  usedToday: number;
+  amount: number;
+};
+
+function LimitsPanel({ dailyLimit, usedToday, amount }: LimitsPanelProps) {
+  const totalUsed = usedToday + amount;
+  const ratio = Math.min(totalUsed / dailyLimit, 1);
+  const remaining = Math.max(dailyLimit - totalUsed, 0);
+
+  return (
+    <div className="bg-[color:var(--heritage-surface)]/95 backdrop-blur-md border border-[color:var(--heritage-navy)]/10 shadow-md rounded-sm p-4 space-y-3">
+      <h3 className="text-sm font-medium text-[color:var(--heritage-navy)]">
+        Transfer limits
+      </h3>
+      <div className="space-y-1 text-xs text-gray-700">
+        <div className="flex justify-between">
+          <span>Daily limit</span>
+          <span>USD {dailyLimit.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Used today</span>
+          <span>USD {totalUsed.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Remaining after this transfer</span>
+          <span>USD {remaining.toLocaleString()}</span>
+        </div>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-[color:var(--heritage-navy)] transition-[width]"
+          style={{ width: `${ratio * 100}%` }}
+        />
+      </div>
+      <p className="text-xs text-gray-500">
+        Large transfers may require additional verification.
+      </p>
+    </div>
+  );
+}
+
+function SecurityPanel() {
+  return (
+    <div className="bg-[color:var(--heritage-surface)]/95 backdrop-blur-md border border-[color:var(--heritage-navy)]/10 shadow-md rounded-sm p-4 space-y-2">
+      <h3 className="text-sm font-medium text-[color:var(--heritage-navy)]">
+        Security & processing
+      </h3>
+      <ul className="space-y-1 text-xs text-gray-700">
+        <li>Transfers are encrypted end-to-end.</li>
+        <li>Internal transfers post instantly.</li>
+        <li>External transfers may take 1–3 business days.</li>
+        <li>Unusual activity may require a quick verification call.</li>
+      </ul>
+    </div>
+  );
+}
+```
+
+This snippet illustrates the **feature and workflow upgrades** while staying within your existing visual language (navy header, light cards, soft surfaces). It can be wired into your current Next.js + Tailwind stack and progressively enhanced with real data, saved recipients, and security flows.

@@ -1,0 +1,74 @@
+# Heritage Vault — E-Banking Portal (JP Heritage Bank)
+
+The secure customer banking portal for JP Heritage Bank, allowing users to manage accounts, transactions, transfers, cards, and more.
+
+## 🏗️ Technology Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Directory)
+- **Styling**: Tailwind CSS
+- **State Management**: React Hooks
+- **Testing**: Playwright (E2E) & Jest (Unit)
+- **Status**: 🔄 **~72% Complete** ([View Technical Review](./TECHNICAL_REVIEW.md))
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+- Backend API running (usually on port 3001)
+
+### Installation
+
+```bash
+cd e-banking-portal
+npm install
+```
+
+### Development
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:4000](http://localhost:4000) with your browser.
+
+## 🔌 Integration
+
+The E-Banking Portal relies heavily on the Backend API:
+
+- **Authentication**: JWT tokens currently stored in `localStorage` (HTTP-only cookie migration pending — see TECHNICAL_REVIEW.md §1.1)
+- **Data**: Most modules fetch from the backend API. Cards module and savings goals use local/mock data (see TECHNICAL_REVIEW.md §2.6)
+
+### Environment Variables
+
+See `.env.local`:
+
+- `NEXT_PUBLIC_API_URL`: URL of the Backend API (e.g., `http://localhost:3001` or ngrok URL)
+- `NEXT_PUBLIC_CORPORATE_URL`: URL of the Corporate Website
+- `NEXT_PUBLIC_SESSION_TIMEOUT`: Session timeout in ms
+
+## 🧪 Testing
+
+### End-to-End Tests (Playwright)
+
+```bash
+cd e2e
+npm run test:e2e
+```
+
+### Component Tests
+
+```bash
+npm test
+```
+
+## 📂 Project Structure
+
+- `/app`: Next.js App Router structure
+- `/components`: UI components (Dashboard, Transactions, etc.)
+- `/hooks`: Custom React hooks for data fetching and logic
+- `/services`: API service layer
+- `/e2e`: Playwright E2E tests

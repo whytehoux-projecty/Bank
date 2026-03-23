@@ -1,0 +1,2906 @@
+# AURUM VAULT E-BANKING PORTAL
+## Transfer System Enhancement Implementation Guide
+
+**Document Version**: 1.0  
+**Created**: February 20, 2026  
+**Purpose**: Enhance transfer functionality to world-class standards while preserving existing UI/UX design  
+**Target Audience**: AI Development Assistant
+
+---
+
+## 📋 Table of Contents
+
+1. [Current State Analysis](#current-state-analysis)
+2. [Design System Preservation](#design-system-preservation)
+3. [Implementation Phases](#implementation-phases)
+4. [Detailed Feature Specifications](#detailed-feature-specifications)
+5. [Database Schema Updates](#database-schema-updates)
+6. [API Endpoints](#api-endpoints)
+7. [Frontend Components](#frontend-components)
+8. [Testing Checklist](#testing-checklist)
+
+---
+
+## 🎯 Current State Analysis
+
+### Existing Features (DO NOT REMOVE)
+✅ Internal Transfer (Instant)  
+✅ Wire Transfer  
+✅ Transfer Limits Display  
+✅ Security Info Panel  
+✅ History Button  
+✅ Amount Input with Currency Symbol  
+✅ Reference/Description Field  
+✅ Error Handling (Red Banner)
+
+### Current Design System (MUST PRESERVE)
+
+```css
+/* Color Palette - DO NOT CHANGE */
+--primary-navy: #2C3E50;        /* Header, buttons */
+--accent-gold: #D4A574;         /* Icons, highlights */
+--background-cream: #F5F5F0;    /* Page background */
+--card-white: #FFFFFF;          /* Card backgrounds */
+--text-dark: #1A1A1A;          /* Headings */
+--text-gray: #6B7280;          /* Body text */
+--error-red: #FEE2E2;          /* Error banner bg */
+--error-text: #DC2626;         /* Error text */
+--success-green: #10B981;      /* Success states */
+
+/* Typography - DO NOT CHANGE */
+--font-heading: 'Playfair Display', serif;  /* For headings */
+--font-body: 'Inter', sans-serif;           /* For body text */
+
+/* Spacing - MAINTAIN CONSISTENCY */
+--spacing-xs: 0.5rem;   /* 8px */
+--spacing-sm: 0.75rem;  /* 12px */
+--spacing-md: 1rem;     /* 16px */
+--spacing-lg: 1.5rem;   /* 24px */
+--spacing-xl: 2rem;     /* 32px */
+
+/* Border Radius - MAINTAIN */
+--radius-sm: 4px;
+--radius-md: 8px;
+--radius-lg: 12px;
+
+/* Shadows - MAINTAIN */
+--shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+--shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+--shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+```
+
+### Current Layout Structure (PRESERVE)
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Header: "Money Transfer"                  [History] │
+│ Subtitle: "Send money securely..."                  │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│ ┌─────────────────────────┐  ┌──────────────────┐  │
+│ │  Transfer Details       │  │ Transfer Limits  │  │
+│ │  [FORM FIELDS]          │  │ Daily: $50,000   │  │
+│ │                         │  │ Used: $0.00      │  │
+│ │                         │  ├──────────────────┤  │
+│ │                         │  │ Security Info    │  │
+│ │                         │  │ [SECURITY MSGS]  │  │
+│ └─────────────────────────┘  └──────────────────┘  │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🔧 Implementation Phases
+
+### Phase 1: Foundation (Week 1-2)
+**Priority**: CRITICAL  
+**Impact**: High  
+**Breaking Changes**: None
+
+#### 1.1 Fix Current Issues
+- Resolve "Failed to load accounts" error
+- Implement proper error handling with retry mechanism
+- Add loading states (skeleton UI)
+- Add account balance validation
+
+#### 1.2 Add Transfer Method Expansion
+- Add 4 new transfer types (total 6)
+- Implement dynamic form fields based on transfer type
+- Add transfer type icons
+
+#### 1.3 Enhance Account Selection
+- Show account balances in dropdown
+- Add account type icons
+- Implement real-time balance updates
+- Add insufficient funds warning
+
+### Phase 2: Core Enhancements (Week 3-4)
+**Priority**: HIGH  
+**Impact**: High  
+**Breaking Changes**: None
+
+#### 2.1 Beneficiary Management
+- Create saved beneficiaries system
+- Add quick select from recent recipients
+- Implement beneficiary verification
+- Add nickname feature
+
+#### 2.2 Multi-Step Transfer Flow
+- Convert to 3-step process (Details → Review → Confirm)
+- Add progress indicator
+- Implement back/forward navigation
+- Add confirmation page with receipt
+
+#### 2.3 Security Enhancements
+- Add 2FA verification step
+- Implement transaction verification
+- Add suspicious activity detection
+- Add cooling period for large transfers
+
+### Phase 3: Advanced Features (Week 5-8)
+**Priority**: MEDIUM  
+**Impact**: Medium  
+**Breaking Changes**: None
+
+#### 3.1 Scheduled Transfers
+- Add transfer scheduler with calendar
+- Implement recurring transfers
+- Add transfer templates
+- Add future-dated transfers
+
+#### 3.2 Smart Features
+- Add split payment functionality
+- Implement amount suggestions
+- Add contact integration (Zelle)
+- Add QR code transfer
+
+#### 3.3 International Transfers
+- Add FX rate calculator
+- Implement multi-currency support
+- Add SWIFT/IBAN validation
+- Add fee breakdown display
+
+### Phase 4: Premium Features (Week 9-12)
+**Priority**: LOW  
+**Impact**: Medium  
+**Breaking Changes**: None
+
+#### 4.1 Business Features
+- Add batch transfers (CSV upload)
+- Implement approval workflows
+- Add invoice payment
+- Add virtual card generation
+
+#### 4.2 AI-Powered Features
+- Add fraud detection alerts
+- Implement spending insights
+- Add smart categorization
+- Add predictive transfer suggestions
+
+---
+
+## 📐 Detailed Feature Specifications
+
+### FEATURE 1: Enhanced Transfer Types
+
+#### Implementation Location
+**File**: `transfer-page.tsx` or `transfer.component.tsx`  
+**Section**: Payment Type Dropdown
+
+#### Current Code (Preserve Structure)
+```tsx
+// Current implementation has:
+<select name="paymentType">
+  <option value="internal">Internal Transfer (Instant)</option>
+  <option value="wire">Wire Transfer</option>
+</select>
+```
+
+#### Enhanced Code (Add to Existing)
+```tsx
+// ENHANCE: Add more transfer types while keeping existing ones
+const transferTypes = [
+  // EXISTING - DO NOT REMOVE
+  {
+    id: 'internal',
+    name: 'Internal Transfer',
+    description: 'Between your Aurum Vault accounts',
+    icon: 'ArrowRightLeft',
+    processingTime: 'Instant',
+    fee: '$0.00',
+    limit: 50000,
+    color: '#10B981', // Green
+  },
+  {
+    id: 'wire_domestic',
+    name: 'Domestic Wire',
+    description: 'To any US bank account',
+    icon: 'Zap',
+    processingTime: 'Same day',
+    fee: '$25.00',
+    limit: 100000,
+    color: '#3B82F6', // Blue
+  },
+  
+  // NEW - ADD THESE
+  {
+    id: 'ach',
+    name: 'ACH Transfer',
+    description: 'To external bank accounts',
+    icon: 'Building2',
+    processingTime: '1-3 business days',
+    fee: '$0.00',
+    limit: 25000,
+    color: '#8B5CF6', // Purple
+    isNew: true, // Flag to show "NEW" badge
+  },
+  {
+    id: 'zelle',
+    name: 'Zelle',
+    description: 'Send to email or phone number',
+    icon: 'Smartphone',
+    processingTime: 'Instant',
+    fee: '$0.00',
+    limit: 2500,
+    color: '#6366F1', // Indigo
+    isNew: true,
+    requiresRecipient: 'email_or_phone', // Dynamic field requirement
+  },
+  {
+    id: 'wire_international',
+    name: 'International Wire',
+    description: 'Send money worldwide (SWIFT)',
+    icon: 'Globe',
+    processingTime: '1-5 business days',
+    fee: 'From $45.00',
+    limit: 250000,
+    color: '#EC4899', // Pink
+    isNew: true,
+    requiresRecipient: 'swift_iban',
+    requiresFX: true, // Requires currency conversion
+  },
+  {
+    id: 'rtp',
+    name: 'Real-Time Payments',
+    description: 'Instant transfer to RTP-enabled banks',
+    icon: 'Zap',
+    processingTime: 'Instant',
+    fee: '$0.50',
+    limit: 25000,
+    color: '#F59E0B', // Amber
+    isNew: true,
+    beta: true, // Show "BETA" badge
+  },
+];
+
+// COMPONENT STRUCTURE (Preserve existing card layout)
+<div className="transfer-type-selector">
+  {/* Add visual cards instead of plain dropdown */}
+  <div className="transfer-type-grid">
+    {transferTypes.map((type) => (
+      <button
+        key={type.id}
+        className={`transfer-type-card ${selectedType === type.id ? 'active' : ''}`}
+        onClick={() => handleTypeSelect(type)}
+        style={{
+          '--type-color': type.color // CSS variable for accent color
+        }}
+      >
+        {/* Icon */}
+        <div className="type-icon" style={{ backgroundColor: `${type.color}15` }}>
+          <Icon name={type.icon} color={type.color} />
+        </div>
+        
+        {/* Name and Description */}
+        <div className="type-info">
+          <div className="type-name">
+            {type.name}
+            {type.isNew && <span className="badge badge-new">NEW</span>}
+            {type.beta && <span className="badge badge-beta">BETA</span>}
+          </div>
+          <div className="type-description">{type.description}</div>
+        </div>
+        
+        {/* Processing Time and Fee */}
+        <div className="type-meta">
+          <div className="meta-item">
+            <ClockIcon size={14} />
+            <span>{type.processingTime}</span>
+          </div>
+          <div className="meta-item">
+            <DollarIcon size={14} />
+            <span>{type.fee}</span>
+          </div>
+        </div>
+      </button>
+    ))}
+  </div>
+</div>
+```
+
+#### CSS (Add without removing existing styles)
+```css
+/* Transfer Type Selector - ADD TO EXISTING STYLES */
+.transfer-type-selector {
+  margin-bottom: var(--spacing-lg);
+}
+
+.transfer-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.transfer-type-card {
+  background: var(--card-white);
+  border: 2px solid #E5E7EB;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.transfer-type-card:hover {
+  border-color: var(--type-color);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.transfer-type-card.active {
+  border-color: var(--type-color);
+  background: linear-gradient(to bottom, var(--card-white), rgba(212, 165, 116, 0.03));
+  box-shadow: var(--shadow-lg);
+}
+
+.transfer-type-card.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--type-color);
+}
+
+.type-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.type-info {
+  margin-bottom: var(--spacing-md);
+}
+
+.type-name {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.type-description {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  line-height: 1.5;
+}
+
+.type-meta {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-new {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.badge-beta {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .transfer-type-grid {
+    grid-template-columns: 1fr;
+  }
+}
+```
+
+---
+
+### FEATURE 2: Beneficiary Management System
+
+#### Implementation Location
+**New Component**: `BeneficiarySelector.tsx`  
+**Integration Point**: Before "Recipient Account Number" field
+
+#### Component Structure
+```tsx
+// NEW COMPONENT - Add above existing recipient input
+import React, { useState, useEffect } from 'react';
+
+interface Beneficiary {
+  id: string;
+  name: string;
+  accountNumber: string;
+  bankName?: string;
+  nickname?: string;
+  accountType: 'checking' | 'savings';
+  lastUsed?: Date;
+  isFavorite?: boolean;
+  avatar?: string; // Initials or image
+}
+
+export const BeneficiarySelector: React.FC<{
+  transferType: string;
+  onSelect: (beneficiary: Beneficiary) => void;
+  onManage: () => void;
+}> = ({ transferType, onSelect, onManage }) => {
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [recentRecipients, setRecentRecipients] = useState<Beneficiary[]>([]);
+  const [showAll, setShowAll] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    // Fetch saved beneficiaries
+    fetchBeneficiaries();
+    fetchRecentRecipients();
+  }, [transferType]);
+
+  const fetchBeneficiaries = async () => {
+    // API call to get saved beneficiaries
+    const response = await fetch('/api/beneficiaries?type=' + transferType);
+    const data = await response.json();
+    setBeneficiaries(data);
+  };
+
+  const fetchRecentRecipients = async () => {
+    // API call to get recent recipients
+    const response = await fetch('/api/transfers/recent-recipients?limit=5');
+    const data = await response.json();
+    setRecentRecipients(data);
+  };
+
+  const filteredBeneficiaries = beneficiaries.filter(b =>
+    b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.accountNumber.includes(searchQuery)
+  );
+
+  return (
+    <div className="beneficiary-selector">
+      {/* Quick Select Tabs */}
+      <div className="beneficiary-tabs">
+        <button 
+          className="tab active"
+          onClick={() => setShowAll(false)}
+        >
+          <UsersIcon size={16} />
+          Saved Beneficiaries ({beneficiaries.length})
+        </button>
+        <button 
+          className="tab"
+          onClick={() => setShowAll(true)}
+        >
+          <ClockIcon size={16} />
+          Recent ({recentRecipients.length})
+        </button>
+        <button 
+          className="tab tab-action"
+          onClick={onManage}
+        >
+          <PlusIcon size={16} />
+          Add New
+        </button>
+      </div>
+
+      {/* Search */}
+      {beneficiaries.length > 0 && (
+        <div className="beneficiary-search">
+          <SearchIcon size={18} />
+          <input
+            type="text"
+            placeholder="Search by name or account number..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      )}
+
+      {/* Beneficiary List */}
+      <div className="beneficiary-list">
+        {(showAll ? recentRecipients : filteredBeneficiaries).map((beneficiary) => (
+          <button
+            key={beneficiary.id}
+            className="beneficiary-item"
+            onClick={() => onSelect(beneficiary)}
+          >
+            {/* Avatar */}
+            <div className="beneficiary-avatar">
+              {beneficiary.avatar || getInitials(beneficiary.name)}
+            </div>
+
+            {/* Info */}
+            <div className="beneficiary-info">
+              <div className="beneficiary-name">
+                {beneficiary.nickname || beneficiary.name}
+                {beneficiary.isFavorite && <StarIcon size={14} fill="gold" />}
+              </div>
+              <div className="beneficiary-details">
+                {maskAccountNumber(beneficiary.accountNumber)}
+                {beneficiary.bankName && ` • ${beneficiary.bankName}`}
+              </div>
+            </div>
+
+            {/* Last Used */}
+            {beneficiary.lastUsed && (
+              <div className="beneficiary-meta">
+                <span className="last-used">
+                  {formatRelativeTime(beneficiary.lastUsed)}
+                </span>
+              </div>
+            )}
+
+            <ChevronRightIcon size={18} color="#9CA3AF" />
+          </button>
+        ))}
+
+        {filteredBeneficiaries.length === 0 && (
+          <div className="empty-state">
+            <UsersIcon size={48} color="#D1D5DB" />
+            <p>No saved beneficiaries</p>
+            <button className="btn-link" onClick={onManage}>
+              Add your first beneficiary
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Or Divider */}
+      <div className="divider">
+        <span>OR</span>
+      </div>
+    </div>
+  );
+};
+
+// Helper functions
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const maskAccountNumber = (accountNumber: string) => {
+  return '****' + accountNumber.slice(-4);
+};
+
+const formatRelativeTime = (date: Date) => {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  return date.toLocaleDateString();
+};
+```
+
+#### CSS for Beneficiary Selector
+```css
+/* Beneficiary Selector - ADD TO EXISTING STYLES */
+.beneficiary-selector {
+  margin-bottom: var(--spacing-lg);
+}
+
+.beneficiary-tabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-gray);
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--text-dark);
+  background: rgba(212, 165, 116, 0.05);
+}
+
+.tab.active {
+  color: var(--accent-gold);
+  border-bottom-color: var(--accent-gold);
+}
+
+.tab-action {
+  margin-left: auto;
+  color: var(--accent-gold);
+}
+
+.beneficiary-search {
+  position: relative;
+  margin-bottom: var(--spacing-md);
+}
+
+.beneficiary-search input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) 40px;
+  border: 1px solid #E5E7EB;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+.beneficiary-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-gray);
+}
+
+.beneficiary-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: var(--spacing-md);
+}
+
+.beneficiary-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  background: var(--card-white);
+  border: 1px solid #E5E7EB;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.beneficiary-item:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(4px);
+}
+
+.beneficiary-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-gold), #E8D294);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--primary-navy);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.beneficiary-info {
+  flex: 1;
+  min-width: 0; /* For text truncation */
+}
+
+.beneficiary-name {
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.beneficiary-details {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+.beneficiary-meta {
+  text-align: right;
+}
+
+.last-used {
+  font-size: 0.75rem;
+  color: var(--text-gray);
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: var(--spacing-xl) 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #E5E7EB;
+}
+
+.divider span {
+  position: relative;
+  display: inline-block;
+  padding: 0 var(--spacing-md);
+  background: var(--background-cream);
+  color: var(--text-gray);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-gray);
+}
+
+.empty-state svg {
+  margin-bottom: var(--spacing-md);
+}
+
+.empty-state p {
+  margin-bottom: var(--spacing-md);
+  font-size: 0.875rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent-gold);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+```
+
+---
+
+### FEATURE 3: Enhanced Account Selection with Balances
+
+#### Implementation Location
+**File**: Existing "From Account" dropdown  
+**Action**: REPLACE dropdown with enhanced selector
+
+#### Current Code
+```tsx
+// CURRENT (Simple dropdown - REPLACE THIS)
+<select name="fromAccount" className="form-select">
+  <option value="">Select account</option>
+  {/* accounts mapped here */}
+</select>
+```
+
+#### Enhanced Code
+```tsx
+// ENHANCED - Replace with this interactive selector
+import React, { useState, useEffect } from 'react';
+
+interface Account {
+  id: string;
+  accountNumber: string;
+  accountType: 'checking' | 'savings' | 'money_market' | 'credit';
+  balance: number;
+  availableBalance: number;
+  accountName: string;
+  currency: string;
+  isDefault?: boolean;
+}
+
+export const AccountSelector: React.FC<{
+  label: string;
+  value: string;
+  onChange: (account: Account) => void;
+  excludeAccount?: string; // For "To Account" to exclude "From Account"
+  transferAmount?: number; // To validate sufficient funds
+}> = ({ label, value, onChange, excludeAccount, transferAmount }) => {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
+
+  const fetchAccounts = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/accounts');
+      
+      if (!response.ok) {
+        throw new Error('Failed to load accounts');
+      }
+      
+      const data = await response.json();
+      setAccounts(data);
+      
+      // Auto-select default account
+      const defaultAccount = data.find((acc: Account) => acc.isDefault);
+      if (defaultAccount && !value) {
+        setSelectedAccount(defaultAccount);
+        onChange(defaultAccount);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    fetchAccounts();
+  };
+
+  const handleSelect = (account: Account) => {
+    setSelectedAccount(account);
+    onChange(account);
+    setIsOpen(false);
+  };
+
+  const getAccountIcon = (type: string) => {
+    switch (type) {
+      case 'checking': return '💳';
+      case 'savings': return '🏦';
+      case 'money_market': return '📈';
+      case 'credit': return '💎';
+      default: return '💰';
+    }
+  };
+
+  const hasInsufficientFunds = (account: Account) => {
+    return transferAmount && account.availableBalance < transferAmount;
+  };
+
+  const filteredAccounts = accounts.filter(
+    acc => acc.id !== excludeAccount
+  );
+
+  // Loading State
+  if (loading) {
+    return (
+      <div className="account-selector loading">
+        <label>{label}</label>
+        <div className="skeleton-loader">
+          <div className="skeleton-line"></div>
+          <div className="skeleton-line short"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div className="account-selector error-state">
+        <label>{label}</label>
+        <div className="error-banner">
+          <AlertCircleIcon size={20} />
+          <div className="error-content">
+            <p className="error-message">{error}</p>
+            <button 
+              className="btn-retry"
+              onClick={handleRetry}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="account-selector">
+      <label>{label}</label>
+      
+      {/* Selected Account Display */}
+      <div 
+        className={`account-display ${isOpen ? 'open' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedAccount ? (
+          <div className="selected-account">
+            <div className="account-icon">
+              {getAccountIcon(selectedAccount.accountType)}
+            </div>
+            <div className="account-info">
+              <div className="account-name">
+                {selectedAccount.accountName}
+              </div>
+              <div className="account-number">
+                {maskAccountNumber(selectedAccount.accountNumber)}
+              </div>
+            </div>
+            <div className="account-balance">
+              <div className="balance-label">Available</div>
+              <div className="balance-amount">
+                ${formatNumber(selectedAccount.availableBalance)}
+              </div>
+            </div>
+            <ChevronDownIcon 
+              size={20} 
+              className={`chevron ${isOpen ? 'rotated' : ''}`}
+            />
+          </div>
+        ) : (
+          <div className="placeholder">
+            Select account
+            <ChevronDownIcon size={20} />
+          </div>
+        )}
+      </div>
+
+      {/* Dropdown Options */}
+      {isOpen && (
+        <div className="account-dropdown">
+          {filteredAccounts.map((account) => {
+            const insufficient = hasInsufficientFunds(account);
+            
+            return (
+              <button
+                key={account.id}
+                className={`account-option ${insufficient ? 'insufficient' : ''} ${selectedAccount?.id === account.id ? 'selected' : ''}`}
+                onClick={() => !insufficient && handleSelect(account)}
+                disabled={insufficient}
+              >
+                <div className="account-icon">
+                  {getAccountIcon(account.accountType)}
+                </div>
+                <div className="account-info">
+                  <div className="account-name">
+                    {account.accountName}
+                    {account.isDefault && (
+                      <span className="default-badge">DEFAULT</span>
+                    )}
+                  </div>
+                  <div className="account-number">
+                    {maskAccountNumber(account.accountNumber)}
+                  </div>
+                </div>
+                <div className="account-balance">
+                  <div className="balance-label">Available</div>
+                  <div className={`balance-amount ${insufficient ? 'insufficient' : ''}`}>
+                    ${formatNumber(account.availableBalance)}
+                  </div>
+                  {insufficient && (
+                    <div className="insufficient-label">
+                      Insufficient funds
+                    </div>
+                  )}
+                </div>
+                {selectedAccount?.id === account.id && (
+                  <CheckIcon size={20} color="#10B981" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Balance Warning */}
+      {selectedAccount && transferAmount && (
+        <div className="balance-warning">
+          {hasInsufficientFunds(selectedAccount) ? (
+            <div className="warning error">
+              <AlertCircleIcon size={16} />
+              Insufficient funds. Available: ${formatNumber(selectedAccount.availableBalance)}
+            </div>
+          ) : selectedAccount.availableBalance - transferAmount < 100 ? (
+            <div className="warning caution">
+              <AlertTriangleIcon size={16} />
+              Low balance after transfer: ${formatNumber(selectedAccount.availableBalance - transferAmount)}
+            </div>
+          ) : (
+            <div className="balance-preview">
+              New balance: ${formatNumber(selectedAccount.availableBalance - transferAmount)}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Helper functions
+const maskAccountNumber = (accountNumber: string) => {
+  return '****' + accountNumber.slice(-4);
+};
+
+const formatNumber = (num: number) => {
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+```
+
+#### CSS for Account Selector
+```css
+/* Account Selector - ADD TO EXISTING STYLES */
+.account-selector {
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+}
+
+.account-selector label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.account-display {
+  background: var(--card-white);
+  border: 2px solid #E5E7EB;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-display:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-sm);
+}
+
+.account-display.open {
+  border-color: var(--accent-gold);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.selected-account {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.account-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-cream);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.account-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-name {
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.account-number {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  font-family: var(--font-mono, monospace);
+}
+
+.account-balance {
+  text-align: right;
+}
+
+.balance-label {
+  font-size: 0.75rem;
+  color: var(--text-gray);
+  margin-bottom: 2px;
+}
+
+.balance-amount {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-family: var(--font-mono, monospace);
+}
+
+.balance-amount.insufficient {
+  color: var(--error-text);
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  color: var(--text-gray);
+  flex-shrink: 0;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.placeholder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-gray);
+}
+
+/* Dropdown */
+.account-dropdown {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 0;
+  right: 0;
+  background: var(--card-white);
+  border: 2px solid var(--accent-gold);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: var(--shadow-lg);
+}
+
+.account-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  border: none;
+  border-bottom: 1px solid #F3F4F6;
+  background: var(--card-white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.account-option:last-child {
+  border-bottom: none;
+}
+
+.account-option:hover:not(:disabled) {
+  background: var(--background-cream);
+}
+
+.account-option.selected {
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.account-option.insufficient {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.account-option:disabled {
+  cursor: not-allowed;
+}
+
+.default-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  background: var(--accent-gold);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.insufficient-label {
+  font-size: 0.75rem;
+  color: var(--error-text);
+  margin-top: 2px;
+}
+
+/* Balance Warning */
+.balance-warning {
+  margin-top: var(--spacing-sm);
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.warning.error {
+  background: var(--error-red);
+  color: var(--error-text);
+}
+
+.warning.caution {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.balance-preview {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  padding: var(--spacing-sm);
+  background: var(--background-cream);
+  border-radius: var(--radius-sm);
+}
+
+/* Loading State */
+.skeleton-loader {
+  padding: var(--spacing-md);
+  background: var(--card-white);
+  border: 2px solid #E5E7EB;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-line {
+  height: 20px;
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Error State */
+.error-state .error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--error-red);
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-md);
+}
+
+.error-content {
+  flex: 1;
+}
+
+.error-message {
+  color: var(--error-text);
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.875rem;
+}
+
+.btn-retry {
+  background: none;
+  border: none;
+  color: var(--error-text);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.875rem;
+  padding: 0;
+}
+
+.btn-retry:hover {
+  text-decoration: none;
+}
+```
+
+---
+
+### FEATURE 4: Multi-Step Transfer Flow with Progress Indicator
+
+#### Implementation Strategy
+**Action**: Wrap existing form in a stepper component  
+**Preservation**: Keep all existing form fields, just reorganize into steps
+
+#### Component Structure
+```tsx
+// WRAPPER COMPONENT - Add around existing transfer form
+import React, { useState } from 'react';
+
+type TransferStep = 'details' | 'review' | 'verify' | 'confirm';
+
+interface StepConfig {
+  id: TransferStep;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+const TRANSFER_STEPS: StepConfig[] = [
+  {
+    id: 'details',
+    label: 'Transfer Details',
+    icon: 'FileText',
+    description: 'Enter transfer information'
+  },
+  {
+    id: 'review',
+    label: 'Review',
+    icon: 'Eye',
+    description: 'Verify transfer details'
+  },
+  {
+    id: 'verify',
+    label: 'Verify',
+    icon: 'Shield',
+    description: 'Security verification'
+  },
+  {
+    id: 'confirm',
+    label: 'Complete',
+    icon: 'CheckCircle',
+    description: 'Transfer confirmation'
+  }
+];
+
+export const TransferStepper: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const [currentStep, setCurrentStep] = useState<TransferStep>('details');
+  const [completedSteps, setCompletedSteps] = useState<TransferStep[]>([]);
+  const [transferData, setTransferData] = useState<any>(null);
+
+  const currentStepIndex = TRANSFER_STEPS.findIndex(s => s.id === currentStep);
+
+  const handleNext = (data: any) => {
+    setTransferData({ ...transferData, ...data });
+    setCompletedSteps([...completedSteps, currentStep]);
+    
+    const nextIndex = currentStepIndex + 1;
+    if (nextIndex < TRANSFER_STEPS.length) {
+      setCurrentStep(TRANSFER_STEPS[nextIndex].id);
+    }
+  };
+
+  const handleBack = () => {
+    const prevIndex = currentStepIndex - 1;
+    if (prevIndex >= 0) {
+      setCurrentStep(TRANSFER_STEPS[prevIndex].id);
+    }
+  };
+
+  const isStepCompleted = (stepId: TransferStep) => {
+    return completedSteps.includes(stepId);
+  };
+
+  const isStepActive = (stepId: TransferStep) => {
+    return currentStep === stepId;
+  };
+
+  return (
+    <div className="transfer-stepper">
+      {/* Progress Indicator */}
+      <div className="stepper-progress">
+        {TRANSFER_STEPS.map((step, index) => (
+          <div 
+            key={step.id}
+            className={`step-item ${isStepActive(step.id) ? 'active' : ''} ${isStepCompleted(step.id) ? 'completed' : ''}`}
+          >
+            {/* Step Number/Icon */}
+            <div className="step-indicator">
+              {isStepCompleted(step.id) ? (
+                <CheckIcon size={20} />
+              ) : (
+                <span className="step-number">{index + 1}</span>
+              )}
+            </div>
+
+            {/* Step Info */}
+            <div className="step-info">
+              <div className="step-label">{step.label}</div>
+              <div className="step-description">{step.description}</div>
+            </div>
+
+            {/* Connector Line */}
+            {index < TRANSFER_STEPS.length - 1 && (
+              <div className={`step-connector ${isStepCompleted(step.id) ? 'completed' : ''}`} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Step Content */}
+      <div className="stepper-content">
+        {currentStep === 'details' && (
+          <StepDetails 
+            onNext={handleNext}
+            initialData={transferData}
+          />
+        )}
+
+        {currentStep === 'review' && (
+          <StepReview 
+            data={transferData}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 'verify' && (
+          <StepVerify 
+            data={transferData}
+            onNext={handleNext}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentStep === 'confirm' && (
+          <StepConfirm 
+            data={transferData}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// STEP 1: Details (Your existing form goes here)
+const StepDetails: React.FC<{
+  onNext: (data: any) => void;
+  initialData: any;
+}> = ({ onNext, initialData }) => {
+  const [formData, setFormData] = useState(initialData || {});
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNext(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="step-form">
+      {/* 
+        YOUR EXISTING FORM FIELDS GO HERE
+        - Transfer Type Selector
+        - Account Selector (From)
+        - Beneficiary Selector / Recipient Input
+        - Amount Input
+        - Reference/Description
+      */}
+      
+      <div className="form-actions">
+        <button type="submit" className="btn btn-primary btn-full">
+          Review Transfer
+          <ArrowRightIcon size={20} />
+        </button>
+      </div>
+    </form>
+  );
+};
+
+// STEP 2: Review
+const StepReview: React.FC<{
+  data: any;
+  onNext: () => void;
+  onBack: () => void;
+}> = ({ data, onNext, onBack }) => {
+  return (
+    <div className="review-step">
+      <h3 className="step-title">Review Transfer Details</h3>
+      <p className="step-subtitle">Please verify all information before proceeding</p>
+
+      <div className="review-card">
+        <div className="review-section">
+          <h4>Transfer Information</h4>
+          
+          <div className="review-row">
+            <span className="review-label">Transfer Type</span>
+            <span className="review-value">{data.transferType}</span>
+          </div>
+
+          <div className="review-row">
+            <span className="review-label">From Account</span>
+            <span className="review-value">
+              {data.fromAccount?.accountName}
+              <span className="account-number">
+                {maskAccountNumber(data.fromAccount?.accountNumber)}
+              </span>
+            </span>
+          </div>
+
+          <div className="review-row">
+            <span className="review-label">To Recipient</span>
+            <span className="review-value">
+              {data.beneficiary?.name || data.recipientAccountNumber}
+            </span>
+          </div>
+
+          <div className="review-row highlight">
+            <span className="review-label">Amount</span>
+            <span className="review-value amount">
+              ${formatNumber(data.amount)}
+            </span>
+          </div>
+
+          {data.fee && (
+            <div className="review-row">
+              <span className="review-label">Fee</span>
+              <span className="review-value">${formatNumber(data.fee)}</span>
+            </div>
+          )}
+
+          {data.reference && (
+            <div className="review-row">
+              <span className="review-label">Reference</span>
+              <span className="review-value">{data.reference}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="review-section">
+          <h4>Processing Details</h4>
+          
+          <div className="review-row">
+            <span className="review-label">Processing Time</span>
+            <span className="review-value">{data.processingTime}</span>
+          </div>
+
+          <div className="review-row">
+            <span className="review-label">Estimated Arrival</span>
+            <span className="review-value">{calculateArrivalDate(data.processingTime)}</span>
+          </div>
+        </div>
+
+        {/* Important Notice */}
+        <div className="review-notice">
+          <AlertCircleIcon size={20} />
+          <div>
+            <strong>Important:</strong> Once confirmed, this transfer cannot be cancelled. 
+            Please ensure all details are correct.
+          </div>
+        </div>
+      </div>
+
+      <div className="form-actions">
+        <button 
+          type="button" 
+          className="btn btn-secondary"
+          onClick={onBack}
+        >
+          <ArrowLeftIcon size={20} />
+          Back
+        </button>
+        <button 
+          type="button" 
+          className="btn btn-primary"
+          onClick={onNext}
+        >
+          Verify Transfer
+          <ArrowRightIcon size={20} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// STEP 3: Verify (2FA/OTP)
+const StepVerify: React.FC<{
+  data: any;
+  onNext: () => void;
+  onBack: () => void;
+}> = ({ data, onNext, onBack }) => {
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
+  const [verificationMethod, setVerificationMethod] = useState<'sms' | 'email' | 'app'>('sms');
+  const [isResending, setIsResending] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+
+  useEffect(() => {
+    // Send verification code on mount
+    sendVerificationCode(verificationMethod);
+    
+    // Countdown timer
+    const timer = setInterval(() => {
+      setCountdown(prev => prev > 0 ? prev - 1 : 0);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const sendVerificationCode = async (method: string) => {
+    // API call to send verification code
+    await fetch('/api/verification/send', {
+      method: 'POST',
+      body: JSON.stringify({ method, transferId: data.id })
+    });
+  };
+
+  const handleVerify = async () => {
+    const code = verificationCode.join('');
+    // Verify code with backend
+    const response = await fetch('/api/verification/verify', {
+      method: 'POST',
+      body: JSON.stringify({ code, transferId: data.id })
+    });
+
+    if (response.ok) {
+      onNext();
+    } else {
+      // Handle error
+      alert('Invalid verification code');
+    }
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    await sendVerificationCode(verificationMethod);
+    setCountdown(60);
+    setIsResending(false);
+  };
+
+  return (
+    <div className="verify-step">
+      <div className="verify-icon">
+        <ShieldCheckIcon size={64} color="var(--accent-gold)" />
+      </div>
+
+      <h3 className="step-title">Verify Your Identity</h3>
+      <p className="step-subtitle">
+        Enter the 6-digit code we sent to your {verificationMethod === 'sms' ? 'phone' : 'email'}
+      </p>
+
+      {/* Verification Method Selector */}
+      <div className="verification-methods">
+        <button 
+          className={`method-btn ${verificationMethod === 'sms' ? 'active' : ''}`}
+          onClick={() => setVerificationMethod('sms')}
+        >
+          <SmartphoneIcon size={20} />
+          SMS
+        </button>
+        <button 
+          className={`method-btn ${verificationMethod === 'email' ? 'active' : ''}`}
+          onClick={() => setVerificationMethod('email')}
+        >
+          <MailIcon size={20} />
+          Email
+        </button>
+        <button 
+          className={`method-btn ${verificationMethod === 'app' ? 'active' : ''}`}
+          onClick={() => setVerificationMethod('app')}
+        >
+          <KeyIcon size={20} />
+          Auth App
+        </button>
+      </div>
+
+      {/* OTP Input */}
+      <div className="otp-input-group">
+        {verificationCode.map((digit, index) => (
+          <input
+            key={index}
+            type="text"
+            maxLength={1}
+            value={digit}
+            onChange={(e) => {
+              const newCode = [...verificationCode];
+              newCode[index] = e.target.value;
+              setVerificationCode(newCode);
+              
+              // Auto-focus next input
+              if (e.target.value && index < 5) {
+                const nextInput = e.target.nextElementSibling as HTMLInputElement;
+                nextInput?.focus();
+              }
+            }}
+            onKeyDown={(e) => {
+              // Handle backspace
+              if (e.key === 'Backspace' && !digit && index > 0) {
+                const prevInput = e.target.previousElementSibling as HTMLInputElement;
+                prevInput?.focus();
+              }
+            }}
+            className="otp-input"
+          />
+        ))}
+      </div>
+
+      {/* Resend Code */}
+      <div className="resend-section">
+        {countdown > 0 ? (
+          <p className="countdown-text">
+            Resend code in {countdown}s
+          </p>
+        ) : (
+          <button 
+            className="btn-link"
+            onClick={handleResend}
+            disabled={isResending}
+          >
+            {isResending ? 'Sending...' : 'Resend Code'}
+          </button>
+        )}
+      </div>
+
+      <div className="form-actions">
+        <button 
+          type="button" 
+          className="btn btn-secondary"
+          onClick={onBack}
+        >
+          <ArrowLeftIcon size={20} />
+          Back
+        </button>
+        <button 
+          type="button" 
+          className="btn btn-primary"
+          onClick={handleVerify}
+          disabled={verificationCode.join('').length !== 6}
+        >
+          Confirm Transfer
+          <CheckIcon size={20} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// STEP 4: Confirmation
+const StepConfirm: React.FC<{
+  data: any;
+}> = ({ data }) => {
+  const [showReceipt, setShowReceipt] = useState(false);
+
+  const downloadReceipt = () => {
+    // Generate PDF receipt
+    window.print();
+  };
+
+  const shareReceipt = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: 'Transfer Receipt',
+        text: `Transfer of $${data.amount} completed successfully`,
+        url: window.location.href
+      });
+    }
+  };
+
+  return (
+    <div className="confirm-step">
+      {/* Success Animation */}
+      <div className="success-animation">
+        <div className="success-checkmark">
+          <CheckCircleIcon size={80} color="var(--success-green)" />
+        </div>
+      </div>
+
+      <h3 className="step-title success-title">Transfer Successful!</h3>
+      <p className="step-subtitle">
+        Your transfer of <strong>${formatNumber(data.amount)}</strong> has been processed
+      </p>
+
+      {/* Transfer Summary */}
+      <div className="confirmation-card">
+        <div className="confirmation-row">
+          <span className="label">Reference Number</span>
+          <span className="value reference-number">
+            {data.referenceNumber || 'AV-' + Date.now()}
+          </span>
+        </div>
+
+        <div className="confirmation-row">
+          <span className="label">From</span>
+          <span className="value">
+            {data.fromAccount?.accountName}
+          </span>
+        </div>
+
+        <div className="confirmation-row">
+          <span className="label">To</span>
+          <span className="value">
+            {data.beneficiary?.name || data.recipientAccountNumber}
+          </span>
+        </div>
+
+        <div className="confirmation-row">
+          <span className="label">Amount</span>
+          <span className="value amount">
+            ${formatNumber(data.amount)}
+          </span>
+        </div>
+
+        <div className="confirmation-row">
+          <span className="label">Date & Time</span>
+          <span className="value">
+            {new Date().toLocaleString()}
+          </span>
+        </div>
+
+        <div className="confirmation-row">
+          <span className="label">Status</span>
+          <span className="value status">
+            <span className="status-badge success">
+              <CheckIcon size={14} />
+              Completed
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="confirmation-actions">
+        <button className="btn btn-secondary" onClick={downloadReceipt}>
+          <DownloadIcon size={20} />
+          Download Receipt
+        </button>
+        <button className="btn btn-secondary" onClick={shareReceipt}>
+          <ShareIcon size={20} />
+          Share
+        </button>
+      </div>
+
+      {/* Next Steps */}
+      <div className="next-steps">
+        <h4>What's Next?</h4>
+        <div className="next-step-item">
+          <ClockIcon size={20} color="var(--accent-gold)" />
+          <p>
+            {data.processingTime === 'Instant' 
+              ? 'Funds are available immediately' 
+              : `Funds will be available in ${data.processingTime}`}
+          </p>
+        </div>
+        <div className="next-step-item">
+          <BellIcon size={20} color="var(--accent-gold)" />
+          <p>We'll notify you when the transfer is complete</p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="form-actions">
+        <button className="btn btn-secondary btn-full" onClick={() => window.location.href = '/dashboard'}>
+          Return to Dashboard
+        </button>
+        <button className="btn btn-primary btn-full" onClick={() => window.location.reload()}>
+          Make Another Transfer
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+#### CSS for Stepper
+```css
+/* Transfer Stepper - ADD TO EXISTING STYLES */
+.transfer-stepper {
+  margin-bottom: var(--spacing-2xl);
+}
+
+/* Progress Indicator */
+.stepper-progress {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-2xl);
+  padding: var(--spacing-xl);
+  background: var(--card-white);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.step-indicator {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  border: 3px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-sm);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.step-item.active .step-indicator {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.2);
+}
+
+.step-item.completed .step-indicator {
+  background: var(--success-green);
+  border-color: var(--success-green);
+}
+
+.step-number {
+  font-weight: 700;
+  color: #9CA3AF;
+}
+
+.step-item.active .step-number {
+  color: white;
+}
+
+.step-info {
+  text-align: center;
+}
+
+.step-label {
+  font-weight: 600;
+  color: var(--text-gray);
+  margin-bottom: 2px;
+}
+
+.step-item.active .step-label {
+  color: var(--accent-gold);
+}
+
+.step-description {
+  font-size: 0.75rem;
+  color: var(--text-gray);
+}
+
+.step-connector {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  right: -50%;
+  height: 3px;
+  background: #E5E7EB;
+  z-index: 1;
+}
+
+.step-connector.completed {
+  background: var(--success-green);
+}
+
+.step-item:last-child .step-connector {
+  display: none;
+}
+
+/* Step Content */
+.stepper-content {
+  background: var(--card-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+}
+
+.step-title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: var(--spacing-sm);
+  text-align: center;
+}
+
+.step-subtitle {
+  text-align: center;
+  color: var(--text-gray);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Review Step */
+.review-card {
+  background: var(--background-cream);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.review-section {
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid #D1D5DB;
+}
+
+.review-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.review-section h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: var(--spacing-md);
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.review-row.highlight {
+  background: var(--card-white);
+  padding: var(--spacing-md);
+  margin: var(--spacing-sm) calc(-1 * var(--spacing-md));
+  border-radius: var(--radius-md);
+}
+
+.review-label {
+  font-weight: 500;
+  color: var(--text-gray);
+}
+
+.review-value {
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: right;
+}
+
+.review-value.amount {
+  font-size: 1.5rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--accent-gold);
+}
+
+.review-value .account-number {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  font-family: var(--font-mono, monospace);
+  font-weight: 400;
+}
+
+.review-notice {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: #FEF3C7;
+  border-left: 4px solid #F59E0B;
+  border-radius: var(--radius-sm);
+  color: #92400E;
+  font-size: 0.875rem;
+  margin-top: var(--spacing-lg);
+}
+
+/* Verify Step */
+.verify-step {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.verify-icon {
+  margin-bottom: var(--spacing-lg);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.verification-methods {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  justify-content: center;
+}
+
+.method-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--background-cream);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+.method-btn:hover {
+  border-color: var(--accent-gold);
+}
+
+.method-btn.active {
+  background: var(--card-white);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: var(--shadow-sm);
+}
+
+.otp-input-group {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.otp-input {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 2px solid #E5E7EB;
+  border-radius: var(--radius-md);
+  background: var(--card-white);
+  color: var(--text-dark);
+  transition: all 0.2s ease;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+}
+
+.resend-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.countdown-text {
+  color: var(--text-gray);
+  font-size: 0.875rem;
+}
+
+/* Confirm Step */
+.confirm-step {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.success-animation {
+  margin-bottom: var(--spacing-lg);
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.success-checkmark {
+  display: inline-block;
+}
+
+.success-title {
+  color: var(--success-green);
+}
+
+.confirmation-card {
+  background: var(--background-cream);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  text-align: left;
+}
+
+.confirmation-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid #D1D5DB;
+}
+
+.confirmation-row:last-child {
+  border-bottom: none;
+}
+
+.confirmation-row .label {
+  font-weight: 500;
+  color: var(--text-gray);
+}
+
+.confirmation-row .value {
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: right;
+}
+
+.reference-number {
+  font-family: var(--font-mono, monospace);
+  color: var(--accent-gold);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.status-badge.success {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  justify-content: center;
+}
+
+.next-steps {
+  background: var(--background-cream);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  text-align: left;
+}
+
+.next-steps h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.next-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) 0;
+}
+
+.next-step-item p {
+  color: var(--text-gray);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+.form-actions button {
+  flex: 1;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stepper-progress {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .step-connector {
+    display: none;
+  }
+
+  .otp-input {
+    width: 40px;
+    height: 48px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirmation-actions {
+    flex-direction: column;
+  }
+}
+```
+
+---
+
+## 📊 Database Schema Updates
+
+### New Tables Required
+
+```sql
+-- Beneficiaries Table
+CREATE TABLE beneficiaries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    nickname VARCHAR(100),
+    account_number VARCHAR(50) NOT NULL,
+    routing_number VARCHAR(20),
+    bank_name VARCHAR(255),
+    bank_address TEXT,
+    account_type VARCHAR(20) CHECK (account_type IN ('checking', 'savings', 'money_market')),
+    beneficiary_type VARCHAR(20) CHECK (beneficiary_type IN ('internal', 'external', 'international')),
+    swift_code VARCHAR(20),
+    iban VARCHAR(50),
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    is_favorite BOOLEAN DEFAULT FALSE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    last_used_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, account_number)
+);
+
+-- Transfer Templates Table
+CREATE TABLE transfer_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    template_name VARCHAR(100) NOT NULL,
+    transfer_type VARCHAR(50) NOT NULL,
+    from_account_id UUID REFERENCES accounts(id),
+    beneficiary_id UUID REFERENCES beneficiaries(id),
+    amount DECIMAL(15, 2),
+    reference VARCHAR(255),
+    is_recurring BOOLEAN DEFAULT FALSE,
+    frequency VARCHAR(20), -- 'daily', 'weekly', 'monthly', 'yearly'
+    next_execution_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Scheduled Transfers Table
+CREATE TABLE scheduled_transfers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    from_account_id UUID NOT NULL REFERENCES accounts(id),
+    beneficiary_id UUID REFERENCES beneficiaries(id),
+    amount DECIMAL(15, 2) NOT NULL,
+    transfer_type VARCHAR(50) NOT NULL,
+    scheduled_date DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')),
+    reference VARCHAR(255),
+    is_recurring BOOLEAN DEFAULT FALSE,
+    frequency VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    executed_at TIMESTAMP,
+    CONSTRAINT future_date CHECK (scheduled_date >= CURRENT_DATE)
+);
+
+-- Transfer Verification Table
+CREATE TABLE transfer_verifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    transfer_id UUID REFERENCES transfers(id) ON DELETE CASCADE,
+    verification_method VARCHAR(20) CHECK (verification_method IN ('sms', 'email', 'app', 'biometric')),
+    verification_code VARCHAR(10),
+    code_sent_at TIMESTAMP,
+    code_expires_at TIMESTAMP,
+    verified_at TIMESTAMP,
+    attempts INT DEFAULT 0,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Transfer Limits Table (per transfer type)
+CREATE TABLE transfer_limits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    transfer_type VARCHAR(50) NOT NULL,
+    daily_limit DECIMAL(15, 2),
+    per_transaction_limit DECIMAL(15, 2),
+    monthly_limit DECIMAL(15, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, transfer_type)
+);
+
+-- Update existing transfers table
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS beneficiary_id UUID REFERENCES beneficiaries(id);
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS template_id UUID REFERENCES transfer_templates(id);
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS verification_id UUID REFERENCES transfer_verifications(id);
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS fee_amount DECIMAL(10, 2) DEFAULT 0;
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS exchange_rate DECIMAL(10, 6);
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS recipient_currency VARCHAR(3);
+ALTER TABLE transfers ADD COLUMN IF NOT EXISTS processing_time VARCHAR(50);
+
+-- Indexes for performance
+CREATE INDEX idx_beneficiaries_user_id ON beneficiaries(user_id);
+CREATE INDEX idx_beneficiaries_last_used ON beneficiaries(last_used_at DESC);
+CREATE INDEX idx_scheduled_transfers_date ON scheduled_transfers(scheduled_date);
+CREATE INDEX idx_scheduled_transfers_status ON scheduled_transfers(status);
+CREATE INDEX idx_transfers_beneficiary ON transfers(beneficiary_id);
+```
+
+---
+
+## 🔌 API Endpoints
+
+### New Endpoints to Implement
+
+```typescript
+// Beneficiary Management
+GET    /api/beneficiaries                    // List all beneficiaries
+POST   /api/beneficiaries                    // Add new beneficiary
+GET    /api/beneficiaries/:id                // Get beneficiary details
+PUT    /api/beneficiaries/:id                // Update beneficiary
+DELETE /api/beneficiaries/:id                // Delete beneficiary
+POST   /api/beneficiaries/:id/verify         // Verify beneficiary (micro-deposit)
+GET    /api/transfers/recent-recipients      // Get recent recipients
+
+// Transfer Templates
+GET    /api/transfer-templates               // List templates
+POST   /api/transfer-templates               // Create template
+PUT    /api/transfer-templates/:id           // Update template
+DELETE /api/transfer-templates/:id           // Delete template
+POST   /api/transfer-templates/:id/execute   // Execute template
+
+// Scheduled Transfers
+GET    /api/scheduled-transfers              // List scheduled
+POST   /api/scheduled-transfers              // Schedule transfer
+PUT    /api/scheduled-transfers/:id          // Update scheduled
+DELETE /api/scheduled-transfers/:id          // Cancel scheduled
+
+// Transfer Verification
+POST   /api/verification/send                // Send verification code
+POST   /api/verification/verify              // Verify code
+POST   /api/verification/resend              // Resend code
+
+// Transfer Fee Calculator
+POST   /api/transfers/calculate-fee          // Calculate fees
+
+// FX Rates (for international)
+GET    /api/fx-rates/:from/:to               // Get exchange rate
+
+// Transfer Limits
+GET    /api/transfer-limits                  // Get user limits
+GET    /api/transfer-limits/usage            // Get current usage
+```
+
+### Example API Implementation
+
+```typescript
+// Example: Beneficiary Controller
+import { Request, Response } from 'express';
+
+export class BeneficiaryController {
+  // GET /api/beneficiaries
+  async list(req: Request, res: Response) {
+    const { userId } = req.user;
+    const { type } = req.query;
+
+    try {
+      let query = db('beneficiaries')
+        .where({ user_id: userId })
+        .orderBy('last_used_at', 'desc');
+
+      if (type) {
+        query = query.where({ beneficiary_type: type });
+      }
+
+      const beneficiaries = await query;
+      
+      res.json({
+        success: true,
+        data: beneficiaries,
+        count: beneficiaries.length
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch beneficiaries'
+      });
+    }
+  }
+
+  // POST /api/beneficiaries
+  async create(req: Request, res: Response) {
+    const { userId } = req.user;
+    const beneficiaryData = req.body;
+
+    try {
+      // Validate beneficiary data
+      const validationErrors = validateBeneficiary(beneficiaryData);
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          success: false,
+          errors: validationErrors
+        });
+      }
+
+      // Check for duplicates
+      const existing = await db('beneficiaries')
+        .where({
+          user_id: userId,
+          account_number: beneficiaryData.accountNumber
+        })
+        .first();
+
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          error: 'Beneficiary already exists'
+        });
+      }
+
+      // Create beneficiary
+      const [beneficiary] = await db('beneficiaries')
+        .insert({
+          user_id: userId,
+          ...beneficiaryData,
+          created_at: new Date(),
+          updated_at: new Date()
+        })
+        .returning('*');
+
+      // For external beneficiaries, initiate verification
+      if (beneficiaryData.beneficiary_type === 'external') {
+        await initiateMicroDepositVerification(beneficiary.id);
+      }
+
+      res.status(201).json({
+        success: true,
+        data: beneficiary
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create beneficiary'
+      });
+    }
+  }
+
+  // POST /api/beneficiaries/:id/verify
+  async verify(req: Request, res: Response) {
+    const { userId } = req.user;
+    const { id } = req.params;
+    const { amount1, amount2 } = req.body;
+
+    try {
+      // Verify micro-deposit amounts
+      const isValid = await verifyMicroDeposits(id, amount1, amount2);
+
+      if (isValid) {
+        await db('beneficiaries')
+          .where({ id, user_id: userId })
+          .update({
+            is_verified: true,
+            updated_at: new Date()
+          });
+
+        res.json({
+          success: true,
+          message: 'Beneficiary verified successfully'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: 'Verification failed. Incorrect amounts.'
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Verification failed'
+      });
+    }
+  }
+}
+
+// Helper function
+function validateBeneficiary(data: any): string[] {
+  const errors: string[] = [];
+
+  if (!data.name) errors.push('Name is required');
+  if (!data.accountNumber) errors.push('Account number is required');
+  
+  if (data.beneficiary_type === 'external' && !data.routingNumber) {
+    errors.push('Routing number required for external accounts');
+  }
+
+  if (data.beneficiary_type === 'international') {
+    if (!data.swift_code && !data.iban) {
+      errors.push('SWIFT code or IBAN required for international transfers');
+    }
+  }
+
+  return errors;
+}
+```
+
+---
+
+## ✅ Implementation Checklist
+
+### Phase 1: Foundation (Week 1-2)
+
+#### Week 1
+- [ ] Fix "Failed to load accounts" error
+- [ ] Implement loading states (skeleton UI)
+- [ ] Add retry mechanism for failed requests
+- [ ] Add transfer type cards UI
+- [ ] Create transfer type configuration data
+- [ ] Add "NEW" and "BETA" badges
+
+#### Week 2
+- [ ] Implement enhanced account selector
+- [ ] Add account balance display
+- [ ] Add insufficient funds validation
+- [ ] Create beneficiary selector component
+- [ ] Set up beneficiaries database table
+- [ ] Create beneficiary API endpoints
+
+### Phase 2: Core Enhancements (Week 3-4)
+
+#### Week 3
+- [ ] Implement multi-step transfer flow
+- [ ] Create progress indicator component
+- [ ] Build review step UI
+- [ ] Add transfer summary display
+- [ ] Implement back/forward navigation
+
+#### Week 4
+- [ ] Create verification step UI
+- [ ] Implement OTP input component
+- [ ] Add verification API endpoints
+- [ ] Build confirmation page
+- [ ] Add receipt download functionality
+- [ ] Implement transfer notifications
+
+### Phase 3: Advanced Features (Week 5-8)
+
+#### Week 5-6
+- [ ] Create transfer scheduler UI
+- [ ] Implement calendar component
+- [ ] Add recurring transfer setup
+- [ ] Create scheduled transfers table
+- [ ] Build cron job for scheduled transfers
+
+#### Week 7-8
+- [ ] Add transfer templates feature
+- [ ] Implement split payment UI
+- [ ] Add contact integration for Zelle
+- [ ] Create QR code transfer feature
+- [ ] Add amount suggestions
+
+### Phase 4: Testing & Optimization (Week 9-12)
+
+#### Week 9-10
+- [ ] Write unit tests for all components
+- [ ] Write integration tests for transfer flow
+- [ ] Test error scenarios
+- [ ] Load testing for API endpoints
+- [ ] Security audit
+
+#### Week 11
+- [ ] Performance optimization
+- [ ] Code splitting
+- [ ] Bundle size optimization
+- [ ] Accessibility testing
+- [ ] Cross-browser testing
+
+#### Week 12
+- [ ] User acceptance testing
+- [ ] Bug fixes
+- [ ] Documentation
+- [ ] Deploy to staging
+- [ ] Final review and deployment
+
+---
+
+## 🎨 Design Tokens (DO NOT CHANGE)
+
+```json
+{
+  "colors": {
+    "primary": {
+      "navy": "#2C3E50",
+      "gold": "#D4A574"
+    },
+    "background": {
+      "cream": "#F5F5F0",
+      "white": "#FFFFFF"
+    },
+    "text": {
+      "dark": "#1A1A1A",
+      "gray": "#6B7280"
+    },
+    "status": {
+      "error": "#DC2626",
+      "errorBg": "#FEE2E2",
+      "success": "#10B981",
+      "warning": "#F59E0B"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "heading": "'Playfair Display', serif",
+      "body": "'Inter', sans-serif",
+      "mono": "monospace"
+    },
+    "fontSize": {
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.75rem"
+    }
+  },
+  "spacing": {
+    "xs": "0.5rem",
+    "sm": "0.75rem",
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "2rem",
+    "2xl": "3rem"
+  },
+  "borderRadius": {
+    "sm": "4px",
+    "md": "8px",
+    "lg": "12px",
+    "full": "9999px"
+  }
+}
+```
+
+---
+
+## 🔐 Security Checklist
+
+- [ ] All transfer amounts validated server-side
+- [ ] Rate limiting on transfer API (5 per minute)
+- [ ] 2FA required for transfers over $10,000
+- [ ] Cooling period for new beneficiaries (24 hours)
+- [ ] IP whitelisting for suspicious patterns
+- [ ] Transaction monitoring for fraud detection
+- [ ] Encryption for sensitive data in transit and at rest
+- [ ] Audit logging for all transfer operations
+- [ ] Session timeout after 15 minutes of inactivity
+- [ ] CSRF token validation on all POST requests
+
+---
+
+## 📱 Responsive Breakpoints
+
+```css
+/* Maintain these breakpoints */
+@media (max-width: 1024px) {
+  /* Tablet */
+}
+
+@media (max-width: 768px) {
+  /* Mobile landscape */
+}
+
+@media (max-width: 480px) {
+  /* Mobile portrait */
+}
+```
+
+---
+
+## 🚀 Deployment Instructions
+
+### Pre-Deployment Checklist
+1. Run all tests: `npm test`
+2. Build production bundle: `npm run build`
+3. Check bundle size: `npm run analyze`
+4. Run security audit: `npm audit`
+5. Update environment variables
+6. Database migration: `npm run migrate`
+7. Smoke test on staging
+
+### Deployment Steps
+1. Create feature branch
+2. Implement changes incrementally
+3. Test each component in isolation
+4. Integration testing
+5. Code review
+6. Merge to development
+7. Deploy to staging
+8. User acceptance testing
+9. Deploy to production (gradual rollout)
+10. Monitor error rates and performance
+
+---
+
+## 📞 Support & Maintenance
+
+### Monitoring
+- Set up error tracking (Sentry)
+- Monitor API response times
+- Track conversion funnel
+- Monitor transfer success rates
+- Alert on failed transfers
+
+### Maintenance Tasks
+- Weekly dependency updates
+- Monthly security patches
+- Quarterly feature reviews
+- Annual major upgrades
+
+---
+
+**END OF IMPLEMENTATION GUIDE**
+
+This guide provides complete specifications while preserving your existing design system. All new features integrate seamlessly with your current interface. Your AI assistant can implement these features incrementally without breaking changes.
+
+**Next Steps:**
+1. Review this guide
+2. Prioritize features for Phase 1
+3. Set up development environment
+4. Begin implementation with foundation fixes
+5. Test incrementally
+
+For questions or clarifications, refer to specific sections above.
