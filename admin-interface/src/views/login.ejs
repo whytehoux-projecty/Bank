@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JP Heritage Bank Admin Portal - Secure access for authorized personnel">
+    <title><%= title %> - JP Heritage Bank</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/jpheritage-logo.png">
+    <link rel="apple-touch-icon" href="/jpheritage-logo.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        .login-bg {
+            background-image: url('/images/banking-login-bg.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .input-underline {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(13, 37, 69, 0.3);
+            border-radius: 0;
+            color: #111827;
+            width: 100%;
+            padding: 0.5rem 0 0.5rem 0;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+
+        .input-underline:focus {
+            border-bottom: 2px solid #0D2545;
+        }
+
+        .input-underline::placeholder {
+            color: rgba(0, 0, 0, 0.3);
+        }
+
+        .input-underline-pr {
+            padding-right: 3rem;
+        }
+
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="h-full relative overflow-hidden login-bg" x-data="{ showPassword: false, isLoading: false }">
+
+    <!-- Subtle dark overlay for contrast -->
+    <div class="absolute inset-0 bg-navy-900/25"></div>
+
+    <!-- Top Header — Centered Logo (glassmorphism, matches e-banking portal) -->
+    <header class="absolute top-0 left-0 w-full z-40 py-4 flex items-center justify-center bg-transparent backdrop-blur-xl border-b border-white/20 shadow-sm">
+        <img src="/logoem.png" alt="JP Heritage Bank" class="h-16 w-auto object-contain drop-shadow-sm">
+    </header>
+
+    <!-- Centered Content Area -->
+    <div class="relative z-10 flex h-full items-center justify-center px-6 pb-20">
+
+        <!-- Login Card -->
+        <div class="w-80 bg-white/92 backdrop-blur-md shadow-2xl rounded-sm p-7 border border-navy-500/15">
+
+            <!-- Error Message -->
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="mb-5 p-3 bg-ruby-50 border border-ruby-200 rounded-sm">
+                <p class="text-xs text-ruby-700 font-medium flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <%= error %>
+                </p>
+            </div>
+            <% } %>
+
+            <!-- Form -->
+            <form action="/api/auth/form-login" method="POST" class="space-y-5" @submit="isLoading = true">
+
+                <!-- Email -->
+                <div class="space-y-1">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        class="input-underline"
+                        placeholder="admin@jpheritage.com"
+                        value="<%= typeof email !== 'undefined' ? email : '' %>"
+                        required
+                        autofocus>
+                </div>
+
+                <!-- Password -->
+                <div class="space-y-1">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <div class="relative">
+                        <input
+                            :type="showPassword ? 'text' : 'password'"
+                            name="password"
+                            id="password"
+                            class="input-underline input-underline-pr"
+                            placeholder="••••••••"
+                            required>
+                        <button
+                            type="button"
+                            @click="showPassword = !showPassword"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 text-navy-500 hover:text-navy-700 text-sm font-semibold transition-colors focus:outline-none">
+                            <span x-show="!showPassword">Show</span>
+                            <span x-show="showPassword" x-cloak>Hide</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input
+                                type="checkbox"
+                                name="remember"
+                                class="peer h-5 w-5 cursor-pointer appearance-none rounded-sm border border-gray-400 checked:border-navy-500 checked:bg-navy-500 transition-all">
+                            <div class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-600 group-hover:text-gray-900">Remember me</span>
+                    </label>
+                    <a href="#" class="text-sm text-navy-500 hover:text-navy-700 font-medium transition-colors">Forgot password?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button
+                        type="submit"
+                        class="w-full h-10 bg-navy-500 text-white text-sm font-bold rounded-sm hover:bg-navy-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        :disabled="isLoading">
+                        <span x-show="!isLoading">Sign In</span>
+                        <span x-show="isLoading" x-cloak class="flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Signing in...
+                        </span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="absolute bottom-0 left-0 w-full z-40 py-4 bg-navy-900/70 backdrop-blur-sm border-t border-white/10">
+        <div class="text-center space-y-1">
+            <p class="text-xs font-semibold text-white/80">Authorized personnel only. Unauthorized access is prohibited and monitored.</p>
+            <p class="text-xs text-white/40">&copy; <%= new Date().getFullYear() %> JP Heritage Bank. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
