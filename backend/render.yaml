@@ -1,0 +1,89 @@
+services:
+  # ============================================================
+  # JP Heritage Bank — Core API
+  # Fastify backend service
+  #
+  # Root directory in Render UI must be set to: backend
+  # ============================================================
+  - type: web
+    name: heritage-core-api
+    runtime: node
+    region: oregon
+    plan: starter
+    rootDir: .
+    buildCommand: npm install --include=dev && npm run build:shared && npm run build:api
+    startCommand: cd core-api && node dist/core-api/src/server.js
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: LOG_LEVEL
+        value: info
+      - key: ENABLE_SWAGGER
+        value: "false"
+      - key: ENABLE_RATE_LIMITING
+        value: "true"
+
+      # --- DATABASE (PostgreSQL) ---
+      # Option A: Render-managed Postgres (see databases section below)
+      # Option B: External provider (Neon, Supabase, etc.) — set manually
+      - key: DATABASE_URL
+        sync: false   # set in Render dashboard
+
+      # --- CACHE (Redis) ---
+      # Option A: Render-managed Redis (see databases section below)
+      # Option B: Upstash or external Redis — set manually
+      - key: REDIS_URL
+        sync: false
+
+      # --- JWT & SESSION SECRETS (generate with: openssl rand -base64 32) ---
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: ADMIN_JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+
+      # --- CORS ---
+      # Comma-separated list of allowed origins
+      # e.g. https://heritage-vault.netlify.app,https://admin.jpheritagebank.com
+      - key: CORS_ORIGINS
+        sync: false
+
+      # --- OPTIONAL ---
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: noreply@jpheritagebank.com
+      - key: NGROK_BACKEND_URL
+        value: ""
+      - key: NGROK_ADMIN_URL
+        value: ""
+      - key: NGROK_PORTAL_URL
+        value: ""
+
+# ============================================================
+# Managed Databases (optional — uncomment to provision on Render)
+# ============================================================
+# databases:
+#   - name: heritage-postgres
+#     databaseName: heritage_bank
+#     user: heritage_admin
+#     plan: starter
+#     region: oregon
+#
+#   - name: heritage-redis
+#     plan: starter
+#     region: oregon
+#     ipAllowList: []
