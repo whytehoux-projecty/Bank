@@ -30,7 +30,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { VintageIcon } from "@/components/ui/vintage-icon";
-import api from "@/lib/api-client";
+import { api } from "@/lib/api-client";
 import { toast } from "@/lib/toast";
 
 interface OpenAccountDialogProps {

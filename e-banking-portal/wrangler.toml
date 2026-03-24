@@ -1,0 +1,24 @@
+# Heritage Vault — E-Banking Portal
+# Cloudflare Pages deployment via @cloudflare/next-on-pages
+#
+# Build commands:
+#   npm run pages:build    →  npx @cloudflare/next-on-pages
+#   npx wrangler pages deploy .vercel/output/static
+#
+# Or connect the GitHub repo in the Cloudflare Pages dashboard and set:
+#   Build command:        npm run pages:build
+#   Build output dir:     .vercel/output/static
+#   Node version:         18
+
+name = "heritage-vault"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+NEXT_TELEMETRY_DISABLED = "1"
+NODE_ENV = "production"
+# NEXT_PUBLIC_API_URL is a build-time variable — set it as a Pages
+# environment variable in the Cloudflare dashboard (Settings → Variables).
+# It cannot be set here because it must be available at build time for
+# Next.js to embed it into client bundles.

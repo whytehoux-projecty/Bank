@@ -17,6 +17,16 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# NEXT_PUBLIC_* vars are baked into the client bundle at build time.
+# They must be declared as ARGs here so `npm run build` can read them.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_CORPORATE_URL
+ARG NEXT_PUBLIC_OCR_PROVIDER
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_CORPORATE_URL=$NEXT_PUBLIC_CORPORATE_URL
+ENV NEXT_PUBLIC_OCR_PROVIDER=$NEXT_PUBLIC_OCR_PROVIDER
+
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 
