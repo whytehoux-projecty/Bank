@@ -38,6 +38,11 @@ const getRefreshToken = (): string | null => {
 const setAccessToken = (token: string): void => {
   if (typeof window !== "undefined") {
     localStorage.setItem("accessToken", token);
+    // Mirror to a cookie so Next.js Edge middleware can enforce route protection.
+    // Not httpOnly (set from JS) but the backend still validates the JWT on every
+    // API call, so a fake cookie only shows empty pages — no data is exposed.
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `hv_auth=1; path=/; SameSite=Lax; Secure; expires=${expires}`;
   }
 };
 
@@ -51,6 +56,8 @@ const clearTokens = (): void => {
   if (typeof window !== "undefined") {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    // Expire the auth presence cookie
+    document.cookie = "hv_auth=; path=/; SameSite=Lax; Secure; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }
 };
 
