@@ -12,6 +12,8 @@ services:
     plan: starter
     rootDir: .
     buildCommand: npm install --include=dev && npm run build:shared && npm run build:api
+    # Runs ONLY the core-api. Do NOT use root `npm start` — that runs both
+    # core-api + admin-interface via concurrently, and admin is a separate service.
     startCommand: cd core-api && node dist/core-api/src/server.js
     healthCheckPath: /api/health
 
