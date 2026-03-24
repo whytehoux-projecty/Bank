@@ -2,7 +2,10 @@ import withPWA from 'next-pwa';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
+    // 'standalone' is only needed for Docker/Render self-hosted deployments.
+    // Netlify uses its own SSR plugin and does not use the standalone server.
+    // Set DOCKER_BUILD=1 in Dockerfile.prod / render.yaml to enable it.
+    ...(process.env.DOCKER_BUILD === '1' && { output: 'standalone' }),
     images: {
         unoptimized: true,
     },

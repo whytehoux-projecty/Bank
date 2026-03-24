@@ -1,0 +1,26 @@
+# Heritage Vault — E-Banking Portal
+# Netlify deployment configuration
+#
+# In the Netlify UI, set:
+#   Base directory:    e-banking-portal
+#   Build command:     (leave blank — defined here)
+#   Publish directory: (leave blank — defined here)
+#
+# Environment variables to add in Netlify UI → Site configuration → Environment variables:
+#   NEXT_PUBLIC_API_URL          https://your-backend-api.example.com
+#   NEXT_PUBLIC_CORPORATE_URL    https://your-corporate-site.netlify.app
+
+[build]
+  command = "npm ci && next build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION    = "18"
+  NODE_ENV        = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Next.js SSR plugin — handles server components, API routes, and middleware.
+# Netlify installs this automatically when it detects Next.js, but declaring
+# it explicitly pins the version and avoids auto-upgrade surprises.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

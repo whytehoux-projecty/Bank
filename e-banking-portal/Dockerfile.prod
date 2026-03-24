@@ -27,6 +27,9 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_CORPORATE_URL=$NEXT_PUBLIC_CORPORATE_URL
 ENV NEXT_PUBLIC_OCR_PROVIDER=$NEXT_PUBLIC_OCR_PROVIDER
 
+# Enables output: 'standalone' in next.config.mjs for self-hosted deployments.
+ENV DOCKER_BUILD=1
+
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 
