@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "dev:all": "concurrently \"npm run watch:css\" \"npm run dev\"",
-    "build": "npm run build:css && tsc",
+    "build": "npm --prefix ../backend/shared install --ignore-scripts && prisma generate && npm run build:css && tsc",
     "build:css": "npx tailwindcss -i ./public/css/main.css -o ./public/css/styles.css --minify",
     "watch:css": "npx tailwindcss -i ./public/css/main.css -o ./public/css/styles.css --watch",
     "start": "node dist/server.js",
@@ -31,6 +31,9 @@
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "bcrypt", "esbuild", "prisma"]
   },
   "dependencies": {
     "@fastify/compress": "^6.4.0",
