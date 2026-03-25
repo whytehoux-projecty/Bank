@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../lib/prisma';
 import { AuditService } from '../services/AuditService';
 import { userQuerySchema, transactionQuerySchema, wireTransferQuerySchema } from '@shared/validation';
+import { generateAccountNumber } from '@shared/utils/generators';
 
 // Validation schemas
 
@@ -904,6 +905,7 @@ export class AdminController {
       const account = await prisma.account.create({
         data: {
           userId: body.userId,
+          accountNumber: generateAccountNumber(),
           accountType: body.type as any,
           currency: body.currency || 'USD',
           balance: body.initialBalance || 0,
