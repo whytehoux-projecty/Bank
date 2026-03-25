@@ -47,7 +47,8 @@
   "exclude": [
     "dist",
     "tests",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/shared/shared"
   ],
   "ts-node": {
     "esm": true,

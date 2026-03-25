@@ -904,7 +904,7 @@ export class AdminController {
       const account = await prisma.account.create({
         data: {
           userId: body.userId,
-          type: body.type as any,
+          accountType: body.type as any,
           currency: body.currency || 'USD',
           balance: body.initialBalance || 0,
           status: 'ACTIVE',
