@@ -100,17 +100,19 @@ export async function build() {
   await fastify.register(formbody);
 
   // Static file serving
+  // __dirname is dist/src/ at runtime; public/ is two levels up
   await fastify.register(fastifyStatic, {
-    root: path.join(__dirname, "..", "public"),
+    root: path.join(__dirname, "../..", "public"),
     prefix: "/", // optional: default '/'
   });
 
   // View engine setup
+  // views are at src/views/ (two levels up from dist/src/, then into src/views/)
   await fastify.register(view, {
     engine: {
       ejs: ejs,
     },
-    root: path.join(__dirname, "views"),
+    root: path.join(__dirname, "../..", "src", "views"),
     // layout option removed to satisfy @fastify/view types
   });
 
