@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "dev:all": "concurrently \"npm run watch:css\" \"npm run dev\"",
-    "build": "npm --prefix ../backend/shared install --ignore-scripts && prisma generate && npm run build:css && tsc",
+    "build": "npm --prefix ../backend/shared install --ignore-scripts && prisma generate && npm run build:css && tsc && tsc-alias",
     "build:css": "npx tailwindcss -i ./public/css/main.css -o ./public/css/styles.css --minify",
     "watch:css": "npx tailwindcss -i ./public/css/main.css -o ./public/css/styles.css --watch",
     "start": "node dist/src/server.js",
@@ -91,6 +91,7 @@
     "supertest": "^6.3.3",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.1.1",
+    "tsc-alias": "^1.8.10",
     "ts-node": "^10.9.2",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
