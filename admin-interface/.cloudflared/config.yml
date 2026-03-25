@@ -1,0 +1,21 @@
+# Cloudflare Tunnel configuration for JP Heritage Bank Admin Interface
+#
+# This file is used after you have:
+#   1. Installed cloudflared on your server/VPS
+#   2. Run: cloudflared tunnel login
+#   3. Run: cloudflared tunnel create heritage-admin
+#   4. Copied the generated <Tunnel-UUID>.json to this directory
+#
+# Replace <TUNNEL-UUID> with the UUID output from step 3.
+# Replace admin.jpheritagebank.com with your actual admin subdomain.
+
+tunnel: <TUNNEL-UUID>
+credentials-file: /root/.cloudflared/<TUNNEL-UUID>.json
+
+ingress:
+  # Admin interface — Fastify SSR server
+  - hostname: admin.jpheritagebank.com
+    service: http://localhost:3003
+
+  # Catch-all: return 404 for any unmatched requests
+  - service: http_status:404

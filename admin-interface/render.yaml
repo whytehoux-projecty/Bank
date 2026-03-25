@@ -1,0 +1,93 @@
+services:
+  # ============================================================
+  # JP Heritage Bank — Admin Interface
+  # Fastify + EJS SSR server
+  #
+  # Root directory in Render UI must be set to: admin-interface
+  # ============================================================
+  - type: web
+    name: heritage-admin
+    runtime: node
+    region: oregon
+    plan: starter
+    rootDir: .
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /api/health
+
+    envVars:
+      # --- SERVER ---
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3003"
+      - key: LOG_LEVEL
+        value: info
+
+      # --- DATABASE (same Postgres instance as core-api) ---
+      # Use the same DATABASE_URL as the backend service.
+      # Both services share one Postgres schema.
+      - key: DATABASE_URL
+        sync: false   # set in Render dashboard
+
+      # --- CACHE (same Redis instance as core-api) ---
+      - key: REDIS_URL
+        sync: false   # set in Render dashboard
+
+      # --- JWT & SESSION SECRETS ---
+      # JWT_SECRET here is for admin session tokens.
+      # Must be different from core-api's JWT_SECRET (separate security domain).
+      # Generate with: openssl rand -base64 32
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: "24h"
+      - key: COOKIE_SECRET
+        sync: false   # openssl rand -base64 32
+
+      # --- ADMIN SESSION ---
+      - key: ADMIN_SESSION_TIMEOUT
+        value: "86400000"   # 24 hours in ms
+      - key: BCRYPT_ROUNDS
+        value: "12"
+
+      # --- CORS ---
+      # Comma-separated list of allowed origins.
+      # The admin interface is accessed from your admin domain only.
+      - key: CORS_ORIGIN
+        sync: false   # e.g. https://admin.jpheritagebank.com
+
+      # --- BACKEND API CONNECTION ---
+      # The admin calls the Core API for portal status management.
+      # Set to your Render core-api service's internal URL (if same region)
+      # or the public URL of heritage-core-api.onrender.com
+      - key: API_URL
+        sync: false   # e.g. https://heritage-core-api.onrender.com
+
+      # --- RATE LIMITING ---
+      - key: RATE_LIMIT_MAX
+        value: "100"
+      - key: RATE_LIMIT_WINDOW
+        value: "900000"   # 15 minutes in ms
+
+      # --- FILE UPLOADS ---
+      - key: MAX_FILE_SIZE
+        value: "10485760"   # 10 MB
+      - key: UPLOAD_DIR
+        value: "./uploads"
+
+      # --- OPTIONAL: EMAIL (SMTP) ---
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+
+      # --- OPTIONAL: WEBHOOKS ---
+      - key: STAFF_PORTAL_API_URL
+        value: ""
+      - key: WEBHOOK_SECRET
+        sync: false
