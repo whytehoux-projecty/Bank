@@ -1,0 +1,321 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: "18.19.0"
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Backend Tests
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: aurumvault_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: backend/core-api/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend/core-api
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./backend/core-api
+        run: npx prisma generate
+
+      - name: Run database migrations
+        working-directory: ./backend/core-api
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/aurumvault_test
+        run: npx prisma migrate deploy
+
+      - name: Run linter
+        working-directory: ./backend/core-api
+        run: npm run lint
+
+      - name: Run type check
+        working-directory: ./backend/core-api
+        run: npm run type-check
+
+      - name: Run tests
+        working-directory: ./backend/core-api
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/aurumvault_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret-for-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-for-ci
+          NODE_ENV: test
+        run: npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/core-api/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+  # Admin Interface Tests
+  admin-tests:
+    name: Admin Interface Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: aurumvault_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: admin-interface/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./admin-interface
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./admin-interface
+        run: npx prisma generate
+
+      - name: Run linter
+        working-directory: ./admin-interface
+        run: npm run lint || true
+
+      - name: Run type check
+        working-directory: ./admin-interface
+        run: npm run type-check
+
+      - name: Run tests
+        working-directory: ./admin-interface
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/aurumvault_test
+          NODE_ENV: test
+        run: npm test
+
+  # E-Banking Portal Tests
+  portal-tests:
+    name: E-Banking Portal Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: e-banking-portal/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./e-banking-portal
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./e-banking-portal
+        run: npm run lint || true
+
+      - name: Run type check
+        working-directory: ./e-banking-portal
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        working-directory: ./e-banking-portal
+        run: npm test || true
+
+      - name: Build
+        working-directory: ./e-banking-portal
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+        run: npm run build
+
+  # Corporate Website Tests
+  corporate-tests:
+    name: Corporate Website Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: corporate-website/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./corporate-website
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./corporate-website
+        run: npm run lint || true
+
+      - name: Build
+        working-directory: ./corporate-website
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+        run: npm run build
+
+  # Security Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results.sarif"
+
+      - name: Run npm audit
+        working-directory: ./backend/core-api
+        run: npm audit --audit-level=moderate || true
+
+  # Build Docker Images
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [backend-tests, admin-tests, portal-tests, corporate-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    strategy:
+      matrix:
+        service: [backend, admin, portal]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service == 'backend' && 'backend/core-api' || matrix.service == 'admin' && 'admin-interface' || 'e-banking-portal' }}
+          file: ./${{ matrix.service == 'backend' && 'backend/core-api' || matrix.service == 'admin' && 'admin-interface' || 'e-banking-portal' }}/Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy notification
+        run: |
+          echo "Deploying to production..."
+          echo "Deployment would trigger here (Docker Compose, Kubernetes, etc.)"
+
+      - name: Health check
+        run: |
+          echo "Running health checks..."
+          # Add actual health check commands here
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "Deployment successful!"
+          # Add notification logic (Slack, email, etc.)
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "Deployment failed!"
+          # Add notification logic
