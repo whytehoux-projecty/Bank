@@ -41,8 +41,7 @@
   },
   "include": [
     "src/**/*",
-    "api/**/*",
-    "../backend/shared/**/*"
+    "api/**/*"
   ],
   "exclude": [
     "dist",
